@@ -1,14 +1,26 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Report
+from .models import Report, Contact
+
+class ContactSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    email = serializers.EmailField(source='user.email')
+
+    class Meta:
+        model = Contact
+        fields = ['full_name', 'email', 'phone_number']
+
+    def get_full_name(self, obj):
+        return obj.user.get_full_name()
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
+    phone_number = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password', 'confirm_password']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password', 'confirm_password', 'phone_number']
 
     def validate(self, data):
         if data['password'] != data['confirm_password']:
@@ -17,11 +29,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
+        phone_number = validated_data.pop('phone_number', '')
         user = User.objects.create_user(**validated_data)
+        Contact.objects.create(user=user, phone_number=phone_number)
         return user
 
 class ReportSerializer(serializers.ModelSerializer):
+    inspector = serializers.ReadOnlyField(source='inspector.username')
+    
     class Meta:
         model = Report
-        fields = ['id', 'inspector', 'date', 'location', 'weather_conditions', 'daily_activities', 'created_at', 'updated_at']
-        read_only_fields = ['inspector', 'created_at', 'updated_at'] 
+        fields = ['id', 'inspector', 'date', 'location', 'description', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at'] 
