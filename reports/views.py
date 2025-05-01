@@ -11,6 +11,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 # Create your views here.
 
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
 class UserRegistration(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
@@ -59,3 +64,7 @@ class ContactListView(viewsets.ReadOnlyModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Return all contacts, but only for authenticated users
+        return Contact.objects.all().select_related('user')

@@ -74,10 +74,22 @@ const ContactList = () => {
         setLoading(true);
         setError(null);
         const response = await api.get('/contacts/');
-        setContacts(response.data);
+        if (response.data && Array.isArray(response.data)) {
+          setContacts(response.data);
+        } else {
+          setError('Invalid data received from server');
+        }
       } catch (err) {
-        setError('Failed to fetch contacts. Please try again.');
         console.error('Error fetching contacts:', err);
+        if (err.response) {
+          if (err.response.status === 401) {
+            setError('Please log in to view contacts');
+          } else {
+            setError('Failed to fetch contacts. Please try again.');
+          }
+        } else {
+          setError('Network error. Please check your connection.');
+        }
       } finally {
         setLoading(false);
       }
@@ -87,11 +99,12 @@ const ContactList = () => {
   }, []);
 
   const filteredContacts = contacts.filter(contact => {
+    if (!contact) return false;
     const searchLower = searchTerm.toLowerCase();
     return (
-      contact.full_name.toLowerCase().includes(searchLower) ||
-      contact.email.toLowerCase().includes(searchLower) ||
-      contact.phone_number.toLowerCase().includes(searchLower)
+      (contact.full_name?.toLowerCase() || '').includes(searchLower) ||
+      (contact.email?.toLowerCase() || '').includes(searchLower) ||
+      (contact.phone_number?.toLowerCase() || '').includes(searchLower)
     );
   });
 
