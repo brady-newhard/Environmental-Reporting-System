@@ -18,6 +18,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Add response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Handle 401 Unauthorized errors
+      if (error.response.status === 401) {
+        // Clear token and redirect to login
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const searchReports = async (filters) => {
   try {
     const params = {
@@ -31,6 +47,26 @@ export const searchReports = async (filters) => {
     return response.data;
   } catch (error) {
     console.error('Error searching reports:', error);
+    throw error;
+  }
+};
+
+export const getContacts = async () => {
+  try {
+    const response = await api.get('/contacts/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    throw error;
+  }
+};
+
+export const getUsers = async () => {
+  try {
+    const response = await api.get('/users/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching users:', error);
     throw error;
   }
 };

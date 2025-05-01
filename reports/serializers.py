@@ -5,13 +5,18 @@ from .models import Report, Contact
 class ContactSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     email = serializers.EmailField(source='user.email')
+    username = serializers.CharField(source='user.username')
 
     class Meta:
         model = Contact
-        fields = ['full_name', 'email', 'phone_number']
+        fields = ['id', 'full_name', 'username', 'email', 'phone_number', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
     def get_full_name(self, obj):
-        return obj.user.get_full_name()
+        if not obj.user:
+            return ''
+        full_name = obj.user.get_full_name()
+        return full_name if full_name else obj.user.username
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
