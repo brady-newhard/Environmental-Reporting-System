@@ -13,9 +13,54 @@ import {
   Alert,
   TextField,
   InputAdornment,
+  Link,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { Search as SearchIcon, ContactPhone as ContactPhoneIcon } from '@mui/icons-material';
 import api from '../services/api';
+
+const formatPhoneNumber = (phoneNumber) => {
+  if (!phoneNumber) return '';
+  // Remove all non-digit characters
+  const cleaned = phoneNumber.replace(/\D/g, '');
+  // Format as (XXX) XXX-XXXX
+  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  if (match) {
+    return `(${match[1]}) ${match[2]}-${match[3]}`;
+  }
+  return phoneNumber;
+};
+
+const generateVCard = (contact) => {
+  const vCard = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${contact.full_name}`,
+    `EMAIL:${contact.email}`,
+  ];
+
+  if (contact.phone_number) {
+    const cleanedPhone = contact.phone_number.replace(/\D/g, '');
+    vCard.push(`TEL:${cleanedPhone}`);
+  }
+
+  vCard.push('END:VCARD');
+  return vCard.join('\n');
+};
+
+const downloadVCard = (contact) => {
+  const vCardContent = generateVCard(contact);
+  const blob = new Blob([vCardContent], { type: 'text/vcard' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${contact.full_name.replace(/\s+/g, '_')}.vcf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 const ContactList = () => {
   const [contacts, setContacts] = useState([]);
@@ -28,7 +73,7 @@ const ContactList = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await api.get('/users/');
+        const response = await api.get('/contacts/');
         setContacts(response.data);
       } catch (err) {
         setError('Failed to fetch contacts. Please try again.');
@@ -44,8 +89,7 @@ const ContactList = () => {
   const filteredContacts = contacts.filter(contact => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      contact.first_name.toLowerCase().includes(searchLower) ||
-      contact.last_name.toLowerCase().includes(searchLower) ||
+      contact.full_name.toLowerCase().includes(searchLower) ||
       contact.email.toLowerCase().includes(searchLower) ||
       contact.phone_number.toLowerCase().includes(searchLower)
     );
@@ -112,15 +156,16 @@ const ContactList = () => {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Email</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Phone Number</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600, color: '#000000' }}>Name</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600, color: '#000000' }}>Email</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600, color: '#000000' }}>Phone Number</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 600, color: '#000000' }}>Add Contact</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredContacts.map((contact) => (
+              {filteredContacts.map((contact, index) => (
                 <TableRow 
-                  key={contact.id}
+                  key={index}
                   hover
                   sx={{ 
                     '&:hover': { 
@@ -128,16 +173,59 @@ const ContactList = () => {
                     }
                   }}
                 >
-                  <TableCell>
-                    {contact.first_name} {contact.last_name}
+                  <TableCell align="center">{contact.full_name}</TableCell>
+                  <TableCell align="center">
+                    <Link 
+                      href={`mailto:${contact.email}`}
+                      sx={{
+                        color: '#000000',
+                        textDecoration: 'none',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
+                      }}
+                    >
+                      {contact.email}
+                    </Link>
                   </TableCell>
-                  <TableCell>{contact.email}</TableCell>
-                  <TableCell>{contact.phone_number}</TableCell>
+                  <TableCell align="center">
+                    {contact.phone_number ? (
+                      <Link 
+                        href={`tel:${contact.phone_number.replace(/\D/g, '')}`}
+                        sx={{
+                          color: '#000000',
+                          textDecoration: 'none',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          },
+                        }}
+                      >
+                        {formatPhoneNumber(contact.phone_number)}
+                      </Link>
+                    ) : (
+                      'No phone number'
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Tooltip title="Add to Contacts">
+                      <IconButton 
+                        onClick={() => downloadVCard(contact)}
+                        sx={{ 
+                          color: '#000000',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                          },
+                        }}
+                      >
+                        <ContactPhoneIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               ))}
               {filteredContacts.length === 0 && !loading && (
                 <TableRow>
-                  <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
                     No contacts found matching your search criteria.
                   </TableCell>
                 </TableRow>
