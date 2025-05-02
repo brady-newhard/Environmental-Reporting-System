@@ -13,7 +13,7 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
-import axios from 'axios';
+import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const generateReportId = () => {
@@ -62,12 +62,10 @@ const ReportForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/reports/', {
+      await api.post('/reports/', {
         ...formData,
         reportId: generateReportId(),
         status: 'submitted'
-      }, {
-        withCredentials: true
       });
       alert('Report submitted successfully!');
       setFormData({
@@ -111,12 +109,10 @@ const ReportForm = () => {
   const handleSaveProgress = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/reports/draft/', {
+      await api.post('/reports/draft/', {
         ...formData,
         reportId: generateReportId(),
         status: 'draft'
-      }, {
-        withCredentials: true
       });
       navigate('/reports-dashboard');
     } catch (error) {

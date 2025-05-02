@@ -17,7 +17,7 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 
 const ReviewReport = () => {
   const navigate = useNavigate();
@@ -35,9 +35,7 @@ const ReviewReport = () => {
           setReport(parsedReport);
           setEditedReport(parsedReport);
         } else {
-          const response = await axios.get('http://localhost:8000/api/reports/draft/latest/', {
-            withCredentials: true
-          });
+          const response = await api.get('/reports/draft/latest/');
           setReport(response.data);
           setEditedReport(response.data);
         }
@@ -87,12 +85,7 @@ const ReviewReport = () => {
       };
 
       // Submit to database
-      await axios.post('http://localhost:8000/api/reports/', finalReport, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      await api.post('/reports/', finalReport);
 
       // Clear localStorage after successful submission
       localStorage.removeItem('draftReport');

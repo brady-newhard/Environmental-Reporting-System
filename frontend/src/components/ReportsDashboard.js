@@ -25,7 +25,7 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 
 const DraftReportItem = ({ report, onDelete }) => {
   const navigate = useNavigate();
@@ -110,9 +110,7 @@ const ReportsDashboard = () => {
   useEffect(() => {
     const fetchDraftReports = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/reports/draft/', {
-          withCredentials: true
-        });
+        const response = await api.get('/reports/draft/');
         setDraftReports(response.data);
       } catch (error) {
         console.error('Error fetching draft reports:', error);
@@ -124,9 +122,7 @@ const ReportsDashboard = () => {
 
   const handleDeleteDraft = async (reportId) => {
     try {
-      await axios.delete(`http://localhost:8000/api/reports/draft/${reportId}/`, {
-        withCredentials: true
-      });
+      await api.delete(`/reports/draft/${reportId}/`);
       setDraftReports(draftReports.filter(report => report.id !== reportId));
     } catch (error) {
       console.error('Error deleting draft report:', error);
