@@ -25,9 +25,14 @@ api.interceptors.response.use(
     if (error.response) {
       // Handle 401 Unauthorized errors
       if (error.response.status === 401) {
-        // Clear token and redirect to login
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        const isLogoutRequest = error.config.url.includes('/logout/');
+        const isLoginRequest = error.config.url.includes('/login/');
+        
+        // Don't redirect for logout or login requests
+        if (!isLogoutRequest && !isLoginRequest) {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
