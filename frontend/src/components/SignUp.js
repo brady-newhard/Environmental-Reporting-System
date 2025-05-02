@@ -13,7 +13,6 @@ import {
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import api from '../services/api';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -66,17 +65,37 @@ const SignUp = () => {
     }
 
     try {
-      await api.post('/users/', formData);
+      const response = await fetch('http://localhost:8000/api/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          phone_number: formData.phone_number,
+          confirm_password: formData.confirm_password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(JSON.stringify(errorData));
+      }
+
       navigate('/success-signup');
     } catch (err) {
-      console.error('Signup error:', err.response?.data);
-      if (err.response?.data) {
-        // Handle specific field errors
-        const fieldErrors = Object.entries(err.response.data)
+      console.error('Signup error:', err);
+      try {
+        const errorObj = JSON.parse(err.message);
+        const errorMessages = Object.entries(errorObj)
           .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
           .join('\n');
-        setError(fieldErrors || 'Error creating account');
-      } else {
+        setError(errorMessages);
+      } catch (parseError) {
         setError('Error creating account. Please try again.');
       }
     }
@@ -122,6 +141,7 @@ const SignUp = () => {
                 mb: 2,
                 textAlign: 'center',
                 width: '100%',
+                whiteSpace: 'pre-line',
               }}
             >
               {error}
@@ -280,16 +300,6 @@ const SignUp = () => {
                 },
               }}
             />
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: '#666666',
-                mb: 2,
-                fontSize: '0.8rem',
-              }}
-            >
-              Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.
-            </Typography>
             <TextField
               required
               fullWidth
@@ -304,7 +314,7 @@ const SignUp = () => {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label="toggle confirm password visibility"
+                      aria-label="toggle password visibility"
                       onClick={handleClickShowConfirmPassword}
                       edge="end"
                       sx={{ color: '#666666' }}
@@ -347,7 +357,7 @@ const SignUp = () => {
             <Box sx={{ textAlign: 'center' }}>
               <MuiLink
                 component={RouterLink}
-                to="/signin"
+                to="/login"
                 variant="body2"
                 sx={{
                   color: '#666666',

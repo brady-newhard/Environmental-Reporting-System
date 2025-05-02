@@ -4,7 +4,6 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Button,
   Box,
   IconButton,
   Drawer,
@@ -17,6 +16,7 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Button,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,7 +32,15 @@ const Navigation = () => {
     const value = event.target.value;
     setSelectedMenu(value);
     if (value === 'logout') {
-      logout();
+      handleLogout();
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
   };
 
@@ -87,7 +95,7 @@ const Navigation = () => {
         <List>
           <ListItem 
             button 
-            onClick={logout}
+            onClick={handleLogout}
             sx={{
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.04)',
@@ -217,74 +225,41 @@ const Navigation = () => {
           </>
         ) : (
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <FormControl sx={{ minWidth: 120 }}>
-              <Select
-                value={selectedMenu}
-                onChange={handleMenuChange}
-                displayEmpty
-                sx={{
-                  color: '#ffffff',
-                  '& .MuiSelect-icon': {
-                    color: '#ffffff',
-                  },
-                  '&:before': {
-                    borderColor: '#ffffff',
-                  },
-                  '&:after': {
-                    borderColor: '#ffffff',
-                  },
-                  '& .MuiSelect-select': {
-                    padding: '8px 32px 8px 8px',
-                  },
-                }}
-                IconComponent={() => (
-                  <MenuIcon sx={{ 
-                    color: '#ffffff',
-                    position: 'absolute',
-                    right: '8px',
-                    pointerEvents: 'none',
-                  }} />
-                )}
+            {menuItems.map((item) => (
+              <Button
+                key={item.text}
+                component={RouterLink}
+                to={item.path}
+                sx={{ color: '#ffffff' }}
               >
-                <MenuItem value="" disabled sx={{ display: 'none' }}>
-                  <MenuIcon />
-                </MenuItem>
-                {menuItems.map((item) => (
-                  <MenuItem 
-                    key={item.text} 
-                    value={item.path} 
-                    component={RouterLink} 
-                    to={item.path}
-                    sx={{ color: '#000000' }}
-                  >
-                    {item.text}
-                  </MenuItem>
-                ))}
-                {isAuthenticated ? (
-                  <>
-                    <Divider />
-                    <MenuItem value="profile" component={RouterLink} to="/profile" sx={{ color: '#000000' }}>
-                      Profile
-                    </MenuItem>
-                    <MenuItem value="settings" component={RouterLink} to="/settings" sx={{ color: '#000000' }}>
-                      Settings
-                    </MenuItem>
-                    <Divider />
-                    <MenuItem value="logout" sx={{ color: '#000000' }}>Logout</MenuItem>
-                  </>
-                ) : (
-                  <>
-                    <Divider />
-                    <MenuItem value="login" component={RouterLink} to="/login" sx={{ color: '#000000' }}>
-                      Login
-                    </MenuItem>
-                    <MenuItem value="signup" component={RouterLink} to="/signup" sx={{ color: '#000000' }}>
-                      Sign Up
-                    </MenuItem>
-                  </>
-                )}
-              </Select>
-            </FormControl>
+                {item.text}
+              </Button>
+            ))}
+            {isAuthenticated ? (
+              <Button
+                onClick={handleLogout}
+                sx={{ color: '#ffffff' }}
+              >
+                Logout
+              </Button>
+            ) : (
+              <>
+                <Button
+                  component={RouterLink}
+                  to="/login"
+                  sx={{ color: '#ffffff' }}
+                >
+                  Login
+                </Button>
+                <Button
+                  component={RouterLink}
+                  to="/signup"
+                  sx={{ color: '#ffffff' }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </Box>
         )}
       </Toolbar>

@@ -14,6 +14,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
 import PhotosPage from './components/PhotosPage';
 import ReviewReport from './components/ReviewReport';
+import PrivateRoute from './components/PrivateRoute';
 
 const theme = createTheme({
   palette: {
@@ -172,11 +173,6 @@ const theme = createTheme({
   },
 });
 
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/signin" />;
-};
-
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -185,7 +181,7 @@ function App() {
         <Router>
           <Navigation />
           <Routes>
-            <Route path="/signin" element={<SignIn />} />
+            <Route path="/login" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/success-signup" element={<SuccessSignUp />} />
             <Route
@@ -260,9 +256,23 @@ function App() {
                 </PrivateRoute>
               }
             />
-            <Route path="/new-report" element={<ReportForm />} />
-            <Route path="/photos" element={<PhotosPage />} />
-            <Route path="/review-report" element={<ReviewReport />} />
+            <Route
+              path="/photos"
+              element={
+                <PrivateRoute>
+                  <PhotosPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/review-report/:id"
+              element={
+                <PrivateRoute>
+                  <ReviewReport />
+                </PrivateRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </AuthProvider>

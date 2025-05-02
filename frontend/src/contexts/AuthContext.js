@@ -11,21 +11,47 @@ export const AuthProvider = ({ children }) => {
     // Check if user is already logged in
     const token = localStorage.getItem('token');
     if (token) {
-      setIsAuthenticated(true);
-      // You might want to fetch user data here
+      // Verify token with backend
+      api.post('/verify-token/')
+        .then(() => {
+          setIsAuthenticated(true);
+        })
+        .catch(() => {
+          // If token is invalid, clear it
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+        });
     }
   }, []);
 
   const login = async (token) => {
     localStorage.setItem('token', token);
     setIsAuthenticated(true);
-    // You might want to fetch user data here
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const token = localStorage.getItem('token');
+    
+    // Clear local state first
     localStorage.removeItem('token');
     setIsAuthenticated(false);
     setUser(null);
+
+    // Then try to logout from backend
+    if (token) {
+      try {
+        await api.post('/logout/', {}, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        });
+      } catch (error) {
+        console.error('Error during logout:', error);
+      }
+    }
+
+    // Force a hard navigation to ensure clean state
+    window.location.href = '/login';
   };
 
   return (
