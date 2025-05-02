@@ -13,28 +13,21 @@ import {
   Divider,
   useMediaQuery,
   useTheme,
-  Select,
-  MenuItem,
-  FormControl,
   Button,
+  Avatar,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import PersonIcon from '@mui/icons-material/Person';
 import { useAuth } from '../contexts/AuthContext';
 
 const Navigation = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedMenu, setSelectedMenu] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-  const handleMenuChange = (event) => {
-    const value = event.target.value;
-    setSelectedMenu(value);
-    if (value === 'logout') {
-      handleLogout();
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -49,6 +42,14 @@ const Navigation = () => {
       return;
     }
     setDrawerOpen(open);
+  };
+
+  const handleProfileMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setAnchorEl(null);
   };
 
   const menuItems = [
@@ -188,6 +189,18 @@ const Navigation = () => {
       },
     }}>
       <Toolbar>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          onClick={toggleDrawer(true)}
+          sx={{ 
+            color: '#ffffff',
+            mr: 2,
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
         <Typography
           variant="h6"
           component={RouterLink}
@@ -204,65 +217,70 @@ const Navigation = () => {
           Environmental Reporting System
         </Typography>
 
-        {isMobile ? (
-          <>
+        {isAuthenticated && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              {user?.first_name || user?.username || 'User'}
+            </Typography>
             <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={toggleDrawer(true)}
+              onClick={handleProfileMenuOpen}
               sx={{ color: '#ffffff' }}
             >
-              <MenuIcon />
+              <Avatar sx={{ bgcolor: '#ffffff', color: '#000000' }}>
+                <PersonIcon />
+              </Avatar>
             </IconButton>
-            <Drawer
-              anchor="right"
-              open={drawerOpen}
-              onClose={toggleDrawer(false)}
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleProfileMenuClose}
             >
-              {drawer}
-            </Drawer>
-          </>
-        ) : (
+              <MenuItem 
+                component={RouterLink} 
+                to="/profile"
+                onClick={handleProfileMenuClose}
+              >
+                Profile
+              </MenuItem>
+              <MenuItem 
+                component={RouterLink} 
+                to="/settings"
+                onClick={handleProfileMenuClose}
+              >
+                Settings
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
+          </Box>
+        )}
+
+        {!isAuthenticated && !isMobile && (
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            {menuItems.map((item) => (
-              <Button
-                key={item.text}
-                component={RouterLink}
-                to={item.path}
-                sx={{ color: '#ffffff' }}
-              >
-                {item.text}
-              </Button>
-            ))}
-            {isAuthenticated ? (
-              <Button
-                onClick={handleLogout}
-                sx={{ color: '#ffffff' }}
-              >
-                Logout
-              </Button>
-            ) : (
-              <>
-                <Button
-                  component={RouterLink}
-                  to="/login"
-                  sx={{ color: '#ffffff' }}
-                >
-                  Login
-                </Button>
-                <Button
-                  component={RouterLink}
-                  to="/signup"
-                  sx={{ color: '#ffffff' }}
-                >
-                  Sign Up
-                </Button>
-              </>
-            )}
+            <Button
+              component={RouterLink}
+              to="/login"
+              sx={{ color: '#ffffff' }}
+            >
+              Login
+            </Button>
+            <Button
+              component={RouterLink}
+              to="/signup"
+              sx={{ color: '#ffffff' }}
+            >
+              Sign Up
+            </Button>
           </Box>
         )}
       </Toolbar>
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={toggleDrawer(false)}
+      >
+        {drawer}
+      </Drawer>
     </AppBar>
   );
 };

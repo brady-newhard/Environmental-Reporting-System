@@ -51,7 +51,7 @@ const SignIn = () => {
       }
 
       const data = await response.json();
-      await login(data.token);
+      await login(data.token, data.username, data.first_name);
       navigate('/');
     } catch (err) {
       setError('Invalid username or password');

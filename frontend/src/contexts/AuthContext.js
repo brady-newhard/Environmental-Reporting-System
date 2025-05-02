@@ -13,19 +13,25 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       // Verify token with backend
       api.post('/verify-token/')
-        .then(() => {
+        .then((response) => {
           setIsAuthenticated(true);
+          setUser({
+            username: response.data.user,
+            first_name: response.data.first_name
+          });
         })
         .catch(() => {
           // If token is invalid, clear it
           localStorage.removeItem('token');
           setIsAuthenticated(false);
+          setUser(null);
         });
     }
   }, []);
 
-  const login = async (token) => {
+  const login = async (token, username, first_name) => {
     localStorage.setItem('token', token);
+    setUser({ username, first_name });
     setIsAuthenticated(true);
   };
 
