@@ -8,9 +8,12 @@ import SignUp from './components/SignUp';
 import SuccessSignUp from './components/SuccessSignUp';
 import ContactList from './components/ContactList';
 import Navigation from './components/Navigation';
+import ReportsDashboard from './components/ReportsDashboard';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
+import PhotosPage from './components/PhotosPage';
+import ReviewReport from './components/ReviewReport';
 
 const theme = createTheme({
   palette: {
@@ -194,7 +197,47 @@ function App() {
               }
             />
             <Route
-              path="/new-report"
+              path="/reports-dashboard"
+              element={
+                <PrivateRoute>
+                  <ReportsDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/new-report/daily"
+              element={
+                <PrivateRoute>
+                  <ReportForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/new-report/progress"
+              element={
+                <PrivateRoute>
+                  <ReportForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/new-report/punchlist"
+              element={
+                <PrivateRoute>
+                  <ReportForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/new-report/variance"
+              element={
+                <PrivateRoute>
+                  <ReportForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/new-report/swppp"
               element={
                 <PrivateRoute>
                   <ReportForm />
@@ -217,6 +260,9 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path="/new-report" element={<ReportForm />} />
+            <Route path="/photos" element={<PhotosPage />} />
+            <Route path="/review-report" element={<ReviewReport />} />
           </Routes>
         </Router>
       </AuthProvider>

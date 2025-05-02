@@ -45,7 +45,7 @@ const Navigation = () => {
 
   const menuItems = [
     { text: 'Home', path: '/' },
-    { text: 'New Report', path: '/new-report' },
+    { text: 'Reports Dashboard', path: '/reports-dashboard' },
     { text: 'Search Reports', path: '/search' },
     { text: 'Contacts', path: '/contacts' },
   ];

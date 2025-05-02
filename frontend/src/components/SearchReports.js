@@ -1,268 +1,437 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
-  TextField,
+  Paper,
   Typography,
+  TextField,
+  Grid,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Grid,
-  Chip,
-  CircularProgress,
-  Alert,
+  IconButton,
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
-import { searchReports } from '../services/api';
+import {
+  Clear as ClearIcon,
+  Search as SearchIcon,
+  GetApp as DownloadIcon,
+} from '@mui/icons-material';
 
 const SearchReports = () => {
   const [filters, setFilters] = useState({
-    author: '',
+    reportType: '',
+    columnsToInclude: 'All',
     startDate: '',
     endDate: '',
-    reportType: '',
-    status: '',
-    location: ''
+    milepostStart: '',
+    milepostEnd: '',
+    stationStart: '',
+    stationEnd: '',
+    facility: '',
+    route: '',
+    spread: '',
+    reportReviewStatus: '',
+    author: '',
+    complianceLevel: '',
+    category: '',
+    activityGroup: '',
+    activityType: '',
+    keyword: '',
   });
 
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchReports = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await searchReports(filters);
-      setReports(data);
-    } catch (err) {
-      setError('Failed to fetch reports. Please try again.');
-      console.error('Error fetching reports:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchReports();
-  }, [filters]);
+  const [searchResults, setSearchResults] = useState([]);
 
   const handleFilterChange = (event) => {
+    const { name, value } = event.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleClearResults = () => {
+    setSearchResults([]);
+  };
+
+  const handleClearSearchSettings = () => {
     setFilters({
-      ...filters,
-      [event.target.name]: event.target.value
+      reportType: '',
+      columnsToInclude: 'All',
+      startDate: '',
+      endDate: '',
+      milepostStart: '',
+      milepostEnd: '',
+      stationStart: '',
+      stationEnd: '',
+      facility: '',
+      route: '',
+      spread: '',
+      reportReviewStatus: '',
+      author: '',
+      complianceLevel: '',
+      category: '',
+      activityGroup: '',
+      activityType: '',
+      keyword: '',
     });
   };
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return { bg: '#e8f5e9', color: '#2e7d32' };
-      case 'under review':
-        return { bg: '#fff3e0', color: '#ef6c00' };
-      case 'submitted':
-        return { bg: '#e3f2fd', color: '#1976d2' };
-      default:
-        return { bg: '#f5f5f5', color: '#666666' };
-    }
+  const handleSearch = () => {
+    // TODO: Implement actual search functionality
+    console.log('Search with filters:', filters);
+  };
+
+  const handleGenerateReport = () => {
+    // TODO: Implement report generation
+    console.log('Generating report from search results');
   };
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
-      <Typography 
-        variant="h5" 
-        sx={{ 
-          mb: 3, 
-          color: '#000000',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}
-      >
-        <SearchIcon /> Search Reports
-      </Typography>
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f3f4f6' }}>
+      {/* Main Content */}
+      <Box sx={{ p: 3, flexGrow: 1, overflowY: 'auto' }}>
+        {/* Search Form */}
+        <Paper sx={{ p: 3, mb: 3, bgcolor: '#e5e7eb' }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#000000', fontWeight: 'bold' }}>SEARCH REPORTS</Typography>
+          
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            {/* Left Column - General Search Criteria */}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>General Search</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, height: '100%', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>REPORT TYPE</InputLabel>
+                    <Select
+                      name="reportType"
+                      value={filters.reportType}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      <MenuItem value="daily">Daily Report</MenuItem>
+                      <MenuItem value="variance">Variance Report</MenuItem>
+                      <MenuItem value="punchlist">Punchlist</MenuItem>
+                      <MenuItem value="progress">Progress Report</MenuItem>
+                      <MenuItem value="swppp">SWPPP Report</MenuItem>
+                    </Select>
+                  </FormControl>
 
-      {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3, borderRadius: '2px' }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              fullWidth
-              name="author"
-              label="Author"
-              value={filters.author}
-              onChange={handleFilterChange}
-              sx={{ 
-                backgroundColor: '#fff',
-                '& .MuiOutlinedInput-root': {
-                  height: '40px'
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              fullWidth
-              type="date"
-              name="startDate"
-              label="Start Date"
-              value={filters.startDate}
-              onChange={handleFilterChange}
-              InputLabelProps={{ shrink: true }}
-              sx={{ 
-                backgroundColor: '#fff',
-                '& .MuiOutlinedInput-root': {
-                  height: '40px'
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              fullWidth
-              type="date"
-              name="endDate"
-              label="End Date"
-              value={filters.endDate}
-              onChange={handleFilterChange}
-              InputLabelProps={{ shrink: true }}
-              sx={{ 
-                backgroundColor: '#fff',
-                '& .MuiOutlinedInput-root': {
-                  height: '40px'
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <TextField
-              fullWidth
-              name="location"
-              label="Location"
-              value={filters.location}
-              onChange={handleFilterChange}
-              sx={{ 
-                backgroundColor: '#fff',
-                '& .MuiOutlinedInput-root': {
-                  height: '40px'
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <FormControl fullWidth>
-              <InputLabel>Report Type</InputLabel>
-              <Select
-                name="reportType"
-                value={filters.reportType}
-                onChange={handleFilterChange}
-                sx={{ 
-                  backgroundColor: '#fff',
-                  height: '40px'
-                }}
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>COLUMNS TO INCLUDE</InputLabel>
+                    <Select
+                      name="columnsToInclude"
+                      value={filters.columnsToInclude}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="All">All</MenuItem>
+                      <MenuItem value="Basic">Basic</MenuItem>
+                      <MenuItem value="Custom">Custom</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>DATE</Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="START"
+                        type="date"
+                        name="startDate"
+                        value={filters.startDate}
+                        onChange={handleFilterChange}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="END"
+                        type="date"
+                        name="endDate"
+                        value={filters.endDate}
+                        onChange={handleFilterChange}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>MILEPOST</Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="START"
+                        name="milepostStart"
+                        value={filters.milepostStart}
+                        onChange={handleFilterChange}
+                      />
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="END"
+                        name="milepostEnd"
+                        value={filters.milepostEnd}
+                        onChange={handleFilterChange}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>STATION</Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="START"
+                        name="stationStart"
+                        value={filters.stationStart}
+                        onChange={handleFilterChange}
+                      />
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="END"
+                        name="stationEnd"
+                        value={filters.stationEnd}
+                        onChange={handleFilterChange}
+                      />
+                    </Box>
+                  </Box>
+
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="KEYWORD"
+                    name="keyword"
+                    value={filters.keyword}
+                    onChange={handleFilterChange}
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Right Column - Route and Activity Related */}
+            <Box sx={{ flex: 1, borderLeft: '1px solid #d1d5db', pl: 3 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>Route & Activity</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, height: '100%', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>ROUTE</InputLabel>
+                    <Select
+                      name="route"
+                      value={filters.route}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      {/* Add route options */}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>SPREAD</InputLabel>
+                    <Select
+                      name="spread"
+                      value={filters.spread}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      {/* Add spread options */}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>FACILITY</InputLabel>
+                    <Select
+                      name="facility"
+                      value={filters.facility}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      {/* Add facility options */}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>REPORT REVIEW STATUS</InputLabel>
+                    <Select
+                      name="reportReviewStatus"
+                      value={filters.reportReviewStatus}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      <MenuItem value="pending">Pending</MenuItem>
+                      <MenuItem value="approved">Approved</MenuItem>
+                      <MenuItem value="rejected">Rejected</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>COMPLIANCE LEVEL</InputLabel>
+                    <Select
+                      name="complianceLevel"
+                      value={filters.complianceLevel}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      <MenuItem value="high">High</MenuItem>
+                      <MenuItem value="medium">Medium</MenuItem>
+                      <MenuItem value="low">Low</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>CATEGORY</InputLabel>
+                    <Select
+                      name="category"
+                      value={filters.category}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      {/* Add category options */}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>ACTIVITY GROUP</InputLabel>
+                    <Select
+                      name="activityGroup"
+                      value={filters.activityGroup}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      {/* Add activity group options */}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
+                    <InputLabel>ACTIVITY TYPE</InputLabel>
+                    <Select
+                      name="activityType"
+                      value={filters.activityType}
+                      onChange={handleFilterChange}
+                    >
+                      <MenuItem value="">All</MenuItem>
+                      {/* Add activity type options */}
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Search Buttons */}
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ClearIcon />}
+                onClick={handleClearResults}
+                sx={{ mr: 1, bgcolor: '#6b7280', height: '32px' }}
               >
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="Site Inspection">Site Inspection</MenuItem>
-                <MenuItem value="Environmental Assessment">Environmental Assessment</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6} md={2}>
-            <FormControl fullWidth>
-              <InputLabel>Status</InputLabel>
-              <Select
-                name="status"
-                value={filters.status}
-                onChange={handleFilterChange}
-                sx={{ 
-                  backgroundColor: '#fff',
-                  height: '40px'
-                }}
+                CLEAR RESULTS
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ClearIcon />}
+                onClick={handleClearSearchSettings}
+                sx={{ bgcolor: '#6b7280', height: '32px' }}
               >
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="Submitted">Submitted</MenuItem>
-                <MenuItem value="Approved">Approved</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-      </Paper>
+                CLEAR SEARCH SETTINGS
+              </Button>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<SearchIcon />}
+              onClick={handleSearch}
+              sx={{ bgcolor: '#4b5563', height: '32px' }}
+            >
+              SEARCH
+            </Button>
+          </Box>
+        </Paper>
 
-      {/* Error Message */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+        {/* Search Results */}
+        <Paper sx={{ p: 3, bgcolor: '#ffffff' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>SEARCH RESULTS</Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel>REPORT TYPE</InputLabel>
+                <Select defaultValue="">
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="punchlist">PUNCHLIST</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel>DOCUMENT TYPE</InputLabel>
+                <Select defaultValue="">
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="excel">Excel</MenuItem>
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={handleGenerateReport}
+                sx={{ bgcolor: '#6b7280', height: '32px' }}
+              >
+                GENERATE REPORT OF SEARCH RESULTS SHOWN
+              </Button>
+            </Box>
+          </Box>
 
-      {/* Loading State */}
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        /* Results Table */
-        <TableContainer component={Paper} sx={{ borderRadius: '2px' }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Date</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Author</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Location</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Weather</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#000000' }}>Last Modified</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reports.map((report) => (
-                <TableRow 
-                  key={report.id}
-                  hover
-                  sx={{ 
-                    '&:hover': { 
-                      backgroundColor: '#f8f8f8',
-                      cursor: 'pointer'
-                    }
-                  }}
-                >
-                  <TableCell>{new Date(report.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{report.inspector.username}</TableCell>
-                  <TableCell>{report.location}</TableCell>
-                  <TableCell>{report.weather_conditions}</TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={report.status || 'Submitted'}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: getStatusColor(report.status || 'Submitted').bg,
-                        color: getStatusColor(report.status || 'Submitted').color,
-                        fontWeight: 500
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{new Date(report.updated_at).toLocaleString()}</TableCell>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#f3f4f6' }}>
+                  <TableCell>Report ID</TableCell>
+                  <TableCell>Report Date</TableCell>
+                  <TableCell>Compliance Level</TableCell>
+                  <TableCell>Author</TableCell>
+                  <TableCell>Route</TableCell>
+                  <TableCell>Spread</TableCell>
+                  <TableCell>Facility</TableCell>
+                  <TableCell>Milepost Start</TableCell>
+                  <TableCell>Milepost End</TableCell>
+                  <TableCell>Station Start</TableCell>
+                  <TableCell>Station End</TableCell>
+                  <TableCell>Activity Type</TableCell>
                 </TableRow>
-              ))}
-              {reports.length === 0 && !loading && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                    No reports found matching your search criteria.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              </TableHead>
+              <TableBody>
+                {searchResults.map((result) => (
+                  <TableRow key={result.id}>
+                    <TableCell>{result.id}</TableCell>
+                    <TableCell>{result.date}</TableCell>
+                    <TableCell>{result.complianceLevel}</TableCell>
+                    <TableCell>{result.author}</TableCell>
+                    <TableCell>{result.route}</TableCell>
+                    <TableCell>{result.spread}</TableCell>
+                    <TableCell>{result.facility}</TableCell>
+                    <TableCell>{result.milepostStart}</TableCell>
+                    <TableCell>{result.milepostEnd}</TableCell>
+                    <TableCell>{result.stationStart}</TableCell>
+                    <TableCell>{result.stationEnd}</TableCell>
+                    <TableCell>{result.activityType}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Box>
     </Box>
   );
 };
