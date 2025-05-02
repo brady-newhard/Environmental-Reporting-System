@@ -7,6 +7,21 @@ class Report(models.Model):
     location = models.CharField(max_length=255)
     weather_conditions = models.CharField(max_length=255)
     daily_activities = models.TextField()
+    
+    # Additional fields for search functionality
+    report_type = models.CharField(max_length=100, blank=True, null=True)
+    facility = models.CharField(max_length=255, blank=True, null=True)
+    route = models.CharField(max_length=255, blank=True, null=True)
+    spread = models.CharField(max_length=255, blank=True, null=True)
+    compliance_level = models.CharField(max_length=100, blank=True, null=True)
+    activity_category = models.CharField(max_length=100, blank=True, null=True)
+    activity_group = models.CharField(max_length=100, blank=True, null=True)
+    activity_type = models.CharField(max_length=100, blank=True, null=True)
+    milepost_start = models.CharField(max_length=50, blank=True, null=True)
+    milepost_end = models.CharField(max_length=50, blank=True, null=True)
+    station_start = models.CharField(max_length=50, blank=True, null=True)
+    station_end = models.CharField(max_length=50, blank=True, null=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

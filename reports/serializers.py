@@ -41,8 +41,27 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ReportSerializer(serializers.ModelSerializer):
     inspector = serializers.ReadOnlyField(source='inspector.username')
+    author = serializers.ReadOnlyField(source='inspector.username')
+    report_type = serializers.CharField(required=False, allow_blank=True)
+    facility = serializers.CharField(required=False, allow_blank=True)
+    route = serializers.CharField(required=False, allow_blank=True)
+    spread = serializers.CharField(required=False, allow_blank=True)
+    compliance_level = serializers.CharField(required=False, allow_blank=True)
+    activity_category = serializers.CharField(required=False, allow_blank=True)
+    activity_group = serializers.CharField(required=False, allow_blank=True)
+    activity_type = serializers.CharField(required=False, allow_blank=True)
+    milepost_start = serializers.CharField(required=False, allow_blank=True)
+    milepost_end = serializers.CharField(required=False, allow_blank=True)
+    station_start = serializers.CharField(required=False, allow_blank=True)
+    station_end = serializers.CharField(required=False, allow_blank=True)
     
     class Meta:
         model = Report
-        fields = ['id', 'inspector', 'date', 'location', 'description', 'status', 'created_at', 'updated_at']
+        fields = [
+            'id', 'inspector', 'author', 'date', 'location', 'weather_conditions', 
+            'daily_activities', 'report_type', 'facility', 'route', 'spread', 
+            'compliance_level', 'activity_category', 'activity_group', 'activity_type',
+            'milepost_start', 'milepost_end', 'station_start', 'station_end',
+            'created_at', 'updated_at'
+        ]
         read_only_fields = ['created_at', 'updated_at'] 

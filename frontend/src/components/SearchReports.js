@@ -27,23 +27,23 @@ import api from '../services/api';
 
 const SearchReports = () => {
   const [filters, setFilters] = useState({
-    reportType: '',
-    columnsToInclude: 'All',
-    startDate: '',
-    endDate: '',
-    milepostStart: '',
-    milepostEnd: '',
-    stationStart: '',
-    stationEnd: '',
+    report_type: '',
+    columns_to_include: 'All',
+    start_date: '',
+    end_date: '',
+    milepost_start: '',
+    milepost_end: '',
+    station_start: '',
+    station_end: '',
     facility: '',
     route: '',
     spread: '',
-    reportReviewStatus: '',
+    report_review_status: '',
     author: '',
-    complianceLevel: '',
+    compliance_level: '',
     category: '',
-    activityGroup: '',
-    activityType: '',
+    activity_group: '',
+    activity_type: '',
     keyword: '',
   });
 
@@ -63,23 +63,23 @@ const SearchReports = () => {
 
   const handleClearSearchSettings = () => {
     setFilters({
-      reportType: '',
-      columnsToInclude: 'All',
-      startDate: '',
-      endDate: '',
-      milepostStart: '',
-      milepostEnd: '',
-      stationStart: '',
-      stationEnd: '',
+      report_type: '',
+      columns_to_include: 'All',
+      start_date: '',
+      end_date: '',
+      milepost_start: '',
+      milepost_end: '',
+      station_start: '',
+      station_end: '',
       facility: '',
       route: '',
       spread: '',
-      reportReviewStatus: '',
+      report_review_status: '',
       author: '',
-      complianceLevel: '',
+      compliance_level: '',
       category: '',
-      activityGroup: '',
-      activityType: '',
+      activity_group: '',
+      activity_type: '',
       keyword: '',
     });
   };
@@ -133,8 +133,8 @@ const SearchReports = () => {
                   <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
                     <InputLabel>REPORT TYPE</InputLabel>
                     <Select
-                      name="reportType"
-                      value={filters.reportType}
+                      name="report_type"
+                      value={filters.report_type}
                       onChange={handleFilterChange}
                     >
                       <MenuItem value="">All</MenuItem>
@@ -149,8 +149,8 @@ const SearchReports = () => {
                   <FormControl fullWidth size="small" sx={{ '& .MuiInputLabel-root': { position: 'relative', transform: 'none', marginBottom: '8px' } }}>
                     <InputLabel>COLUMNS TO INCLUDE</InputLabel>
                     <Select
-                      name="columnsToInclude"
-                      value={filters.columnsToInclude}
+                      name="columns_to_include"
+                      value={filters.columns_to_include}
                       onChange={handleFilterChange}
                     >
                       <MenuItem value="All">All</MenuItem>
@@ -167,8 +167,8 @@ const SearchReports = () => {
                         size="small"
                         label="START"
                         type="date"
-                        name="startDate"
-                        value={filters.startDate}
+                        name="start_date"
+                        value={filters.start_date}
                         onChange={handleFilterChange}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -177,8 +177,8 @@ const SearchReports = () => {
                         size="small"
                         label="END"
                         type="date"
-                        name="endDate"
-                        value={filters.endDate}
+                        name="end_date"
+                        value={filters.end_date}
                         onChange={handleFilterChange}
                         InputLabelProps={{ shrink: true }}
                       />
@@ -192,16 +192,16 @@ const SearchReports = () => {
                         fullWidth
                         size="small"
                         label="START"
-                        name="milepostStart"
-                        value={filters.milepostStart}
+                        name="milepost_start"
+                        value={filters.milepost_start}
                         onChange={handleFilterChange}
                       />
                       <TextField
                         fullWidth
                         size="small"
                         label="END"
-                        name="milepostEnd"
-                        value={filters.milepostEnd}
+                        name="milepost_end"
+                        value={filters.milepost_end}
                         onChange={handleFilterChange}
                       />
                     </Box>
@@ -214,16 +214,16 @@ const SearchReports = () => {
                         fullWidth
                         size="small"
                         label="START"
-                        name="stationStart"
-                        value={filters.stationStart}
+                        name="station_start"
+                        value={filters.station_start}
                         onChange={handleFilterChange}
                       />
                       <TextField
                         fullWidth
                         size="small"
                         label="END"
-                        name="stationEnd"
-                        value={filters.stationEnd}
+                        name="station_end"
+                        value={filters.station_end}
                         onChange={handleFilterChange}
                       />
                     </Box>

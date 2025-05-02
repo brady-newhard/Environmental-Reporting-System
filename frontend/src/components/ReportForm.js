@@ -25,15 +25,15 @@ const generateReportId = () => {
 const ReportForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    reportId: generateReportId(),
+    report_id: generateReportId(),
     date: '',
     author: '',
-    otherFieldStaff: '',
-    reportType: 'Site Inspection',
-    weatherDescription: '',
+    other_field_staff: '',
+    report_type: 'Site Inspection',
+    weather_description: '',
     temperature: '',
-    precipitationType: 'None',
-    precipitationInches: '',
+    precipitation_type: 'None',
+    precipitation_inches: '',
     notes: '',
     // Location Information
     route: '',
@@ -41,15 +41,15 @@ const ReportForm = () => {
     facility: '',
     state: '',
     county: '',
-    milepostStart: '',
-    milepostEnd: '',
-    stationStart: '',
-    stationEnd: '',
+    milepost_start: '',
+    milepost_end: '',
+    station_start: '',
+    station_end: '',
     // Activity Information
-    activityCategory: '',
-    activityGroup: '',
-    activityType: '',
-    complianceLevel: 'Acceptable'
+    activity_category: '',
+    activity_group: '',
+    activity_type: '',
+    compliance_level: 'Acceptable'
   });
 
   const handleChange = (e) => {
@@ -64,34 +64,36 @@ const ReportForm = () => {
     try {
       await api.post('/reports/', {
         ...formData,
-        reportId: generateReportId(),
-        status: 'submitted'
+        report_id: generateReportId(),
+        status: 'submitted',
+        weather_conditions: formData.weather_description,
+        daily_activities: formData.notes
       });
       alert('Report submitted successfully!');
       setFormData({
-        reportId: generateReportId(),
+        report_id: generateReportId(),
         date: '',
         author: '',
-        otherFieldStaff: '',
-        reportType: 'Site Inspection',
-        weatherDescription: '',
+        other_field_staff: '',
+        report_type: 'Site Inspection',
+        weather_description: '',
         temperature: '',
-        precipitationType: 'None',
-        precipitationInches: '',
+        precipitation_type: 'None',
+        precipitation_inches: '',
         notes: '',
         route: '',
         spread: '',
         facility: '',
         state: '',
         county: '',
-        milepostStart: '',
-        milepostEnd: '',
-        stationStart: '',
-        stationEnd: '',
-        activityCategory: '',
-        activityGroup: '',
-        activityType: '',
-        complianceLevel: 'Acceptable'
+        milepost_start: '',
+        milepost_end: '',
+        station_start: '',
+        station_end: '',
+        activity_category: '',
+        activity_group: '',
+        activity_type: '',
+        compliance_level: 'Acceptable'
       });
     } catch (error) {
       console.error('Error submitting report:', error);
@@ -111,7 +113,7 @@ const ReportForm = () => {
     try {
       await api.post('/reports/draft/', {
         ...formData,
-        reportId: generateReportId(),
+        report_id: generateReportId(),
         status: 'draft'
       });
       navigate('/reports-dashboard');
@@ -224,8 +226,8 @@ const ReportForm = () => {
               <Typography sx={labelStyle}>OTHER FIELD STAFF</Typography>
               <TextField
                 fullWidth
-                name="otherFieldStaff"
-                value={formData.otherFieldStaff}
+                name="other_field_staff"
+                value={formData.other_field_staff}
                 onChange={handleChange}
                 sx={inputStyle}
               />
@@ -234,8 +236,8 @@ const ReportForm = () => {
               <Typography sx={labelStyle}>REPORT TYPE</Typography>
               <FormControl fullWidth sx={inputStyle}>
                 <Select
-                  name="reportType"
-                  value={formData.reportType}
+                  name="report_type"
+                  value={formData.report_type}
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
@@ -267,8 +269,8 @@ const ReportForm = () => {
               <Typography sx={labelStyle}>WEATHER DESCRIPTION</Typography>
               <TextField
                 fullWidth
-                name="weatherDescription"
-                value={formData.weatherDescription}
+                name="weather_description"
+                value={formData.weather_description}
                 onChange={handleChange}
                 sx={inputStyle}
               />
@@ -287,8 +289,8 @@ const ReportForm = () => {
               <Typography sx={labelStyle}>PRECIPITATION TYPE</Typography>
               <FormControl fullWidth sx={inputStyle}>
                 <Select
-                  name="precipitationType"
-                  value={formData.precipitationType}
+                  name="precipitation_type"
+                  value={formData.precipitation_type}
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
@@ -302,8 +304,8 @@ const ReportForm = () => {
               <Typography sx={labelStyle}>PRECIPITATION INCHES</Typography>
               <TextField
                 fullWidth
-                name="precipitationInches"
-                value={formData.precipitationInches}
+                name="precipitation_inches"
+                value={formData.precipitation_inches}
                 onChange={handleChange}
                 sx={inputStyle}
               />
@@ -409,16 +411,16 @@ const ReportForm = () => {
                 <Box sx={{ display: 'flex', gap: 2, flex: 1 }}>
                   <TextField
                     fullWidth
-                    name="milepostStart"
-                    value={formData.milepostStart}
+                    name="milepost_start"
+                    value={formData.milepost_start}
                     onChange={handleChange}
                     sx={inputStyle}
                     placeholder="Start"
                   />
                   <TextField
                     fullWidth
-                    name="milepostEnd"
-                    value={formData.milepostEnd}
+                    name="milepost_end"
+                    value={formData.milepost_end}
                     onChange={handleChange}
                     sx={inputStyle}
                     placeholder="End"
@@ -433,16 +435,16 @@ const ReportForm = () => {
                 <Box sx={{ display: 'flex', gap: 2, flex: 1 }}>
                   <TextField
                     fullWidth
-                    name="stationStart"
-                    value={formData.stationStart}
+                    name="station_start"
+                    value={formData.station_start}
                     onChange={handleChange}
                     sx={inputStyle}
                     placeholder="Start"
                   />
                   <TextField
                     fullWidth
-                    name="stationEnd"
-                    value={formData.stationEnd}
+                    name="station_end"
+                    value={formData.station_end}
                     onChange={handleChange}
                     sx={inputStyle}
                     placeholder="End"
@@ -474,8 +476,8 @@ const ReportForm = () => {
               <FormControl fullWidth sx={inputStyle}>
                 <Select
                   required
-                  name="activityCategory"
-                  value={formData.activityCategory}
+                  name="activity_category"
+                  value={formData.activity_category}
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
@@ -488,8 +490,8 @@ const ReportForm = () => {
               <FormControl fullWidth sx={inputStyle}>
                 <Select
                   required
-                  name="activityGroup"
-                  value={formData.activityGroup}
+                  name="activity_group"
+                  value={formData.activity_group}
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
@@ -502,8 +504,8 @@ const ReportForm = () => {
               <FormControl fullWidth sx={inputStyle}>
                 <Select
                   required
-                  name="activityType"
-                  value={formData.activityType}
+                  name="activity_type"
+                  value={formData.activity_type}
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
@@ -515,8 +517,8 @@ const ReportForm = () => {
               <Typography sx={labelStyle}>COMPLIANCE LEVEL</Typography>
               <FormControl fullWidth sx={inputStyle}>
                 <Select
-                  name="complianceLevel"
-                  value={formData.complianceLevel}
+                  name="compliance_level"
+                  value={formData.compliance_level}
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
