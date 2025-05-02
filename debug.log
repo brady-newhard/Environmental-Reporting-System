@@ -1,0 +1,19 @@
+INFO 2025-05-02 02:35:04,485 autoreload 8396 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:36:58,524 autoreload 8396 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/environmentalreport/settings.py changed, reloading.
+INFO 2025-05-02 02:37:09,953 autoreload 8465 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:38:29,139 autoreload 9184 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:39:39,743 autoreload 8465 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/environmentalreport/settings.py changed, reloading.
+INFO 2025-05-02 02:39:40,145 autoreload 9184 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/environmentalreport/settings.py changed, reloading.
+INFO 2025-05-02 02:39:49,553 autoreload 9206 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:39:49,872 autoreload 9203 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:40:15,453 autoreload 9206 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/backend/reports/views/__init__.py changed, reloading.
+INFO 2025-05-02 02:40:15,520 autoreload 9203 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/backend/reports/views/__init__.py changed, reloading.
+INFO 2025-05-02 02:40:26,814 autoreload 9268 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:40:26,894 autoreload 9267 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:42:24,428 autoreload 9268 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/reports/models.py changed, reloading.
+INFO 2025-05-02 02:42:36,334 autoreload 9774 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:42:50,543 autoreload 9774 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/reports/admin.py changed, reloading.
+INFO 2025-05-02 02:43:04,401 autoreload 9804 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 02:43:47,857 autoreload 9804 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/reports/admin.py changed, reloading.
+INFO 2025-05-02 02:43:55,296 autoreload 9914 140704308627904 Watching for file changes with StatReloader
+INFO 2025-05-02 03:23:00,814 autoreload 9914 140704308627904 /Users/Brady/code/WildStone/ReportApp/Environmental-Reporting-System/reports/admin.py changed, reloading.
