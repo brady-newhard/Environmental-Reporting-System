@@ -15,6 +15,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import PhotosPage from './components/PhotosPage';
 import ReviewReport from './components/ReviewReport';
 import PrivateRoute from './components/PrivateRoute';
+import Profile from './components/Profile';
 
 const theme = createTheme({
   palette: {
@@ -269,6 +270,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ReviewReport />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Profile />
                 </PrivateRoute>
               }
             />

@@ -31,7 +31,8 @@ def login(request):
     return Response({
         'token': token.key,
         'user_id': user.pk,
-        'username': user.username
+        'username': user.username,
+        'first_name': user.first_name
     })
 
 @api_view(['POST'])
@@ -49,7 +50,8 @@ def verify_token(request):
         logger.info(f"Token verified successfully for user: {token.user.username}")
         return Response({
             'status': 'Token is valid',
-            'user': token.user.username
+            'user': token.user.username,
+            'first_name': token.user.first_name
         })
     except (IndexError, ObjectDoesNotExist):
         logger.warning(f"Token verification failed: Invalid token")
