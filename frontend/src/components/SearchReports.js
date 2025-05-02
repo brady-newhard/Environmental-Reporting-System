@@ -23,6 +23,7 @@ import {
   Search as SearchIcon,
   GetApp as DownloadIcon,
 } from '@mui/icons-material';
+import api from '../services/api';
 
 const SearchReports = () => {
   const [filters, setFilters] = useState({
@@ -83,14 +84,36 @@ const SearchReports = () => {
     });
   };
 
-  const handleSearch = () => {
-    // TODO: Implement actual search functionality
-    console.log('Search with filters:', filters);
+  const handleSearch = async () => {
+    try {
+      const response = await api.get('/reports/search/', { params: filters });
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error('Error searching reports:', error);
+      alert('Error searching reports. Please try again.');
+    }
   };
 
-  const handleGenerateReport = () => {
-    // TODO: Implement report generation
-    console.log('Generating report from search results');
+  const handleGenerateReport = async () => {
+    try {
+      const response = await api.post('/reports/generate/', {
+        filters,
+        results: searchResults
+      });
+      // Handle the generated report file
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'report.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert('Error generating report. Please try again.');
+    }
   };
 
   return (
