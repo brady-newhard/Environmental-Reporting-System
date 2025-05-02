@@ -81,7 +81,9 @@ const ReviewReport = () => {
           preview: photo.preview
         })),
         status: 'submitted',
-        submittedAt: new Date().toISOString()
+        submitted_at: new Date().toISOString(),
+        weather_conditions: editedReport.weather_description,
+        daily_activities: editedReport.notes
       };
 
       // Submit to database

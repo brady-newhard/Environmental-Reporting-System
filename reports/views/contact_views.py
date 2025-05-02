@@ -1,8 +1,8 @@
-from rest_framework import viewsets, permissions
+from rest_framework import generics, permissions
 from ..models import Contact
 from ..serializers import ContactSerializer
 
-class ContactListView(viewsets.ModelViewSet):
+class ContactListView(generics.ListAPIView):
     serializer_class = ContactSerializer
     permission_classes = [permissions.IsAuthenticated]
 
