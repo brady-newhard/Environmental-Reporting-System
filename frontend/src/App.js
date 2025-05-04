@@ -17,6 +17,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Profile from './components/Profile';
 import ReportForm from './components/ReportForm';
 import NewPunchlist from './components/NewPunchlist';
+import PunchlistReportPage from './components/PunchlistReportPage';
 
 const theme = createTheme({
   palette: {
@@ -255,6 +256,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/punchlist-report/:id"
+              element={
+                <PrivateRoute>
+                  <PunchlistReportPage />
                 </PrivateRoute>
               }
             />
