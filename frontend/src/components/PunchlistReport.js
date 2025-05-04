@@ -44,101 +44,51 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
 
   useEffect(() => {
     if (!reportId) {
-      const createPunchListReport = async () => {
-        try {
-          setLoading(true);
-          const today = new Date().toISOString().split('T')[0];
-          const response = await api.post('/reports/', {
-            report_type: 'Punch List',
-            daily_activities: '',
-            weather_conditions: 'N/A',
-            title: 'Punch List',
-            description: '',
-            location: '',
-            date: today,
-          });
-          setReportId(response.data.id);
-          setLoading(false);
-          console.log('Created Punch List report with id:', response.data.id);
-        } catch (error) {
-          setLoading(false);
-          console.error('Error creating Punch List report:', error);
-        }
-      };
-      createPunchListReport();
+      setLoading(false);
     }
   }, [reportId]);
 
   useEffect(() => {
-    console.log('PunchlistReport mounted, reportId:', reportId);
     if (reportId) {
       fetchReport();
       fetchItems();
     }
   }, [reportId]);
 
-  useEffect(() => {
-    console.log('PunchlistReport items:', items, 'reportId:', reportId);
-    if (items.length === 0 && reportId) {
-      const addTestItems = async () => {
-        try {
-          console.log('Attempting to add test items for reportId:', reportId);
-          const res1 = await api.post(`/reports/${reportId}/punchlist-items/`, {
-            spread: 'Test Spread 1',
-            inspector: 'Test Inspector 1',
-            start_station: '100',
-            end_station: '200',
-            feature: 'Test Feature 1',
-            issue: 'Test Issue 1',
-            recommendations: 'Test Rec 1',
-          });
-          console.log('Test item 1 response:', res1);
-          const res2 = await api.post(`/reports/${reportId}/punchlist-items/`, {
-            spread: 'Test Spread 2',
-            inspector: 'Test Inspector 2',
-            start_station: '300',
-            end_station: '400',
-            feature: 'Test Feature 2',
-            issue: 'Test Issue 2',
-            recommendations: 'Test Rec 2',
-          });
-          console.log('Test item 2 response:', res2);
-          fetchItems();
-        } catch (error) {
-          console.error('Error adding test punchlist items:', error);
-          alert('Error adding test punchlist items: ' + (error.response?.data ? JSON.stringify(error.response.data) : error.message));
-        }
-      };
-      addTestItems();
-    }
-    // eslint-disable-next-line
-  }, [items, reportId]);
-
   const fetchReport = async () => {
     try {
-      const response = await api.get(`/reports/${reportId}/`);
+      const response = await api.get(`/punchlists/${reportId}/`);
       setReport(response.data);
+      console.log('PunchlistReport loaded:', response.data);
     } catch (error) {
-      console.error('Error fetching report:', error);
+      console.error('Error fetching punchlist report:', error);
     }
   };
 
   const fetchItems = async () => {
     try {
-      const response = await api.get(`/reports/${reportId}/punchlist-items/`);
+      const response = await api.get(`/punchlists/${reportId}/items/`);
       setItems(response.data);
     } catch (error) {
       console.error('Error fetching punchlist items:', error);
     }
   };
 
-  // TEMP: Always allow editing for testing
-  const canEdit = () => true;
+  const canEdit = () => report && report.finalized === false;
+
+  const handleFinalize = async () => {
+    try {
+      await api.patch(`/punchlists/${reportId}/`, { finalized: true });
+      fetchReport();
+      fetchItems();
+    } catch (error) {
+      alert('Error finalizing punchlist report.');
+    }
+  };
 
   const handleAddItem = async () => {
-    console.log('Add Item button clicked', newItem);
     try {
-      await api.post(`/reports/${reportId}/punchlist-items/`, newItem);
+      await api.post(`/punchlists/${reportId}/items/`, newItem);
       setNewItem({
         spread: '',
         inspector: '',
@@ -161,7 +111,7 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
 
   const handleDeleteItem = async (id) => {
     try {
-      await api.delete(`/reports/${reportId}/punchlist-items/${id}/`);
+      await api.delete(`/punchlists/${reportId}/items/${id}/`);
       fetchItems();
     } catch (error) {
       console.error('Error deleting punchlist item:', error);
@@ -180,7 +130,7 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
 
   const handleSaveEdit = async () => {
     try {
-      await api.patch(`/reports/${reportId}/punchlist-items/${editingItemId}/`, editingItem);
+      await api.patch(`/punchlists/${reportId}/items/${editingItemId}/`, editingItem);
       setEditingItemId(null);
       setEditingItem({});
       fetchItems();
@@ -196,16 +146,18 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
 
   const handleUpdateItem = async (id, updatedData) => {
     try {
-      await api.patch(`/reports/${reportId}/punchlist-items/${id}/`, updatedData);
+      await api.patch(`/punchlists/${reportId}/items/${id}/`, updatedData);
       fetchItems();
     } catch (error) {
       console.error('Error updating punchlist item:', error);
     }
   };
 
-  if (loading || !reportId) {
+  if (loading || !report || !reportId) {
     return <Typography sx={{ mt: 4 }}>Loading Punch List report...</Typography>;
   }
+
+  const showApprovalColumns = report && report.finalized === true;
 
   return (
     <Box sx={{ width: '100%', mt: 4 }}>
@@ -224,9 +176,9 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
               <TableCell>Feature</TableCell>
               <TableCell>Issue</TableCell>
               <TableCell>Recommendations</TableCell>
-              <TableCell>Completed</TableCell>
-              <TableCell>Inspector Signoff</TableCell>
-              <TableCell>Completed Date</TableCell>
+              {showApprovalColumns && <TableCell>Completed</TableCell>}
+              {showApprovalColumns && <TableCell>Inspector Signoff</TableCell>}
+              {showApprovalColumns && <TableCell>Completed Date</TableCell>}
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -236,19 +188,19 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
                 <TableCell>{item.item_number}</TableCell>
                 {editingItemId === item.id ? (
                   <>
-                    <TableCell><TextField name="spread" value={editingItem.spread} onChange={handleEditChange} size="small" /></TableCell>
-                    <TableCell><TextField name="inspector" value={editingItem.inspector} onChange={handleEditChange} size="small" /></TableCell>
-                    <TableCell><TextField name="start_station" value={editingItem.start_station} onChange={handleEditChange} size="small" /></TableCell>
-                    <TableCell><TextField name="end_station" value={editingItem.end_station} onChange={handleEditChange} size="small" /></TableCell>
-                    <TableCell><TextField name="feature" value={editingItem.feature} onChange={handleEditChange} size="small" /></TableCell>
-                    <TableCell><TextField name="issue" value={editingItem.issue} onChange={handleEditChange} size="small" /></TableCell>
-                    <TableCell><TextField name="recommendations" value={editingItem.recommendations} onChange={handleEditChange} size="small" /></TableCell>
-                    <TableCell><Checkbox checked={editingItem.completed} onChange={e => setEditingItem(prev => ({ ...prev, completed: e.target.checked }))} /></TableCell>
-                    <TableCell>{item.inspector_signoff}</TableCell>
-                    <TableCell>{item.completed_date}</TableCell>
+                    <TableCell><TextField name="spread" value={editingItem.spread} onChange={handleEditChange} size="small" disabled={!canEdit()} /></TableCell>
+                    <TableCell><TextField name="inspector" value={editingItem.inspector} onChange={handleEditChange} size="small" disabled={!canEdit()} /></TableCell>
+                    <TableCell><TextField name="start_station" value={editingItem.start_station} onChange={handleEditChange} size="small" disabled={!canEdit()} /></TableCell>
+                    <TableCell><TextField name="end_station" value={editingItem.end_station} onChange={handleEditChange} size="small" disabled={!canEdit()} /></TableCell>
+                    <TableCell><TextField name="feature" value={editingItem.feature} onChange={handleEditChange} size="small" disabled={!canEdit()} /></TableCell>
+                    <TableCell><TextField name="issue" value={editingItem.issue} onChange={handleEditChange} size="small" disabled={!canEdit()} /></TableCell>
+                    <TableCell><TextField name="recommendations" value={editingItem.recommendations} onChange={handleEditChange} size="small" disabled={!canEdit()} /></TableCell>
+                    {showApprovalColumns && <TableCell><Checkbox checked={editingItem.completed} disabled /></TableCell>}
+                    {showApprovalColumns && <TableCell>{item.inspector_signoff}</TableCell>}
+                    {showApprovalColumns && <TableCell>{item.completed_date}</TableCell>}
                     <TableCell>
-                      <IconButton onClick={handleSaveEdit}><SaveIcon /></IconButton>
-                      <IconButton onClick={handleCancelEdit}><CancelIcon /></IconButton>
+                      {canEdit() && <IconButton onClick={handleSaveEdit}><SaveIcon /></IconButton>}
+                      {canEdit() && <IconButton onClick={handleCancelEdit}><CancelIcon /></IconButton>}
                     </TableCell>
                   </>
                 ) : (
@@ -260,15 +212,9 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
                     <TableCell>{item.feature}</TableCell>
                     <TableCell>{item.issue}</TableCell>
                     <TableCell>{item.recommendations}</TableCell>
-                    <TableCell>
-                      <Checkbox
-                        checked={item.completed}
-                        onChange={() => canEdit() && handleUpdateItem(item.id, { completed: !item.completed })}
-                        disabled={!canEdit()}
-                      />
-                    </TableCell>
-                    <TableCell>{item.inspector_signoff}</TableCell>
-                    <TableCell>{item.completed_date}</TableCell>
+                    {showApprovalColumns && <TableCell><Checkbox checked={item.completed} disabled /></TableCell>}
+                    {showApprovalColumns && <TableCell>{item.inspector_signoff}</TableCell>}
+                    {showApprovalColumns && <TableCell>{item.completed_date}</TableCell>}
                     <TableCell>
                       {canEdit() && (
                         <>
@@ -296,30 +242,35 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
               name="spread"
               value={newItem.spread}
               onChange={e => setNewItem({ ...newItem, spread: e.target.value })}
+              disabled={!canEdit()}
             />
             <TextField
               label="Inspector"
               name="inspector"
               value={newItem.inspector}
               onChange={e => setNewItem({ ...newItem, inspector: e.target.value })}
+              disabled={!canEdit()}
             />
             <TextField
               label="Start Station"
               name="start_station"
               value={newItem.start_station}
               onChange={e => setNewItem({ ...newItem, start_station: e.target.value })}
+              disabled={!canEdit()}
             />
             <TextField
               label="End Station"
               name="end_station"
               value={newItem.end_station}
               onChange={e => setNewItem({ ...newItem, end_station: e.target.value })}
+              disabled={!canEdit()}
             />
             <TextField
               label="Feature"
               name="feature"
               value={newItem.feature}
               onChange={e => setNewItem({ ...newItem, feature: e.target.value })}
+              disabled={!canEdit()}
             />
             <TextField
               label="Issue"
@@ -327,6 +278,7 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
               multiline
               value={newItem.issue}
               onChange={e => setNewItem({ ...newItem, issue: e.target.value })}
+              disabled={!canEdit()}
             />
             <TextField
               label="Recommendations"
@@ -334,14 +286,21 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
               multiline
               value={newItem.recommendations}
               onChange={e => setNewItem({ ...newItem, recommendations: e.target.value })}
+              disabled={!canEdit()}
             />
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               type="button"
-              onClick={() => { console.log('Add Item button clicked', newItem); handleAddItem(); }}
+              onClick={handleAddItem}
+              disabled={!canEdit()}
             >
               Add Item
+            </Button>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+            <Button variant="contained" color="primary" onClick={handleFinalize}>
+              Submit Final Report
             </Button>
           </Box>
         </Box>
