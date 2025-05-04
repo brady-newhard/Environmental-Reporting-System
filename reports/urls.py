@@ -5,7 +5,6 @@ from .views import (
     UserRegistration,
     ReportViewSet,
     ContactListView,
-    PunchlistItemViewSet,
     login,
     verify_token,
     logout
@@ -15,7 +14,6 @@ router = DefaultRouter()
 router.register(r'users', UserListViewSet, basename='user')
 router.register(r'reports', ReportViewSet, basename='report')
 router.register(r'contacts', ContactListView, basename='contact')
-router.register(r'reports/(?P<report_id>[^/.]+)/punchlist-items', PunchlistItemViewSet, basename='punchlist-item')
 
 urlpatterns = [
     path('', include(router.urls)),

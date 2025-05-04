@@ -2,7 +2,6 @@ from .token_views import login, verify_token, logout
 from .report_views import ReportViewSet
 from .user_views import UserRegistration, UserListViewSet
 from .contact_views import ContactListView
-from .punchlist_views import PunchlistItemViewSet
 
 __all__ = [
     'login',
@@ -12,5 +11,4 @@ __all__ = [
     'UserRegistration',
     'UserListViewSet',
     'ContactListView',
-    'PunchlistItemViewSet',
 ] 

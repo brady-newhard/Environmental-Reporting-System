@@ -6,6 +6,8 @@ from django.db.models import Q
 from datetime import datetime
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from ..utils import assign_punchlist_item_numbers
+from rest_framework import status
 
 class ReportViewSet(viewsets.ModelViewSet):
     """
@@ -93,4 +95,27 @@ class ReportViewSet(viewsets.ModelViewSet):
         """
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data) 
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def finalize(self, request, pk=None):
+        report = self.get_object()
+        user = request.user
+        # Only allow leads/admins to finalize
+        if not user.is_staff and not user.groups.filter(name='Leads').exists():
+            return Response({'detail': 'Not authorized to finalize.'}, status=status.HTTP_403_FORBIDDEN)
+        assign_punchlist_item_numbers(report)
+        report.finalized = True
+        report.save()
+        return Response({'status': 'Punchlist finalized and item numbers assigned.'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def unfinalize(self, request, pk=None):
+        report = self.get_object()
+        user = request.user
+        # Only allow leads/admins to unfinalize
+        if not user.is_staff and not user.groups.filter(name='Leads').exists():
+            return Response({'detail': 'Not authorized to unfinalize.'}, status=status.HTTP_403_FORBIDDEN)
+        report.finalized = False
+        report.save()
+        return Response({'status': 'Punchlist unfinalized and can be edited.'}, status=status.HTTP_200_OK) 
