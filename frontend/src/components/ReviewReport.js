@@ -16,11 +16,18 @@ import {
   Edit as EditIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
+
+const generateReportId = () => {
+  const timestamp = Date.now().toString(36).slice(-4);
+  const randomStr = Math.random().toString(36).substring(2, 4);
+  return `R-${timestamp}${randomStr}`.toUpperCase();
+};
 
 const ReviewReport = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [report, setReport] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -29,20 +36,22 @@ const ReviewReport = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const draftReport = localStorage.getItem('draftReport');
-        if (draftReport) {
-          const parsedReport = JSON.parse(draftReport);
-          setReport(parsedReport);
-          setEditedReport(parsedReport);
+        // First try to get the report from localStorage (draft)
+        const draftReport = JSON.parse(localStorage.getItem('draftReport'));
+        const storedPhotos = JSON.parse(localStorage.getItem('reportPhotos') || '[]');
+        
+        if (draftReport && id === 'draft') {
+          setReport(draftReport);
+          setEditedReport(draftReport);
+          setPhotos(storedPhotos);
         } else {
-          const response = await api.get('/reports/draft/latest/');
+          // If not a draft, fetch from API
+          const response = await api.get(`/reports/${id}/`);
           setReport(response.data);
           setEditedReport(response.data);
-        }
 
-        const storedPhotos = localStorage.getItem('reportPhotos');
-        if (storedPhotos) {
-          setPhotos(JSON.parse(storedPhotos));
+          const photosResponse = await api.get(`/reports/${id}/photos/`);
+          setPhotos(photosResponse.data);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -51,7 +60,7 @@ const ReviewReport = () => {
     };
 
     fetchData();
-  }, []);
+  }, [id]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -59,10 +68,19 @@ const ReviewReport = () => {
 
   const handleSave = async () => {
     try {
-      // Save the edited report to localStorage
-      localStorage.setItem('draftReport', JSON.stringify(editedReport));
-      setReport(editedReport);
-      setIsEditing(false);
+      if (id === 'draft') {
+        // For draft reports, update localStorage
+        localStorage.setItem('draftReport', JSON.stringify(editedReport));
+        setReport(editedReport);
+        setIsEditing(false);
+        alert('Changes saved successfully!');
+      } else {
+        // For saved reports, update the database
+        await api.put(`/reports/${id}/`, editedReport);
+        setReport(editedReport);
+        setIsEditing(false);
+        alert('Changes saved successfully!');
+      }
     } catch (error) {
       console.error('Error saving changes:', error);
       alert('Error saving changes. Please try again.');
@@ -71,32 +89,85 @@ const ReviewReport = () => {
 
   const handleSubmit = async () => {
     try {
-      // Prepare the final report data
-      const finalReport = {
-        ...editedReport,
-        photos: photos.map(photo => ({
-          location: photo.location,
-          comments: photo.comments,
-          file: photo.file,
-          preview: photo.preview
-        })),
-        status: 'submitted',
-        submitted_at: new Date().toISOString(),
-        weather_conditions: editedReport.weather_description,
-        daily_activities: editedReport.notes
+      console.log('Original report data:', editedReport);
+      
+      // Construct location from available fields
+      const locationParts = [];
+      if (editedReport.route) locationParts.push(`Route: ${editedReport.route}`);
+      if (editedReport.spread) locationParts.push(`Spread: ${editedReport.spread}`);
+      if (editedReport.facility) locationParts.push(`Facility: ${editedReport.facility}`);
+      if (editedReport.state) locationParts.push(`State: ${editedReport.state}`);
+      if (editedReport.county) locationParts.push(`County: ${editedReport.county}`);
+      if (editedReport.milepost_start && editedReport.milepost_end) {
+        locationParts.push(`Milepost: ${editedReport.milepost_start}-${editedReport.milepost_end}`);
+      }
+      if (editedReport.station_start && editedReport.station_end) {
+        locationParts.push(`Station: ${editedReport.station_start}-${editedReport.station_end}`);
+      }
+
+      const location = locationParts.join(', ') || 'Location not specified';
+
+      const reportData = {
+        date: editedReport.date || new Date().toISOString().split('T')[0],
+        location: location,
+        weather_conditions: editedReport.weather_description || 'No weather conditions specified',
+        daily_activities: editedReport.notes || 'No daily activities specified',
+        report_type: editedReport.report_type || '',
+        facility: editedReport.facility || '',
+        route: editedReport.route || '',
+        spread: editedReport.spread || '',
+        compliance_level: editedReport.compliance_level || '',
+        activity_category: editedReport.activity_category || '',
+        activity_group: editedReport.activity_group || '',
+        activity_type: editedReport.activity_type || '',
+        milepost_start: editedReport.milepost_start || '',
+        milepost_end: editedReport.milepost_end || '',
+        station_start: editedReport.station_start || '',
+        station_end: editedReport.station_end || '',
+        status: 'submitted'
       };
 
-      // Submit to database
-      await api.post('/reports/', finalReport);
+      console.log('Prepared report data:', reportData);
 
-      // Clear localStorage after successful submission
-      localStorage.removeItem('draftReport');
-      localStorage.removeItem('reportPhotos');
-
+      let response;
+      if (id === 'draft') {
+        console.log('Creating new report...');
+        response = await api.post('/reports/', reportData);
+        console.log('Create response:', response.data);
+        
+        // Clear draft data from localStorage
+        localStorage.removeItem('draftReport');
+        localStorage.removeItem('reportPhotos');
+      } else {
+        console.log('Updating existing report...');
+        response = await api.put(`/reports/${id}/`, reportData);
+        console.log('Update response:', response.data);
+      }
+      
+      alert('Report submitted successfully!');
       navigate('/reports-dashboard');
     } catch (error) {
       console.error('Error submitting report:', error);
-      alert('Error submitting report. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        request: error.config?.data,
+        headers: error.config?.headers
+      });
+      
+      let errorMessage = 'Error submitting report. ';
+      if (error.response?.data) {
+        if (typeof error.response.data === 'object') {
+          errorMessage += JSON.stringify(error.response.data);
+        } else {
+          errorMessage += error.response.data;
+        }
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
   };
 
@@ -188,7 +259,7 @@ const ReviewReport = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton
-            onClick={() => navigate('/photos')}
+            onClick={() => navigate(`/new-report/${id}`)}
             sx={{
               mr: 2,
               backgroundColor: '#000000',
@@ -429,7 +500,7 @@ const ReviewReport = () => {
         <Button
           variant="contained"
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/photos')}
+          onClick={() => navigate(`/new-report/${id}`)}
           sx={{
             backgroundColor: '#666666',
             '&:hover': { backgroundColor: '#444444' },
@@ -437,7 +508,7 @@ const ReviewReport = () => {
             color: '#ffffff'
           }}
         >
-          Back to Photos
+          Back to Report
         </Button>
         <Button
           variant="contained"

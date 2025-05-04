@@ -11,29 +11,36 @@ logger = logging.getLogger(__name__)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+    try:
+        username = request.data.get('username')
+        password = request.data.get('password')
 
-    logger.info(f"Login attempt for user: {username}")
+        logger.info(f"Login attempt for user: {username}")
 
-    if username is None or password is None:
-        logger.warning("Login attempt with missing credentials")
-        return Response({'error': 'Please provide both username and password'}, status=400)
+        if not username or not password:
+            logger.warning("Login attempt with missing credentials")
+            return Response({'error': 'Please provide both username and password'}, status=400)
 
-    user = authenticate(username=username, password=password)
-    logger.info(f"Authentication result for {username}: {'success' if user else 'failed'}")
+        user = authenticate(username=username, password=password)
+        logger.info(f"Authentication result for {username}: {'success' if user else 'failed'}")
 
-    if not user:
-        return Response({'error': 'Invalid Credentials'}, status=401)
+        if not user:
+            return Response({'error': 'Invalid Credentials'}, status=401)
 
-    token, _ = Token.objects.get_or_create(user=user)
-    logger.info(f"Token generated for user {username}")
-    return Response({
-        'token': token.key,
-        'user_id': user.pk,
-        'username': user.username,
-        'first_name': user.first_name
-    })
+        token, _ = Token.objects.get_or_create(user=user)
+        logger.info(f"Token generated for user {username}")
+        
+        response_data = {
+            'token': token.key,
+            'user_id': user.pk,
+            'username': user.username,
+            'first_name': user.first_name
+        }
+        logger.info(f"Login successful for user {username}")
+        return Response(response_data)
+    except Exception as e:
+        logger.error(f"Error during login: {str(e)}")
+        return Response({'error': 'An unexpected error occurred'}, status=500)
 
 @api_view(['POST'])
 def verify_token(request):

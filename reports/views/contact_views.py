@@ -1,10 +1,13 @@
-from rest_framework import generics, permissions
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from ..models import Contact
 from ..serializers import ContactSerializer
 
-class ContactListView(generics.ListAPIView):
+class ContactListView(viewsets.ReadOnlyModelViewSet):
+    queryset = Contact.objects.all()
     serializer_class = ContactSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Contact.objects.filter(user=self.request.user) 
+        # Return all contacts, but only for authenticated users
+        return Contact.objects.all().select_related('user') 

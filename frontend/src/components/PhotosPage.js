@@ -21,6 +21,13 @@ import {
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+
+const generateReportId = () => {
+  const timestamp = Date.now().toString(36).slice(-4);
+  const randomStr = Math.random().toString(36).substring(2, 4);
+  return `R-${timestamp}${randomStr}`.toUpperCase();
+};
 
 const PhotosPage = () => {
   const navigate = useNavigate();
@@ -103,10 +110,24 @@ const PhotosPage = () => {
     setPhotos(photos.filter(photo => photo.id !== photoId));
   };
 
-  const handleReviewClick = () => {
-    // Store photos in localStorage
-    localStorage.setItem('reportPhotos', JSON.stringify(photos));
-    navigate('/review-report');
+  const handleReviewClick = async () => {
+    try {
+      // Get the draft report from localStorage
+      const draftReport = JSON.parse(localStorage.getItem('draftReport'));
+      if (!draftReport) {
+        alert('Error: Report data not found. Please try again.');
+        return;
+      }
+
+      // Store photos in localStorage
+      localStorage.setItem('reportPhotos', JSON.stringify(photos));
+      
+      // Navigate to the review page
+      navigate('/review-report/draft');
+    } catch (error) {
+      console.error('Error preparing report for review:', error);
+      alert('Error preparing report for review. Please try again.');
+    }
   };
 
   return (
