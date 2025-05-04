@@ -82,18 +82,17 @@ const NewPunchlist = () => {
   const handleSubmitFinal = async () => {
     setSubmitting(true);
     try {
-      const response = await api.post('/reports/', {
-        report_type: 'Punch List',
-        daily_activities: '',
-        weather_conditions: 'N/A',
-        title: 'Punch List',
-        description: '',
-        location: '',
+      // Create the PunchlistReport (metadata is backend-only, so minimal info)
+      const response = await api.post('/punchlists/', {
+        title: 'Punchlist', // or auto-generate if you want
         date: new Date().toISOString().split('T')[0],
       });
-      const reportId = response.data.id;
-      await api.post(`/reports/${reportId}/punchlist-items/batch/`, { items });
-      navigate(`/punchlist-report/${reportId}`);
+      const punchlistReportId = response.data.id;
+      // Log the items payload for debugging
+      console.log('Submitting punchlist items:', items);
+      // Batch submit items to the new endpoint
+      await api.post(`/punchlists/${punchlistReportId}/items/batch/`, { items });
+      navigate(`/punchlist-report/${punchlistReportId}`);
     } catch (error) {
       console.error('Error submitting punchlist report:', error);
       alert('Error submitting punchlist report. Please try again.');

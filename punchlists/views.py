@@ -3,33 +3,40 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from .models import PunchlistItem
-from .serializers import PunchlistItemSerializer
-from reports.models import Report
+from .models import PunchlistItem, PunchlistReport
+from .serializers import PunchlistItemSerializer, PunchlistReportSerializer
+
+class PunchlistReportViewSet(viewsets.ModelViewSet):
+    queryset = PunchlistReport.objects.all()
+    serializer_class = PunchlistReportSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class PunchlistItemViewSet(viewsets.ModelViewSet):
     serializer_class = PunchlistItemSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        report_id = self.kwargs.get('report_id')
-        return PunchlistItem.objects.filter(report_id=report_id)
+        punchlist_report_pk = self.kwargs.get('punchlist_report_pk')
+        return PunchlistItem.objects.filter(punchlist_report_id=punchlist_report_pk)
 
     def perform_create(self, serializer):
-        report_id = self.kwargs.get('report_id')
-        report = Report.objects.get(id=report_id)
-        serializer.save(report=report)
+        punchlist_report_pk = self.kwargs.get('punchlist_report_pk')
+        punchlist_report = PunchlistReport.objects.get(id=punchlist_report_pk)
+        serializer.save(punchlist_report=punchlist_report)
 
     @action(detail=False, methods=['post'], url_path='batch')
-    def batch_create(self, request, report_id=None):
+    def batch_create(self, request, punchlist_report_pk=None):
         items_data = request.data.get('items', [])
-        report = Report.objects.get(id=report_id)
+        punchlist_report = PunchlistReport.objects.get(id=punchlist_report_pk)
         created_items = []
         errors = []
         for item_data in items_data:
             serializer = PunchlistItemSerializer(data=item_data)
             if serializer.is_valid():
-                serializer.save(report=report)
+                serializer.save(punchlist_report=punchlist_report)
                 created_items.append(serializer.data)
             else:
                 errors.append(serializer.errors)

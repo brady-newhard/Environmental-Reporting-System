@@ -1,8 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class PunchlistReport(models.Model):
+    title = models.CharField(max_length=255)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='punchlist_reports')
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    finalized = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Punchlist Report: {self.title} ({self.date})"
+
 class PunchlistItem(models.Model):
-    report = models.ForeignKey('reports.Report', on_delete=models.CASCADE, related_name='punchlist_items_new')
+    punchlist_report = models.ForeignKey(PunchlistReport, on_delete=models.CASCADE, related_name='items')
     item_number = models.IntegerField(null=True, blank=True)
     spread = models.CharField(max_length=100, blank=True, null=True)
     inspector = models.CharField(max_length=100, blank=True, null=True)
