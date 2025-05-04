@@ -55,6 +55,11 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
     }
   }, [reportId]);
 
+  const canEdit = () => {
+    if (!report) return false;
+    return report.finalized === false && report.author === user?.id;
+  };
+
   const fetchReport = async () => {
     try {
       const response = await api.get(`/punchlists/${reportId}/`);
@@ -62,6 +67,9 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
       console.log('PunchlistReport loaded:', response.data);
     } catch (error) {
       console.error('Error fetching punchlist report:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+      }
     }
   };
 
@@ -69,12 +77,14 @@ const PunchlistReport = ({ reportId: initialReportId }) => {
     try {
       const response = await api.get(`/punchlists/${reportId}/items/`);
       setItems(response.data);
+      console.log('PunchlistItems loaded:', response.data);
     } catch (error) {
       console.error('Error fetching punchlist items:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+      }
     }
   };
-
-  const canEdit = () => report && report.finalized === false;
 
   const handleFinalize = async () => {
     try {

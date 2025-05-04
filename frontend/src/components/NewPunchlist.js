@@ -82,19 +82,35 @@ const NewPunchlist = () => {
   const handleSubmitFinal = async () => {
     setSubmitting(true);
     try {
-      // Create the PunchlistReport (metadata is backend-only, so minimal info)
+      // Create the PunchlistReport
       const response = await api.post('/punchlists/', {
-        title: 'Punchlist', // or auto-generate if you want
+        title: 'Punchlist',
         date: new Date().toISOString().split('T')[0],
       });
       const punchlistReportId = response.data.id;
+      
       // Log the items payload for debugging
       console.log('Submitting punchlist items:', items);
-      // Batch submit items to the new endpoint
-      await api.post(`/punchlists/${punchlistReportId}/items/batch/`, { items });
+      
+      // Submit items one by one to ensure each is saved
+      for (const item of items) {
+        try {
+          await api.post(`/punchlists/${punchlistReportId}/items/`, item);
+        } catch (error) {
+          console.error('Error submitting item:', item, error);
+          throw error;
+        }
+      }
+      
+      // Finalize the report
+      await api.patch(`/punchlists/${punchlistReportId}/`, { finalized: true });
+      
       navigate(`/punchlist-report/${punchlistReportId}`);
     } catch (error) {
       console.error('Error submitting punchlist report:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+      }
       alert('Error submitting punchlist report. Please try again.');
     } finally {
       setSubmitting(false);
