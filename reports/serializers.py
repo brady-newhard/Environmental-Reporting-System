@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Report, Contact
+from .models import Report, Contact, PunchlistItem
+from django.utils import timezone
 
 class ContactSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
@@ -65,3 +66,22 @@ class ReportSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at'] 
+
+class PunchlistItemSerializer(serializers.ModelSerializer):
+    inspector_signoff = serializers.CharField(source='inspector_signoff.username', read_only=True)
+    completed_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", read_only=True)
+
+    class Meta:
+        model = PunchlistItem
+        fields = [
+            'id', 'item_number', 'spread', 'inspector', 'start_station', 
+            'end_station', 'feature', 'issue', 'recommendations',
+            'completed', 'inspector_signoff', 'completed_date'
+        ]
+        read_only_fields = ['inspector_signoff', 'completed_date']
+
+    def update(self, instance, validated_data):
+        if validated_data.get('completed') and not instance.completed:
+            instance.completed_date = timezone.now()
+            instance.inspector_signoff = self.context['request'].user
+        return super().update(instance, validated_data) 

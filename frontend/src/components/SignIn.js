@@ -13,6 +13,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../services/api';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -38,23 +39,28 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const data = await response.json();
-      await login(data.token, data.username, data.first_name);
+      const response = await api.post('/login/', formData);
+      await login(response.data.token, response.data.username, response.data.first_name);
       navigate('/');
     } catch (err) {
-      setError('Invalid username or password');
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (err.response.status === 401) {
+          setError('Invalid username or password');
+        } else if (err.response.status === 400) {
+          setError('Please provide both username and password');
+        } else {
+          setError('An error occurred. Please try again.');
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError('Unable to connect to the server. Please try again.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError('An unexpected error occurred. Please try again.');
+      }
+      console.error('Login error:', err);
     }
   };
 

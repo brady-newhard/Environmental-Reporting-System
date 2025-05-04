@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ReportForm from './components/ReportForm';
 import HomePage from './components/HomePage';
 import SearchReports from './components/SearchReports';
 import SignIn from './components/SignIn';
@@ -16,6 +15,8 @@ import PhotosPage from './components/PhotosPage';
 import ReviewReport from './components/ReviewReport';
 import PrivateRoute from './components/PrivateRoute';
 import Profile from './components/Profile';
+import ReportForm from './components/ReportForm';
+import NewPunchlist from './components/NewPunchlist';
 
 const theme = createTheme({
   palette: {
@@ -202,7 +203,7 @@ function App() {
               }
             />
             <Route
-              path="/new-report/daily"
+              path="/new-report/*"
               element={
                 <PrivateRoute>
                   <ReportForm />
@@ -210,34 +211,10 @@ function App() {
               }
             />
             <Route
-              path="/new-report/progress"
+              path="/new-punchlist"
               element={
                 <PrivateRoute>
-                  <ReportForm />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/new-report/punchlist"
-              element={
-                <PrivateRoute>
-                  <ReportForm />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/new-report/variance"
-              element={
-                <PrivateRoute>
-                  <ReportForm />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/new-report/swppp"
-              element={
-                <PrivateRoute>
-                  <ReportForm />
+                  <NewPunchlist />
                 </PrivateRoute>
               }
             />
