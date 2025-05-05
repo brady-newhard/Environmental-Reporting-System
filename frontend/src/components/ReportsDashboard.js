@@ -69,31 +69,36 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
   const progressPath = '/new-progress-report';
 
   return (
-    <Card sx={{ 
-      height: '100%', 
+    <Card sx={{
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
       bgcolor: '#fff',
       borderRadius: '2px',
       '&:hover': {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      }
+      },
     }}>
-      <CardContent>
+      <CardContent sx={{ flexGrow: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Icon sx={{ color: '#000000', mr: 1 }} />
           <Typography variant="h6" sx={{ color: '#000000', fontWeight: 600, flex: 1 }}>
             {title}
           </Typography>
-          <IconButton 
-            size="small" 
+          <IconButton
+            size="small"
             sx={{ color: '#666666' }}
             onClick={() => navigate(isProgress ? progressPath : path)}
           >
             <ChevronRightIcon />
           </IconButton>
         </Box>
-        <Typography variant="body2" sx={{ color: '#666666', mb: 2 }}>
+        <Typography variant="body2" sx={{ color: '#666666', mb: 2, minHeight: 32, maxHeight: 32, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {description}
         </Typography>
+      </CardContent>
+      <Box sx={{ px: 2, pb: 2 }}>
         <Button
           variant="contained"
           fullWidth
@@ -108,7 +113,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
         >
           Create {title}
         </Button>
-      </CardContent>
+      </Box>
     </Card>
   );
 };
@@ -152,37 +157,43 @@ const ReportsDashboard = () => {
     {
       title: 'Daily Report',
       icon: DescriptionIcon,
-      description: 'Create a daily site inspection report with weather conditions and observations.',
+      description: 'Create a daily inspection report.',
       path: '/new-report',
     },
     {
       title: 'Progress Report',
       icon: ProgressIcon,
-      description: 'Document project progress, milestones, and upcoming tasks.',
+      description: 'Document project progress.',
       path: '/new-progress-report',
     },
     {
       title: 'Punch List',
       icon: ListIcon,
-      description: 'Track and manage items that need attention or completion.',
+      description: 'Track punch list items.',
       path: '/new-punchlist',
     },
     {
       title: 'Variance Report',
       icon: VarianceIcon,
-      description: 'Report and document any deviations from the project plan.',
+      description: 'Report project variances.',
       path: '/new-report',
     },
     {
       title: 'SWPPP Report',
       icon: SWPPPIcon,
-      description: 'Storm Water Pollution Prevention Plan compliance documentation.',
+      description: 'SWPPP compliance report.',
       path: '/swppp/new',
+    },
+    {
+      title: 'FERC Weekly Report',
+      icon: AssignmentIcon,
+      description: 'Submit FERC weekly report.',
+      path: '/ferc-weekly-report',
     },
   ];
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="xl">
       <Box sx={{ mt: 4 }}>
         <Typography variant="h4" gutterBottom>
           Reports Dashboard
@@ -242,13 +253,27 @@ const ReportsDashboard = () => {
         >
           Create New Report
         </Typography>
-        <Grid container spacing={3}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 2,
+            width: '100%',
+          }}
+        >
           {reportTypes.map((reportType) => (
-            <Grid item xs={12} sm={6} md={4} key={reportType.title}>
+            <Box
+              key={reportType.title}
+              sx={{
+                height: 260,
+                display: 'flex',
+                alignItems: 'stretch',
+              }}
+            >
               <ReportTypeCard {...reportType} />
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Box>
     </Container>
   );
