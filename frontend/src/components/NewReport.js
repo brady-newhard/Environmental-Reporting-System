@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { ProgressChartTable } from './ProgressChart';
 
 const NewReport = () => {
   const navigate = useNavigate();
@@ -143,6 +144,11 @@ const NewReport = () => {
             </Grid>
           </form>
         </Paper>
+        {formData.reportType === 'Progress' && (
+          <Box sx={{ mt: 4 }}>
+            <ProgressChartTable />
+          </Box>
+        )}
       </Box>
     </Container>
   );

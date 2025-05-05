@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Report, Contact
+from .models import Report, Contact, ProgressChart
 from django.utils import timezone
+
+# ProgressChart serializers will be implemented here as part of the reports app
 
 class ContactSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
@@ -66,4 +68,9 @@ class ReportSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at',
             'finalized',
         ]
-        read_only_fields = ['created_at', 'updated_at', 'finalized'] 
+        read_only_fields = ['created_at', 'updated_at', 'finalized']
+
+class ProgressChartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProgressChart
+        fields = ['id', 'activity', 'progress_data', 'updated_at'] 
