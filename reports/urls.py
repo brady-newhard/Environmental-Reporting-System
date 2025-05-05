@@ -7,7 +7,8 @@ from .views import (
     ContactListView,
     login,
     verify_token,
-    logout
+    logout,
+    ProgressChartListView
 )
 
 router = DefaultRouter()
@@ -21,4 +22,7 @@ urlpatterns = [
     path('verify-token/', verify_token, name='verify-token'),
     path('logout/', logout, name='logout'),
     path('register/', UserRegistration.as_view(), name='register'),
-] 
+    path('progress-chart/', ProgressChartListView.as_view(), name='progress-chart-list'),
+]
+
+# ProgressChart API endpoints will be implemented here as part of the reports app 
