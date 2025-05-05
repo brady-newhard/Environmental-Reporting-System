@@ -12,9 +12,7 @@ const api = axios.create({
 // Add token to all requests if it exists
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  const isAuthRequest = config.url.includes('/login/') || config.url.includes('/register/');
-  
-  if (token && !isAuthRequest) {
+  if (token) {
     config.headers.Authorization = `Token ${token}`;
   }
   return config;
@@ -74,6 +72,16 @@ export const getUsers = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching users:', error);
+    throw error;
+  }
+};
+
+export const getProgressChart = async () => {
+  try {
+    const response = await api.get('/progress-chart/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching progress chart:', error);
     throw error;
   }
 };

@@ -29,6 +29,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import PunchlistReport from './PunchlistReport';
+import { ProgressChartTable } from './ProgressChart';
 
 const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
   const navigate = useNavigate();
@@ -64,6 +65,8 @@ const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
 
 const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
   const navigate = useNavigate();
+  const isProgress = title === 'Progress Report';
+  const progressPath = '/new-progress-report';
 
   return (
     <Card sx={{ 
@@ -83,7 +86,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
           <IconButton 
             size="small" 
             sx={{ color: '#666666' }}
-            onClick={() => navigate(path)}
+            onClick={() => navigate(isProgress ? progressPath : path)}
           >
             <ChevronRightIcon />
           </IconButton>
@@ -94,7 +97,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
         <Button
           variant="contained"
           fullWidth
-          onClick={() => navigate(path)}
+          onClick={() => navigate(isProgress ? progressPath : path)}
           sx={{
             backgroundColor: '#000000',
             '&:hover': { backgroundColor: '#333333' },
@@ -156,7 +159,7 @@ const ReportsDashboard = () => {
       title: 'Progress Report',
       icon: ProgressIcon,
       description: 'Document project progress, milestones, and upcoming tasks.',
-      path: '/new-report',
+      path: '/new-progress-report',
     },
     {
       title: 'Punch List',
@@ -174,7 +177,7 @@ const ReportsDashboard = () => {
       title: 'SWPPP Report',
       icon: SWPPPIcon,
       description: 'Storm Water Pollution Prevention Plan compliance documentation.',
-      path: '/new-report',
+      path: '/swppp/new',
     },
   ];
 
