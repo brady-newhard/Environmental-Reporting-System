@@ -18,6 +18,10 @@ import Profile from './components/Profile';
 import ReportForm from './components/ReportForm';
 import NewPunchlist from './components/NewPunchlist';
 import PunchlistReportPage from './components/PunchlistReportPage';
+import NewSWPPP from './components/NewSWPPP';
+import SWPPPReport from './components/SWPPPReport';
+import SWPPPPhotoPage from './components/SWPPPPhotoPage';
+import NewProgressReport from './components/NewProgressReport';
 
 const theme = createTheme({
   palette: {
@@ -264,6 +268,38 @@ function App() {
               element={
                 <PrivateRoute>
                   <PunchlistReportPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/swppp/new"
+              element={
+                <PrivateRoute>
+                  <NewSWPPP />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/swppp-report/:reportId"
+              element={
+                <PrivateRoute>
+                  <SWPPPReport />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/swppp-report/:reportId/photos"
+              element={
+                <PrivateRoute>
+                  <SWPPPPhotoPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/new-progress-report"
+              element={
+                <PrivateRoute>
+                  <NewProgressReport />
                 </PrivateRoute>
               }
             />
