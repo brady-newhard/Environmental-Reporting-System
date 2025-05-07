@@ -106,40 +106,46 @@ const HomePage = () => {
   ];
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
+    <Box sx={{ 
+      p: { xs: 2, sm: 3 }, 
+      bgcolor: '#f5f5f5', 
+      minHeight: 'calc(100vh - 64px)',
+      overflow: 'auto'
+    }}>
       <Typography 
         variant="h5" 
         sx={{ 
-          mb: 3, 
+          mb: { xs: 2, sm: 3 }, 
           color: '#000000',
-          fontWeight: 600
+          fontWeight: 600,
+          fontSize: { xs: '1.25rem', sm: '1.5rem' }
         }}
       >
         Dashboard
       </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6} lg={3}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
             title="Draft Reports"
             icon={DescriptionIcon}
             items={draftReports}
           />
         </Grid>
-        <Grid item xs={12} md={6} lg={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
             title="Project Permits"
             icon={AssignmentIcon}
             items={projectPermits}
           />
         </Grid>
-        <Grid item xs={12} md={6} lg={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
             title="Project Drawings"
             icon={ArchitectureIcon}
             items={projectDrawings}
           />
         </Grid>
-        <Grid item xs={12} md={6} lg={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <DashboardCard
             title="Punch Lists"
             icon={ListIcon}

@@ -193,21 +193,22 @@ const ReportsDashboard = () => {
   ];
 
   return (
-    <Container maxWidth="xl">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
+    <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+      <Box sx={{ mt: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
           Reports Dashboard
         </Typography>
         
         {/* Draft Reports Section */}
         {draftReports.length > 0 && (
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
             <Typography 
               variant="h6" 
               sx={{ 
                 mb: 2, 
                 color: '#000000',
-                fontWeight: 600
+                fontWeight: 600,
+                fontSize: { xs: '1rem', sm: '1.25rem' }
               }}
             >
               Draft Reports
@@ -234,8 +235,8 @@ const ReportsDashboard = () => {
 
         {/* Punchlist Container */}
         {selectedReport && (
-          <Paper sx={{ p: 3, mb: 4 }}>
-            <Typography variant="h5" gutterBottom>
+          <Paper sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3, md: 4 } }}>
+            <Typography variant="h5" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
               Punchlist Report for {selectedReport.report_type || 'Daily Report'}
             </Typography>
             <PunchlistReport reportId={selectedReport.id} />
@@ -246,9 +247,10 @@ const ReportsDashboard = () => {
         <Typography 
           variant="h5" 
           sx={{ 
-            mb: 3, 
+            mb: { xs: 2, sm: 3 }, 
             color: '#000000',
-            fontWeight: 600
+            fontWeight: 600,
+            fontSize: { xs: '1.25rem', sm: '1.5rem' }
           }}
         >
           Create New Report
@@ -256,8 +258,12 @@ const ReportsDashboard = () => {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 2,
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)'
+            },
+            gap: { xs: 2, sm: 3 },
             width: '100%',
           }}
         >
@@ -265,7 +271,7 @@ const ReportsDashboard = () => {
             <Box
               key={reportType.title}
               sx={{
-                height: 260,
+                height: { xs: 220, sm: 240, md: 260 },
                 display: 'flex',
                 alignItems: 'stretch',
               }}

@@ -142,7 +142,9 @@ const NewSWPPP = () => {
         Create New SWPPP Report
       </Typography>
       <Paper sx={{ p: 3, mb: 4 }}>
+        {/* Header Fields */}
         <Grid container spacing={2} mb={2}>
+          {/* Row 1 */}
           <Grid item xs={12} md={4}>
             {/* Check One */}
             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Check One:</Typography>
@@ -160,6 +162,38 @@ const NewSWPPP = () => {
                 size="small"
               /> Precipitation Event &gt; 0.25"
             </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            {/* Inspector Name/ID */}
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Date</Typography>
+            <TextField
+              label="Date"
+              name="inspection_date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={header.inspection_date}
+              onChange={handleHeaderChange}
+              size="small"
+              sx={{ width: '100%', mb: 1 }}
+            />
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Inspector Name</Typography>
+            <TextField
+              label="Inspector Name"
+              name="inspector_name"
+              value={header.inspector_name}
+              onChange={handleHeaderChange}
+              size="small"
+              sx={{ width: '100%', mb: 1 }}
+            />
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Spread</Typography>
+            <TextField
+              label="Spread"
+              name="spread"
+              value={header.spread}
+              onChange={handleHeaderChange}
+              size="small"
+              sx={{ width: '100%' }}
+            />
           </Grid>
           <Grid item xs={12} md={8}>
             {/* Precipitation Data */}
@@ -326,215 +360,62 @@ const NewSWPPP = () => {
             />
           </Grid>
         </Grid>
-        {/* Checklist Items */}
+        {/* Checklist Table */}
         <Typography variant="h6" gutterBottom>Checklist Items</Typography>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: 3
-        }}>
-          {items.map((item, idx) => (
-            <Paper key={idx} sx={{ p: 2, bgcolor: '#f5f5f5' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Location</Typography>
-                  <Typography>{item.location}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>LL Number</Typography>
-                  <Typography>{item.ll_number}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Feature Details</Typography>
-                  <Typography>{item.feature_details}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Inspector ID</Typography>
-                  <Typography>{item.inspector_id}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Soil Disturbed?</Typography>
-                  <Typography>{item.soil_presently_disturbed ? 'Yes' : 'No'}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Inspection Date</Typography>
-                  <Typography>{item.inspection_date}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Inspection Time</Typography>
-                  <Typography>{item.inspection_time}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>ECD Functional?</Typography>
-                  <Typography>{item.ecd_functional ? 'Yes' : 'No'}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>ECD Needs Maintenance?</Typography>
-                  <Typography>{item.ecd_needs_maintenance ? 'Yes' : 'No'}</Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Date Corrected</Typography>
-                  <Typography>{item.date_corrected}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Comments</Typography>
-                  <Typography>{item.comments}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Button 
-                    color="error" 
-                    onClick={() => handleDeleteItem(idx)}
-                    sx={{ mt: 1 }}
-                  >
-                    Delete
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
-          ))}
-          {/* Add New Item Form */}
-          <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>Add New Item</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="location"
-                  value={newItem.location}
-                  onChange={handleItemChange}
-                  label="Location"
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="ll_number"
-                  value={newItem.ll_number}
-                  onChange={handleItemChange}
-                  label="LL Number"
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  name="feature_details"
-                  value={newItem.feature_details}
-                  onChange={handleItemChange}
-                  label="Feature Details"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="inspector_id"
-                  value={newItem.inspector_id}
-                  onChange={handleItemChange}
-                  label="Inspector ID"
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                  <Checkbox
-                    name="soil_presently_disturbed"
-                    checked={newItem.soil_presently_disturbed}
-                    onChange={handleItemChange}
-                  />
-                  <Typography>Soil Disturbed?</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="inspection_date"
-                  type="date"
-                  value={newItem.inspection_date}
-                  onChange={handleItemChange}
-                  label="Inspection Date"
-                  fullWidth
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="inspection_time"
-                  type="time"
-                  value={newItem.inspection_time}
-                  onChange={handleItemChange}
-                  label="Inspection Time"
-                  fullWidth
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                  <Checkbox
-                    name="ecd_functional"
-                    checked={newItem.ecd_functional}
-                    onChange={handleItemChange}
-                  />
-                  <Typography>ECD Functional?</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                  <Checkbox
-                    name="ecd_needs_maintenance"
-                    checked={newItem.ecd_needs_maintenance}
-                    onChange={handleItemChange}
-                  />
-                  <Typography>ECD Needs Maintenance?</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="date_corrected"
-                  type="date"
-                  value={newItem.date_corrected}
-                  onChange={handleItemChange}
-                  label="Date Corrected"
-                  fullWidth
-                  size="small"
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  name="comments"
-                  value={newItem.comments}
-                  onChange={handleItemChange}
-                  label="Comments"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button 
-                  onClick={handleAddItem}
-                  variant="contained"
-                  sx={{ mt: 1 }}
-                >
-                  Add Item
-                </Button>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Box>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          sx={{ mt: 4 }} 
-          onClick={handleSubmit} 
-          disabled={submitting || items.length === 0}
-        >
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Location</TableCell>
+                <TableCell>LL Number</TableCell>
+                <TableCell>Feature Details</TableCell>
+                <TableCell>Inspector ID</TableCell>
+                <TableCell>Soil Disturbed?</TableCell>
+                <TableCell>Inspection Date</TableCell>
+                <TableCell>Inspection Time</TableCell>
+                <TableCell>ECD Functional?</TableCell>
+                <TableCell>ECD Needs Maintenance?</TableCell>
+                <TableCell>Date Corrected</TableCell>
+                <TableCell>Comments</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {items.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell>{item.location}</TableCell>
+                  <TableCell>{item.ll_number}</TableCell>
+                  <TableCell>{item.feature_details}</TableCell>
+                  <TableCell>{item.inspector_id}</TableCell>
+                  <TableCell><Checkbox checked={item.soil_presently_disturbed} disabled /></TableCell>
+                  <TableCell>{item.inspection_date}</TableCell>
+                  <TableCell>{item.inspection_time}</TableCell>
+                  <TableCell><Checkbox checked={item.ecd_functional} disabled /></TableCell>
+                  <TableCell><Checkbox checked={item.ecd_needs_maintenance} disabled /></TableCell>
+                  <TableCell>{item.date_corrected}</TableCell>
+                  <TableCell>{item.comments}</TableCell>
+                  <TableCell><Button color="error" onClick={() => handleDeleteItem(idx)}>Delete</Button></TableCell>
+                </TableRow>
+              ))}
+              {/* Add Item Row */}
+              <TableRow>
+                <TableCell><TextField name="location" value={newItem.location} onChange={handleItemChange} /></TableCell>
+                <TableCell><TextField name="ll_number" value={newItem.ll_number} onChange={handleItemChange} /></TableCell>
+                <TableCell><TextField name="feature_details" value={newItem.feature_details} onChange={handleItemChange} /></TableCell>
+                <TableCell><TextField name="inspector_id" value={newItem.inspector_id} onChange={handleItemChange} /></TableCell>
+                <TableCell><Checkbox name="soil_presently_disturbed" checked={newItem.soil_presently_disturbed} onChange={handleItemChange} /></TableCell>
+                <TableCell><TextField name="inspection_date" type="date" InputLabelProps={{ shrink: true }} value={newItem.inspection_date} onChange={handleItemChange} /></TableCell>
+                <TableCell><TextField name="inspection_time" type="time" InputLabelProps={{ shrink: true }} value={newItem.inspection_time} onChange={handleItemChange} /></TableCell>
+                <TableCell><Checkbox name="ecd_functional" checked={newItem.ecd_functional} onChange={handleItemChange} /></TableCell>
+                <TableCell><Checkbox name="ecd_needs_maintenance" checked={newItem.ecd_needs_maintenance} onChange={handleItemChange} /></TableCell>
+                <TableCell><TextField name="date_corrected" type="date" InputLabelProps={{ shrink: true }} value={newItem.date_corrected} onChange={handleItemChange} /></TableCell>
+                <TableCell><TextField name="comments" value={newItem.comments} onChange={handleItemChange} /></TableCell>
+                <TableCell><Button onClick={handleAddItem}>Add</Button></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleSubmit} disabled={submitting || items.length === 0}>
           Submit Final Report
         </Button>
       </Paper>
