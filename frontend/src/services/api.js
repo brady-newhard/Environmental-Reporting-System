@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://environmental-reporting-system-febba9464fe7.herokuapp.com/api'
+    : 'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: API_URL,
