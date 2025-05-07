@@ -18,32 +18,23 @@ def login(request):
         username = request.data.get('username')
         password = request.data.get('password')
 
-        logger.info(f"Login attempt for user: {username}")
-
         if not username or not password:
-            logger.warning("Login attempt with missing credentials")
             return Response({'error': 'Please provide both username and password'}, status=400)
 
         user = authenticate(username=username, password=password)
-        logger.info(f"Authentication result for {username}: {'success' if user else 'failed'}")
 
         if not user:
-            return Response({'error': 'Invalid Credentials'}, status=401)
+            return Response({'error': 'Invalid credentials'}, status=400)
 
         token, _ = Token.objects.get_or_create(user=user)
-        logger.info(f"Token generated for user {username}")
-        
-        response_data = {
+        return Response({
             'token': token.key,
             'user_id': user.pk,
             'username': user.username,
             'first_name': user.first_name
-        }
-        logger.info(f"Login successful for user {username}")
-        return Response(response_data)
+        })
     except Exception as e:
-        logger.error(f"Error during login: {str(e)}")
-        return Response({'error': 'An unexpected error occurred'}, status=500)
+        return Response({'error': str(e)}, status=400)
 
 @api_view(['POST'])
 def verify_token(request):
