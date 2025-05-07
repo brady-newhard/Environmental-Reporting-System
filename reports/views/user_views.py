@@ -8,6 +8,7 @@ from ..models import Contact
 from ..serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from rest_framework.authentication import TokenAuthentication
 
 class UserListViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
@@ -18,6 +19,7 @@ class UserListViewSet(viewsets.ReadOnlyModelViewSet):
 class UserRegistration(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
