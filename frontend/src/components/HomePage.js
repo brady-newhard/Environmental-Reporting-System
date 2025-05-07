@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Box,
-  Grid,
   Card,
   CardContent,
   Typography,
@@ -11,6 +10,7 @@ import {
   ListItemIcon,
   Divider,
   IconButton,
+  Button,
 } from '@mui/material';
 import {
   Description as DescriptionIcon,
@@ -19,65 +19,128 @@ import {
   FormatListBulleted as ListIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
-const DashboardCard = ({ title, icon: Icon, items = [] }) => (
-  <Card sx={{ 
-    height: '100%', 
-    bgcolor: '#fff',
-    borderRadius: '2px',
-    '&:hover': {
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    }
-  }}>
-    <CardContent>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Icon sx={{ color: '#000000', mr: 1 }} />
-        <Typography variant="h6" sx={{ color: '#000000', fontWeight: 600, flex: 1 }}>
-          {title}
-        </Typography>
-        <IconButton size="small" sx={{ color: '#666666' }}>
-          <ChevronRightIcon />
-        </IconButton>
-      </Box>
-      <Divider sx={{ mb: 2 }} />
-      <List sx={{ p: 0 }}>
-        {items.map((item, index) => (
-          <ListItem 
-            key={index}
+const DashboardCard = ({ title, icon: Icon, items = [], path }) => {
+  const navigate = useNavigate();
+
+  return (
+    <Card sx={{
+      height: 200,
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      bgcolor: '#fff',
+      borderRadius: '2px',
+      '&:hover': {
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      },
+    }}>
+      <CardContent sx={{ 
+        flex: 1,
+        p: 1.5,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.5,
+        '&:last-child': { pb: 0 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'flex-start',
+          gap: 1,
+          minHeight: 60
+        }}>
+          <Icon sx={{ 
+            color: '#000000',
+            fontSize: '1.25rem',
+            mt: 0.5,
+            flexShrink: 0
+          }} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                color: '#000000', 
+                fontWeight: 600,
+                fontSize: '1rem',
+                wordBreak: 'break-word',
+                mb: 0.5
+              }}
+            >
+              {title}
+            </Typography>
+            <List sx={{ p: 0 }}>
+              {items.slice(0, 2).map((item, index) => (
+                <ListItem 
+                  key={index}
+                  sx={{ 
+                    px: 0, 
+                    py: 0.25,
+                    '&:hover': {
+                      bgcolor: '#f5f5f5',
+                    }
+                  }}
+                >
+                  <ListItemText 
+                    primary={item.title}
+                    secondary={item.date}
+                    primaryTypographyProps={{
+                      sx: { 
+                        color: '#000000',
+                        fontSize: '0.85rem',
+                        fontWeight: 500,
+                        wordBreak: 'break-word',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }
+                    }}
+                    secondaryTypographyProps={{
+                      sx: { 
+                        color: '#666666',
+                        fontSize: '0.75rem'
+                      }
+                    }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+          <IconButton
+            size="small"
             sx={{ 
-              px: 1, 
-              py: 0.5,
-              '&:hover': {
-                bgcolor: '#f5f5f5',
-              }
+              color: '#666666',
+              mt: 0.5,
+              flexShrink: 0,
+              p: 0.5
             }}
+            onClick={() => navigate(path)}
           >
-            <ListItemIcon sx={{ minWidth: 36 }}>
-              <Icon sx={{ color: '#666666', fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText 
-              primary={item.title}
-              secondary={item.date}
-              primaryTypographyProps={{
-                sx: { 
-                  color: '#000000',
-                  fontSize: '0.9rem',
-                  fontWeight: 500
-                }
-              }}
-              secondaryTypographyProps={{
-                sx: { 
-                  color: '#666666',
-                  fontSize: '0.8rem'
-                }
-              }}
-            />
-          </ListItem>
-        ))}
-      </List>
-    </CardContent>
-  </Card>
-);
+            <ChevronRightIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </CardContent>
+      <Box sx={{ p: 1.5, pt: 0 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => navigate(path)}
+          sx={{
+            backgroundColor: '#000000',
+            '&:hover': { backgroundColor: '#333333' },
+            color: '#ffffff',
+            fontWeight: 500,
+            height: 32,
+            fontSize: '0.875rem'
+          }}
+        >
+          View {title}
+        </Button>
+      </Box>
+    </Card>
+  );
+};
 
 const HomePage = () => {
   // Sample data - replace with actual data from your backend
@@ -123,36 +186,43 @@ const HomePage = () => {
       >
         Dashboard
       </Typography>
-      <Grid container spacing={{ xs: 2, sm: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <DashboardCard
-            title="Draft Reports"
-            icon={DescriptionIcon}
-            items={draftReports}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <DashboardCard
-            title="Project Permits"
-            icon={AssignmentIcon}
-            items={projectPermits}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <DashboardCard
-            title="Project Drawings"
-            icon={ArchitectureIcon}
-            items={projectDrawings}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <DashboardCard
-            title="Punch Lists"
-            icon={ListIcon}
-            items={punchLists}
-          />
-        </Grid>
-      </Grid>
+      <Box sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2,
+        '& > *': {
+          width: {
+            xs: '100%',
+            sm: 'calc(50% - 8px)',
+            md: 'calc(33.333% - 16px)'
+          }
+        }
+      }}>
+        <DashboardCard
+          title="Draft Reports"
+          icon={DescriptionIcon}
+          items={draftReports}
+          path="/reports-dashboard"
+        />
+        <DashboardCard
+          title="Project Permits"
+          icon={AssignmentIcon}
+          items={projectPermits}
+          path="/permits"
+        />
+        <DashboardCard
+          title="Project Drawings"
+          icon={ArchitectureIcon}
+          items={projectDrawings}
+          path="/drawings"
+        />
+        <DashboardCard
+          title="Punch Lists"
+          icon={ListIcon}
+          items={punchLists}
+          path="/punchlists"
+        />
+      </Box>
     </Box>
   );
 };
