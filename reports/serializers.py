@@ -33,6 +33,8 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError("Passwords do not match")
+        if not data.get('phone_number') or not data['phone_number'].strip():
+            raise serializers.ValidationError({"phone_number": "Phone number is required."})
         return data
 
     def create(self, validated_data):
