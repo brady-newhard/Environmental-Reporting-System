@@ -14,6 +14,8 @@ import {
   Divider,
   Container,
   Paper,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Description as DescriptionIcon,
@@ -33,30 +35,51 @@ import { ProgressChartTable } from './ProgressChart';
 
 const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <ListItem 
       button 
       onClick={() => onSelect(report)}
       selected={isSelected}
+      sx={{
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        py: isMobile ? 2 : 1,
+      }}
     >
       <ListItemText
         primary={report.report_type || 'Daily Report'}
         secondary={`Created: ${new Date(report.date).toLocaleDateString()}`}
+        sx={{
+          mb: isMobile ? 1 : 0,
+          '& .MuiTypography-root': {
+            fontSize: isMobile ? '0.9rem' : '1rem',
+          }
+        }}
       />
-      <ListItemSecondaryAction>
+      <ListItemSecondaryAction sx={{
+        position: isMobile ? 'relative' : 'absolute',
+        right: isMobile ? 0 : 16,
+        top: isMobile ? 'auto' : '50%',
+        transform: isMobile ? 'none' : 'translateY(-50%)',
+        display: 'flex',
+        gap: 1,
+      }}>
         <IconButton
           edge="end"
           onClick={() => navigate(`/new-report/${report.id}`)}
-          sx={{ mr: 1 }}
+          size={isMobile ? "small" : "medium"}
         >
-          <EditIcon />
+          <EditIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
         <IconButton
           edge="end"
           onClick={() => onDelete(report.id)}
+          size={isMobile ? "small" : "medium"}
         >
-          <DeleteIcon />
+          <DeleteIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
       </ListItemSecondaryAction>
     </ListItem>
@@ -65,12 +88,14 @@ const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
 
 const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isProgress = title === 'Progress Report';
   const progressPath = '/new-progress-report';
 
   return (
     <Card sx={{
-      height: 200,
+      height: isMobile ? 180 : 200,
       width: '100%',
       display: 'flex',
       flexDirection: 'column',
@@ -82,21 +107,21 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
     }}>
       <CardContent sx={{ 
         flex: 1,
-        p: 2,
+        p: isMobile ? 1.5 : 2,
         display: 'flex',
         flexDirection: 'column',
-        gap: 1,
+        gap: 0.5,
         '&:last-child': { pb: 0 }
       }}>
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'flex-start',
           gap: 1,
-          minHeight: 80
+          minHeight: isMobile ? 60 : 80
         }}>
           <IconComponent sx={{ 
             color: '#000000',
-            fontSize: '1.5rem',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
             mt: 0.5,
             flexShrink: 0
           }} />
@@ -106,7 +131,7 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
               sx={{ 
                 color: '#000000', 
                 fontWeight: 600,
-                fontSize: '1.1rem',
+                fontSize: isMobile ? '1rem' : '1.1rem',
                 wordBreak: 'break-word',
                 mb: 0.5
               }}
@@ -117,7 +142,7 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
               variant="body2" 
               sx={{ 
                 color: '#666666',
-                fontSize: '0.9rem',
+                fontSize: isMobile ? '0.8rem' : '0.9rem',
                 wordBreak: 'break-word',
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -133,15 +158,16 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
             sx={{ 
               color: '#666666',
               mt: 0.5,
-              flexShrink: 0
+              flexShrink: 0,
+              p: isMobile ? 0.5 : 1
             }}
             onClick={() => navigate(isProgress ? progressPath : path)}
           >
-            <ChevronRightIcon />
+            <ChevronRightIcon fontSize={isMobile ? "small" : "medium"} />
           </IconButton>
         </Box>
       </CardContent>
-      <Box sx={{ p: 2, pt: 0 }}>
+      <Box sx={{ p: isMobile ? 1.5 : 2, pt: 0 }}>
         <Button
           variant="contained"
           fullWidth
@@ -152,7 +178,8 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
             color: '#ffffff',
             textTransform: 'none',
             fontWeight: 500,
-            height: 36
+            height: isMobile ? 32 : 36,
+            fontSize: isMobile ? '0.875rem' : '1rem'
           }}
         >
           Create {title}
@@ -164,6 +191,8 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
 
 const ReportsDashboard = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [draftReports, setDraftReports] = useState([]);
   const [selectedReport, setSelectedReport] = useState(null);
 
@@ -237,15 +266,31 @@ const ReportsDashboard = () => {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
-      <Box sx={{ mt: { xs: 1, sm: 2, md: 3 } }}>
-        <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
+    <Container maxWidth="xl" sx={{ 
+      px: { xs: 1, sm: 2, md: 3 },
+      py: { xs: 1, sm: 2 },
+      height: '100%',
+      overflow: 'auto'
+    }}>
+      <Box sx={{ 
+        mt: { xs: 1, sm: 2, md: 3 },
+        mb: { xs: 2, sm: 3, md: 4 }
+      }}>
+        <Typography 
+          variant="h4" 
+          gutterBottom 
+          sx={{ 
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+            fontWeight: 600,
+            color: '#000000'
+          }}
+        >
           Reports Dashboard
         </Typography>
         
         {/* Draft Reports Section */}
         {draftReports.length > 0 && (
-          <Box sx={{ mb: { xs: 1, sm: 2, md: 3 } }}>
+          <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
             <Typography 
               variant="h6" 
               sx={{ 
@@ -279,8 +324,20 @@ const ReportsDashboard = () => {
 
         {/* Punchlist Container */}
         {selectedReport && (
-          <Paper sx={{ p: { xs: 1, sm: 2 }, mb: { xs: 1, sm: 2, md: 3 } }}>
-            <Typography variant="h5" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+          <Paper sx={{ 
+            p: { xs: 1.5, sm: 2 }, 
+            mb: { xs: 2, sm: 3, md: 4 },
+            borderRadius: 1
+          }}>
+            <Typography 
+              variant="h5" 
+              gutterBottom 
+              sx={{ 
+                fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                fontWeight: 600,
+                color: '#000000'
+              }}
+            >
               Punchlist Report for {selectedReport.report_type || 'Daily Report'}
             </Typography>
             <PunchlistReport reportId={selectedReport.id} />
@@ -291,7 +348,7 @@ const ReportsDashboard = () => {
         <Typography 
           variant="h5" 
           sx={{ 
-            mb: { xs: 1, sm: 2 }, 
+            mb: { xs: 1.5, sm: 2 }, 
             color: '#000000',
             fontWeight: 600,
             fontSize: { xs: '1.25rem', sm: '1.5rem' }
@@ -300,19 +357,17 @@ const ReportsDashboard = () => {
           Create New Report
         </Typography>
         <Box sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 2,
-          '& > *': {
-            width: {
-              xs: '100%',
-              sm: 'calc(50% - 8px)',
-              md: 'calc(33.333% - 16px)'
-            }
-          }
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(3, 1fr)'
+          },
+          gap: { xs: 1.5, sm: 2 },
+          width: '100%'
         }}>
           {reportTypes.map((type, index) => (
-            <Box key={index} sx={{ display: 'flex' }}>
+            <Box key={index}>
               <ReportTypeCard {...type} />
             </Box>
           ))}
