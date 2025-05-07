@@ -22,30 +22,29 @@ class UserRegistration(generics.CreateAPIView):
     authentication_classes = [TokenAuthentication]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        token, created = Token.objects.get_or_create(user=user)
-        
-        # Create contact entry for the new user with the phone number
-        Contact.objects.create(
-            user=user,
-            phone_number=request.data.get('phone_number', '')
-        )
-        
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            {
-                "message": "User created successfully",
-                "token": token.key,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                }
-            },
-            status=status.HTTP_201_CREATED,
-            headers=headers
-        ) 
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+            token, created = Token.objects.get_or_create(user=user)
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                {
+                    "message": "User created successfully",
+                    "token": token.key,
+                    "user": {
+                        "id": user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                    }
+                },
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
+        except Exception as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            ) 
