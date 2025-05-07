@@ -1,8 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views.user_views import UserRegistration
 from .views import (
     UserListViewSet,
-    UserRegistration,
     ReportViewSet,
     ContactListView,
     login,
