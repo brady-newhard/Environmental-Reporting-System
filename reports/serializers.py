@@ -40,9 +40,12 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('confirm_password')
         phone_number = validated_data.pop('phone_number', '')
-        user = User.objects.create_user(**validated_data)
-        Contact.objects.create(user=user, phone_number=phone_number)
-        return user
+        try:
+            user = User.objects.create_user(**validated_data)
+            Contact.objects.create(user=user, phone_number=phone_number)
+            return user
+        except Exception as e:
+            raise serializers.ValidationError({'detail': str(e)})
 
 class ReportSerializer(serializers.ModelSerializer):
     inspector = serializers.ReadOnlyField(source='inspector.username')
