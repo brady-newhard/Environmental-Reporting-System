@@ -6,12 +6,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from ..models import Contact
 from ..serializers import UserSerializer
+from django.views.decorators.csrf import csrf_exempt
 
 class UserListViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
+@csrf_exempt
 class UserRegistration(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
