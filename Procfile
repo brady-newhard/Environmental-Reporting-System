@@ -1,0 +1,1 @@
+web: gunicorn environmentalreport.wsgi --log-file - 
