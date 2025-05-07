@@ -14,6 +14,11 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
+const API_BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://environmental-reporting-system-febba9464fe7.herokuapp.com/api/'
+    : 'http://localhost:8000/api/';
+
 const SignUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -65,7 +70,7 @@ const SignUp = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/register/', {
+      const response = await fetch(API_BASE_URL + 'register/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
