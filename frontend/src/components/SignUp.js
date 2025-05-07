@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import api from '../services/api';
 
 const API_BASE_URL =
   process.env.NODE_ENV === 'production'
@@ -70,37 +71,26 @@ const SignUp = () => {
     }
 
     try {
-      const response = await fetch(API_BASE_URL + 'register/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone_number: formData.phone_number,
-          confirm_password: formData.confirm_password,
-        }),
+      const response = await api.post('/register/', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone_number: formData.phone_number,
+        confirm_password: formData.confirm_password,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(JSON.stringify(errorData));
-      }
 
       navigate('/success-signup');
     } catch (err) {
       console.error('Signup error:', err);
-      try {
-        const errorObj = JSON.parse(err.message);
-        const errorMessages = Object.entries(errorObj)
+      if (err.response) {
+        const errorData = err.response.data;
+        const errorMessages = Object.entries(errorData)
           .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
           .join('\n');
         setError(errorMessages);
-      } catch (parseError) {
+      } else {
         setError('Error creating account. Please try again.');
       }
     }
