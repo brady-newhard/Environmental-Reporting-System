@@ -160,13 +160,14 @@ const ReportForm = () => {
       display: 'flex',
       flexDirection: 'column',
       bgcolor: '#f5f5f5',
-      p: 1.5,
+      p: { xs: 1, sm: 1.5 },
+      overflow: 'auto'
     }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 2 } }}>
         <IconButton
           onClick={() => navigate('/reports-dashboard')}
           sx={{
-            mr: 2,
+            mr: { xs: 1, sm: 2 },
             backgroundColor: '#000000',
             '&:hover': { backgroundColor: '#333333' },
             color: '#ffffff'
@@ -174,25 +175,34 @@ const ReportForm = () => {
         >
           <ArrowBackIcon />
         </IconButton>
-        <Typography variant="h5" sx={{ color: '#000000', fontWeight: 600 }}>
+        <Typography variant="h5" sx={{ 
+          color: '#000000', 
+          fontWeight: 600,
+          fontSize: { xs: '1.25rem', sm: '1.5rem' }
+        }}>
           New Report
         </Typography>
       </Box>
 
       <form onSubmit={handleSubmit} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: { xs: 1, sm: 2 }, 
+          mb: { xs: 1, sm: 2 } 
+        }}>
           {/* Event Information Section */}
           <Box sx={{ 
             flex: 1, 
             bgcolor: '#e0e0e0', 
-            p: 1.5, 
+            p: { xs: 1, sm: 1.5 }, 
             borderRadius: '2px',
           }}>
             <Typography variant="subtitle2" sx={{ 
               mb: 1, 
               color: '#000000', 
               fontWeight: 700,
-              fontSize: '1.1rem',
+              fontSize: { xs: '1rem', sm: '1.1rem' },
               textAlign: 'center',
               width: '100%'
             }}>
@@ -252,14 +262,14 @@ const ReportForm = () => {
           <Box sx={{ 
             flex: 1, 
             bgcolor: '#e0e0e0', 
-            p: 1.5, 
+            p: { xs: 1, sm: 1.5 }, 
             borderRadius: '2px',
           }}>
             <Typography variant="subtitle2" sx={{ 
               mb: 1, 
               color: '#000000', 
               fontWeight: 700,
-              fontSize: '1.1rem',
+              fontSize: { xs: '1rem', sm: '1.1rem' },
               textAlign: 'center',
               width: '100%'
             }}>
@@ -313,19 +323,24 @@ const ReportForm = () => {
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: { xs: 1, sm: 2 }, 
+          mb: { xs: 1, sm: 2 } 
+        }}>
           {/* Location Information Section */}
           <Box sx={{ 
             flex: 1, 
             bgcolor: '#e0e0e0', 
-            p: 1.5, 
+            p: { xs: 1, sm: 1.5 }, 
             borderRadius: '2px',
           }}>
             <Typography variant="subtitle2" sx={{ 
               mb: 1, 
               color: '#000000', 
               fontWeight: 700,
-              fontSize: '1.1rem',
+              fontSize: { xs: '1rem', sm: '1.1rem' },
               textAlign: 'center',
               width: '100%'
             }}>
@@ -458,14 +473,14 @@ const ReportForm = () => {
           <Box sx={{ 
             flex: 1, 
             bgcolor: '#e0e0e0', 
-            p: 1.5, 
+            p: { xs: 1, sm: 1.5 }, 
             borderRadius: '2px',
           }}>
             <Typography variant="subtitle2" sx={{ 
               mb: 1, 
               color: '#000000', 
               fontWeight: 700,
-              fontSize: '1.1rem',
+              fontSize: { xs: '1rem', sm: '1.1rem' },
               textAlign: 'center',
               width: '100%'
             }}>
@@ -533,15 +548,15 @@ const ReportForm = () => {
         {/* Feature Selection Area - Full Width */}
         <Box sx={{ 
           bgcolor: '#e0e0e0', 
-          p: 1.5, 
+          p: { xs: 1, sm: 1.5 }, 
           borderRadius: '2px',
-          mb: 2,
+          mb: { xs: 1, sm: 2 },
           width: '100%'
         }}>
           <Typography variant="subtitle2" sx={{ 
             color: '#000000', 
             fontWeight: 700,
-            fontSize: '1.1rem',
+            fontSize: { xs: '1rem', sm: '1.1rem' },
             textAlign: 'center',
             width: '100%',
             mb: 1
@@ -549,7 +564,7 @@ const ReportForm = () => {
             CLICK TO SELECT TRACTS, ACCESS ROADS, AND ENVIRONMENTAL FEATURES
           </Typography>
           <Box sx={{ 
-            height: '200px', 
+            height: { xs: '150px', sm: '200px' }, 
             bgcolor: '#f5f5f5', 
             borderRadius: '2px',
             display: 'flex',
@@ -563,16 +578,16 @@ const ReportForm = () => {
         {/* Notes Section - Full Width */}
         <Box sx={{ 
           bgcolor: '#e0e0e0', 
-          p: 1.5, 
+          p: { xs: 1, sm: 1.5 }, 
           borderRadius: '2px',
-          mb: 2,
+          mb: { xs: 1, sm: 2 },
           flex: 1
         }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 1, 
             color: '#000000', 
             fontWeight: 700,
-            fontSize: '1.1rem',
+            fontSize: { xs: '1rem', sm: '1.1rem' },
             textAlign: 'center',
             width: '100%'
           }}>
@@ -589,7 +604,7 @@ const ReportForm = () => {
               backgroundColor: '#fff', 
               borderRadius: '2px',
               '& .MuiOutlinedInput-root': {
-                minHeight: '200px',
+                minHeight: { xs: '150px', sm: '200px' },
                 '& fieldset': {
                   borderColor: '#000000',
                 },
@@ -601,14 +616,19 @@ const ReportForm = () => {
                 },
               },
               '& .MuiInputBase-input': {
-                padding: '12px',
+                padding: { xs: '8px', sm: '12px' },
               }
             }}
           />
         </Box>
 
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 },
+          justifyContent: 'space-between'
+        }}>
           <Button
             variant="contained"
             size="small"
@@ -616,8 +636,9 @@ const ReportForm = () => {
             sx={{
               backgroundColor: '#666666',
               '&:hover': { backgroundColor: '#444444' },
-              height: '32px',
-              color: '#ffffff'
+              height: { xs: '40px', sm: '32px' },
+              color: '#ffffff',
+              width: { xs: '100%', sm: 'auto' }
             }}
           >
             CANCEL
@@ -629,8 +650,9 @@ const ReportForm = () => {
             sx={{
               backgroundColor: '#666666',
               '&:hover': { backgroundColor: '#444444' },
-              height: '32px',
-              color: '#ffffff'
+              height: { xs: '40px', sm: '32px' },
+              color: '#ffffff',
+              width: { xs: '100%', sm: 'auto' }
             }}
           >
             SAVE PROGRESS & EXIT
@@ -643,8 +665,9 @@ const ReportForm = () => {
             sx={{
               backgroundColor: '#000000',
               '&:hover': { backgroundColor: '#333333' },
-              height: '32px',
-              color: '#ffffff'
+              height: { xs: '40px', sm: '32px' },
+              color: '#ffffff',
+              width: { xs: '100%', sm: 'auto' }
             }}
           >
             ADD PHOTOS

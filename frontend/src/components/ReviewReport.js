@@ -254,52 +254,43 @@ const ReviewReport = () => {
       display: 'flex',
       flexDirection: 'column',
       bgcolor: '#f5f5f5',
-      p: 1.5,
+      p: { xs: 1, sm: 1.5 },
+      overflow: 'auto'
     }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 2 } }}>
           <IconButton
-            onClick={() => navigate(`/new-report/${id}`)}
-            sx={{
-              mr: 2,
-              backgroundColor: '#000000',
-              '&:hover': { backgroundColor: '#333333' },
-              color: '#ffffff'
-            }}
-          >
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h5" sx={{ color: '#000000', fontWeight: 600 }}>
-            Review Report
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-          onClick={isEditing ? handleSave : handleEdit}
+          onClick={() => navigate('/reports-dashboard')}
           sx={{
+            mr: { xs: 1, sm: 2 },
             backgroundColor: '#000000',
             '&:hover': { backgroundColor: '#333333' },
             color: '#ffffff'
           }}
         >
-          {isEditing ? 'Save Changes' : 'Edit Report'}
-        </Button>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h5" sx={{ 
+          color: '#000000', 
+          fontWeight: 600,
+          fontSize: { xs: '1.25rem', sm: '1.5rem' }
+        }}>
+          Review Report
+        </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 1, sm: 2 }, mb: { xs: 1, sm: 2 } }}>
         {/* Event Information Section */}
         <Box sx={{ 
           flex: 1, 
           bgcolor: '#e0e0e0', 
-          p: 1.5, 
+          p: { xs: 1, sm: 1.5 }, 
           borderRadius: '2px',
         }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 1, 
             color: '#000000', 
             fontWeight: 700,
-            fontSize: '1.1rem',
+            fontSize: { xs: '1rem', sm: '1.1rem' },
             textAlign: 'center',
             width: '100%'
           }}>
@@ -315,14 +306,14 @@ const ReviewReport = () => {
         <Box sx={{ 
           flex: 1, 
           bgcolor: '#e0e0e0', 
-          p: 1.5, 
+          p: { xs: 1, sm: 1.5 }, 
           borderRadius: '2px',
         }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 1, 
             color: '#000000', 
             fontWeight: 700,
-            fontSize: '1.1rem',
+            fontSize: { xs: '1rem', sm: '1.1rem' },
             textAlign: 'center',
             width: '100%'
           }}>
@@ -335,19 +326,19 @@ const ReviewReport = () => {
         </Box>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 1, sm: 2 }, mb: { xs: 1, sm: 2 } }}>
         {/* Location Information Section */}
         <Box sx={{ 
           flex: 1, 
           bgcolor: '#e0e0e0', 
-          p: 1.5, 
+          p: { xs: 1, sm: 1.5 }, 
           borderRadius: '2px',
         }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 1, 
             color: '#000000', 
             fontWeight: 700,
-            fontSize: '1.1rem',
+            fontSize: { xs: '1rem', sm: '1.1rem' },
             textAlign: 'center',
             width: '100%'
           }}>
@@ -368,14 +359,14 @@ const ReviewReport = () => {
         <Box sx={{ 
           flex: 1, 
           bgcolor: '#e0e0e0', 
-          p: 1.5, 
+          p: { xs: 1, sm: 1.5 }, 
           borderRadius: '2px',
         }}>
           <Typography variant="subtitle2" sx={{ 
             mb: 1, 
             color: '#000000', 
             fontWeight: 700,
-            fontSize: '1.1rem',
+            fontSize: { xs: '1rem', sm: '1.1rem' },
             textAlign: 'center',
             width: '100%'
           }}>
@@ -435,34 +426,34 @@ const ReviewReport = () => {
       {/* Photos Section */}
       <Box sx={{ 
         bgcolor: '#e0e0e0', 
-        p: 1.5, 
+        p: { xs: 1, sm: 1.5 }, 
         borderRadius: '2px',
-        mb: 2
+        mb: { xs: 1, sm: 2 }
       }}>
         <Typography variant="subtitle2" sx={{ 
           mb: 1, 
           color: '#000000', 
           fontWeight: 700,
-          fontSize: '1.1rem',
+          fontSize: { xs: '1rem', sm: '1.1rem' },
           textAlign: 'center',
           width: '100%'
         }}>
           PHOTOS
         </Typography>
-        <Grid container spacing={2}>
+        <Grid container spacing={{ xs: 1, sm: 2 }}>
           {photos.map((photo) => (
-            <Grid item xs={6} key={photo.id}>
+            <Grid item xs={12} sm={6} key={photo.id}>
               <Box sx={{ 
                 bgcolor: '#ffffff',
-                p: 1.5,
+                p: { xs: 1, sm: 1.5 },
                 borderRadius: '2px',
                 border: '1px solid #000000',
                 height: '100%'
               }}>
                 <Box sx={{ 
                   width: '100%',
-                  height: '250px',
-                  mb: 1.5,
+                  height: { xs: '200px', sm: '250px' },
+                  mb: { xs: 1, sm: 1.5 },
                   position: 'relative'
                 }}>
                   <img
@@ -479,13 +470,14 @@ const ReviewReport = () => {
                 <Typography variant="subtitle2" sx={{ 
                   fontWeight: 600, 
                   mb: 0.5,
-                  color: '#000000'
+                  color: '#000000',
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
                 }}>
                   Location: {photo.location || 'Not specified'}
                 </Typography>
                 <Typography variant="body2" sx={{ 
                   color: '#333333',
-                  fontSize: '0.875rem'
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
                 }}>
                   {photo.comments || 'No comments'}
                 </Typography>
@@ -496,32 +488,39 @@ const ReviewReport = () => {
       </Box>
 
       {/* Action Buttons */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: { xs: 1, sm: 2 },
+        justifyContent: 'space-between'
+      }}>
         <Button
           variant="contained"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(`/new-report/${id}`)}
+          size="small"
+          onClick={() => navigate('/reports-dashboard')}
           sx={{
             backgroundColor: '#666666',
             '&:hover': { backgroundColor: '#444444' },
-            height: '32px',
-            color: '#ffffff'
+            height: { xs: '40px', sm: '32px' },
+            color: '#ffffff',
+            width: { xs: '100%', sm: 'auto' }
           }}
         >
-          Back to Report
+          BACK
         </Button>
         <Button
           variant="contained"
-          startIcon={<CheckCircleIcon />}
-          onClick={handleSubmit}
+          size="small"
+          onClick={handleSave}
           sx={{
             backgroundColor: '#000000',
             '&:hover': { backgroundColor: '#333333' },
-            height: '32px',
-            color: '#ffffff'
+            height: { xs: '40px', sm: '32px' },
+            color: '#ffffff',
+            width: { xs: '100%', sm: 'auto' }
           }}
         >
-          Submit Report
+          SAVE CHANGES
         </Button>
       </Box>
     </Box>
