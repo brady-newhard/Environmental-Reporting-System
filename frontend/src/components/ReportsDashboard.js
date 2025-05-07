@@ -63,42 +63,85 @@ const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
   );
 };
 
-const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
+const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
   const navigate = useNavigate();
   const isProgress = title === 'Progress Report';
   const progressPath = '/new-progress-report';
 
   return (
     <Card sx={{
-      height: '100%',
+      height: 200,
+      width: '100%',
       display: 'flex',
       flexDirection: 'column',
-      justifyContent: 'space-between',
       bgcolor: '#fff',
       borderRadius: '2px',
       '&:hover': {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
       },
     }}>
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Icon sx={{ color: '#000000', mr: 1 }} />
-          <Typography variant="h6" sx={{ color: '#000000', fontWeight: 600, flex: 1 }}>
-            {title}
-          </Typography>
+      <CardContent sx={{ 
+        flex: 1,
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1,
+        '&:last-child': { pb: 0 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'flex-start',
+          gap: 1,
+          minHeight: 80
+        }}>
+          <IconComponent sx={{ 
+            color: '#000000',
+            fontSize: '1.5rem',
+            mt: 0.5,
+            flexShrink: 0
+          }} />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                color: '#000000', 
+                fontWeight: 600,
+                fontSize: '1.1rem',
+                wordBreak: 'break-word',
+                mb: 0.5
+              }}
+            >
+              {title}
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: '#666666',
+                fontSize: '0.9rem',
+                wordBreak: 'break-word',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}
+            >
+              {description}
+            </Typography>
+          </Box>
           <IconButton
             size="small"
-            sx={{ color: '#666666' }}
+            sx={{ 
+              color: '#666666',
+              mt: 0.5,
+              flexShrink: 0
+            }}
             onClick={() => navigate(isProgress ? progressPath : path)}
           >
             <ChevronRightIcon />
           </IconButton>
         </Box>
-        <Typography variant="body2" sx={{ color: '#666666', mb: 2, minHeight: 32, maxHeight: 32, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {description}
-        </Typography>
       </CardContent>
-      <Box sx={{ px: 2, pb: 2 }}>
+      <Box sx={{ p: 2, pt: 0 }}>
         <Button
           variant="contained"
           fullWidth
@@ -109,6 +152,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
             color: '#ffffff',
             textTransform: 'none',
             fontWeight: 500,
+            height: 36
           }}
         >
           Create {title}
@@ -193,19 +237,19 @@ const ReportsDashboard = () => {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-      <Box sx={{ mt: { xs: 2, sm: 3, md: 4 } }}>
+    <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
+      <Box sx={{ mt: { xs: 1, sm: 2, md: 3 } }}>
         <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
           Reports Dashboard
         </Typography>
         
         {/* Draft Reports Section */}
         {draftReports.length > 0 && (
-          <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+          <Box sx={{ mb: { xs: 1, sm: 2, md: 3 } }}>
             <Typography 
               variant="h6" 
               sx={{ 
-                mb: 2, 
+                mb: 1, 
                 color: '#000000',
                 fontWeight: 600,
                 fontSize: { xs: '1rem', sm: '1.25rem' }
@@ -235,7 +279,7 @@ const ReportsDashboard = () => {
 
         {/* Punchlist Container */}
         {selectedReport && (
-          <Paper sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3, md: 4 } }}>
+          <Paper sx={{ p: { xs: 1, sm: 2 }, mb: { xs: 1, sm: 2, md: 3 } }}>
             <Typography variant="h5" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
               Punchlist Report for {selectedReport.report_type || 'Daily Report'}
             </Typography>
@@ -247,7 +291,7 @@ const ReportsDashboard = () => {
         <Typography 
           variant="h5" 
           sx={{ 
-            mb: { xs: 2, sm: 3 }, 
+            mb: { xs: 1, sm: 2 }, 
             color: '#000000',
             fontWeight: 600,
             fontSize: { xs: '1.25rem', sm: '1.5rem' }
@@ -255,28 +299,21 @@ const ReportsDashboard = () => {
         >
           Create New Report
         </Typography>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: 'repeat(3, 1fr)'
-            },
-            gap: { xs: 2, sm: 3 },
-            width: '100%',
-          }}
-        >
-          {reportTypes.map((reportType) => (
-            <Box
-              key={reportType.title}
-              sx={{
-                height: { xs: 220, sm: 240, md: 260 },
-                display: 'flex',
-                alignItems: 'stretch',
-              }}
-            >
-              <ReportTypeCard {...reportType} />
+        <Box sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          '& > *': {
+            width: {
+              xs: '100%',
+              sm: 'calc(50% - 8px)',
+              md: 'calc(33.333% - 16px)'
+            }
+          }
+        }}>
+          {reportTypes.map((type, index) => (
+            <Box key={index} sx={{ display: 'flex' }}>
+              <ReportTypeCard {...type} />
             </Box>
           ))}
         </Box>
