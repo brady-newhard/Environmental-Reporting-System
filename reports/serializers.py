@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Report, Contact, ProgressChart
 from django.utils import timezone
+from django.db import transaction
 
 # ProgressChart serializers will be implemented here as part of the reports app
 
@@ -41,9 +42,10 @@ class UserSerializer(serializers.ModelSerializer):
         validated_data.pop('confirm_password')
         phone_number = validated_data.pop('phone_number', '')
         try:
-            user = User.objects.create_user(**validated_data)
-            Contact.objects.create(user=user, phone_number=phone_number)
-            return user
+            with transaction.atomic():
+                user = User.objects.create_user(**validated_data)
+                Contact.objects.create(user=user, phone_number=phone_number)
+                return user
         except Exception as e:
             raise serializers.ValidationError({'detail': str(e)})
 
