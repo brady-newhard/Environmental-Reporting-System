@@ -10,9 +10,6 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  min-width: 320px;
-  width: 100%;
-  overflow-x: hidden;
 }
 
 @media screen and (max-width: 480px) {
