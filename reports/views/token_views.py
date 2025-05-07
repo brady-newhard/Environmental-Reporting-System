@@ -4,10 +4,13 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authentication import TokenAuthentication
 import logging
 
 logger = logging.getLogger(__name__)
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
