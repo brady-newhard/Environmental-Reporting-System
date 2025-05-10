@@ -28,6 +28,7 @@ import NewVarianceReport from './components/environmental/NewVarianceReport';
 import WeldingMain from './components/welding/WeldingMain';
 import DailyWeldingReportForm from './components/welding/DailyWeldingReportForm';
 import WeldingReports from './components/welding/WeldingReports';
+import WeldingDraftReports from './components/welding/WeldingDraftReports';
 
 const theme = createTheme({
   palette: {
@@ -241,6 +242,14 @@ function App() {
             element={
               <PrivateRoute>
                 <WeldingReports />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding/reports/drafts"
+            element={
+              <PrivateRoute>
+                <WeldingDraftReports />
               </PrivateRoute>
             }
           />
