@@ -54,7 +54,7 @@ const Navigation = () => {
 
   const menuItems = [
     { text: 'Home', path: '/' },
-    { text: 'Reports Dashboard', path: '/reports-dashboard' },
+    { text: 'Project Documents', path: '/project-documents' },
     { text: 'Search Reports', path: '/search' },
     { text: 'Contacts', path: '/contacts' },
   ];
@@ -201,21 +201,34 @@ const Navigation = () => {
         >
           <MenuIcon />
         </IconButton>
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none' }} component={RouterLink} to="/">
         <Typography
-          variant="h6"
-          component={RouterLink}
-          to="/"
+            variant="h5"
           sx={{
-            flexGrow: 1,
+              color: '#ffffff',
+              fontWeight: 700,
+              letterSpacing: 2,
+              lineHeight: 1,
             textDecoration: 'none',
+            }}
+          >
+            PIPE
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
             color: '#ffffff',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
+              opacity: 0.8,
+              fontWeight: 400,
+              fontSize: '0.75rem',
+              lineHeight: 1,
+              textDecoration: 'none',
+              mt: 0.5,
           }}
         >
-          Environmental Reporting System
+            Pipeline Information & Project Evaluation
         </Typography>
+        </Box>
 
         {isAuthenticated && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

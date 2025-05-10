@@ -18,8 +18,9 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  Description as DescriptionIcon,
-  Assignment as AssignmentIcon,
+  Description as DocumentIcon,
+  Assignment as PermitIcon,
+  Architecture as DrawingIcon,
   FormatListBulleted as ListIcon,
   TrendingUp as ProgressIcon,
   Warning as VarianceIcon,
@@ -30,10 +31,11 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import PageHeader from './common/PageHeader';
 import PunchlistReport from './PunchlistReport';
 import { ProgressChartTable } from './ProgressChart';
 
-const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
+const DocumentItem = ({ document, onDelete, onSelect, isSelected }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -41,7 +43,7 @@ const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
   return (
     <ListItem 
       button 
-      onClick={() => onSelect(report)}
+      onClick={() => onSelect(document)}
       selected={isSelected}
       sx={{
         flexDirection: isMobile ? 'column' : 'row',
@@ -50,8 +52,8 @@ const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
       }}
     >
       <ListItemText
-        primary={report.report_type || 'Daily Report'}
-        secondary={`Created: ${new Date(report.date).toLocaleDateString()}`}
+        primary={document.title || 'Document'}
+        secondary={`Last Modified: ${new Date(document.date).toLocaleDateString()}`}
         sx={{
           mb: isMobile ? 1 : 0,
           '& .MuiTypography-root': {
@@ -69,14 +71,14 @@ const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
       }}>
         <IconButton
           edge="end"
-          onClick={() => navigate(`/new-report/${report.id}`)}
+          onClick={() => navigate(`/document/${document.id}`)}
           size={isMobile ? "small" : "medium"}
         >
           <EditIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
         <IconButton
           edge="end"
-          onClick={() => onDelete(report.id)}
+          onClick={() => onDelete(document.id)}
           size={isMobile ? "small" : "medium"}
         >
           <DeleteIcon fontSize={isMobile ? "small" : "medium"} />
@@ -86,12 +88,10 @@ const DraftReportItem = ({ report, onDelete, onSelect, isSelected }) => {
   );
 };
 
-const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
+const DocumentTypeCard = ({ title, icon: IconComponent, description, path }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isProgress = title === 'Progress Report';
-  const progressPath = '/new-progress-report';
 
   return (
     <Card sx={{
@@ -136,8 +136,8 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
                 mb: 0.5
               }}
             >
-              {title}
-            </Typography>
+            {title}
+          </Typography>
             <Typography 
               variant="body2" 
               sx={{ 
@@ -161,7 +161,7 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
               flexShrink: 0,
               p: isMobile ? 0.5 : 1
             }}
-            onClick={() => navigate(isProgress ? progressPath : path)}
+            onClick={() => navigate(path)}
           >
             <ChevronRightIcon fontSize={isMobile ? "small" : "medium"} />
           </IconButton>
@@ -171,7 +171,7 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
         <Button
           variant="contained"
           fullWidth
-          onClick={() => navigate(isProgress ? progressPath : path)}
+          onClick={() => navigate(path)}
           sx={{
             backgroundColor: '#000000',
             '&:hover': { backgroundColor: '#333333' },
@@ -182,199 +182,131 @@ const ReportTypeCard = ({ title, icon: IconComponent, description, path }) => {
             fontSize: isMobile ? '0.875rem' : '1rem'
           }}
         >
-          Create {title}
+          View {title}
         </Button>
       </Box>
     </Card>
   );
 };
 
-const ReportsDashboard = () => {
+const ProjectDocuments = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [draftReports, setDraftReports] = useState([]);
-  const [selectedReport, setSelectedReport] = useState(null);
+  const [documents, setDocuments] = useState([]);
+  const [selectedDocument, setSelectedDocument] = useState(null);
 
   useEffect(() => {
-    const fetchDraftReports = async () => {
+    const fetchDocuments = async () => {
       try {
         const response = await api.get('/reports/');
-        setDraftReports(response.data);
+        setDocuments(response.data);
       } catch (error) {
-        console.error('Error fetching draft reports:', error);
+        console.error('Error fetching documents:', error);
       }
     };
 
-    fetchDraftReports();
+    fetchDocuments();
   }, []);
 
-  const handleDeleteDraft = async (reportId) => {
+  const handleDeleteDocument = async (documentId) => {
     try {
-      await api.delete(`/reports/${reportId}/`);
-      setDraftReports(draftReports.filter(report => report.id !== reportId));
-      if (selectedReport?.id === reportId) {
-        setSelectedReport(null);
+      await api.delete(`/reports/${documentId}/`);
+      setDocuments(documents.filter(doc => doc.id !== documentId));
+      if (selectedDocument?.id === documentId) {
+        setSelectedDocument(null);
       }
     } catch (error) {
-      console.error('Error deleting draft report:', error);
-      alert('Error deleting draft report. Please try again.');
+      console.error('Error deleting document:', error);
+      alert('Error deleting document. Please try again.');
     }
   };
 
-  const handleSelectReport = (report) => {
-    setSelectedReport(report);
+  const handleSelectDocument = (document) => {
+    setSelectedDocument(document);
   };
 
-  const reportTypes = [
+  const documentTypes = [
     {
-      title: 'Daily Report',
-      icon: DescriptionIcon,
-      description: 'Create a daily inspection report.',
-      path: '/new-report',
+      title: 'Project Permits',
+      icon: PermitIcon,
+      description: 'View and manage project permits and certifications.',
+      path: '/permits',
     },
     {
-      title: 'Progress Report',
-      icon: ProgressIcon,
-      description: 'Document project progress.',
-      path: '/new-progress-report',
+      title: 'Project Drawings',
+      icon: DrawingIcon,
+      description: 'Access project drawings and specifications.',
+      path: '/drawings',
     },
     {
-      title: 'Punch List',
+      title: 'Project Documents',
+      icon: DocumentIcon,
+      description: 'View project documentation and reports.',
+      path: '/documents',
+    },
+    {
+      title: 'Specifications',
       icon: ListIcon,
-      description: 'Track punch list items.',
-      path: '/new-punchlist',
-    },
-    {
-      title: 'Variance Report',
-      icon: VarianceIcon,
-      description: 'Report project variances.',
-      path: '/new-report',
-    },
-    {
-      title: 'SWPPP Report',
-      icon: SWPPPIcon,
-      description: 'SWPPP compliance report.',
-      path: '/swppp/new',
-    },
-    {
-      title: 'FERC Weekly Report',
-      icon: AssignmentIcon,
-      description: 'Submit FERC weekly report.',
-      path: '/ferc-weekly-report',
-    },
+      description: 'Access project specifications and standards.',
+      path: '/specifications',
+    }
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ 
-      px: { xs: 1, sm: 2, md: 3 },
-      py: { xs: 1, sm: 2 },
-      height: '100%',
+    <Box sx={{ 
+      p: { xs: 2, sm: 3 }, 
+      bgcolor: '#f5f5f5', 
+      minHeight: 'calc(100vh - 64px)',
       overflow: 'auto'
     }}>
-      <Box sx={{ 
-        mt: { xs: 1, sm: 2, md: 3 },
-        mb: { xs: 2, sm: 3, md: 4 }
-      }}>
-        <Typography 
-          variant="h4" 
-          gutterBottom 
-          sx={{ 
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
-            fontWeight: 600,
-            color: '#000000'
-          }}
-        >
-          Reports Dashboard
-        </Typography>
-        
-        {/* Draft Reports Section */}
-        {draftReports.length > 0 && (
-          <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                mb: 1, 
-                color: '#000000',
-                fontWeight: 600,
-                fontSize: { xs: '1rem', sm: '1.25rem' }
-              }}
-            >
-              Draft Reports
-            </Typography>
-            <Card>
-              <CardContent sx={{ p: 0 }}>
+      <PageHeader title="Project Documents" />
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(2, 1fr)',
+              lg: 'repeat(4, 1fr)',
+            },
+            gap: 3,
+          }}>
+            {documentTypes.map((type, index) => (
+              <DocumentTypeCard
+                key={index}
+                title={type.title}
+                icon={type.icon}
+                description={type.description}
+                path={type.path}
+              />
+            ))}
+          </Box>
+        </Grid>
+
+        {documents.length > 0 && (
+          <Grid item xs={12}>
+            <Paper sx={{ mt: 3 }}>
                 <List>
-                  {draftReports.map((report) => (
-                    <React.Fragment key={report.id}>
-                      <DraftReportItem 
-                        report={report} 
-                        onDelete={handleDeleteDraft}
-                        onSelect={handleSelectReport}
-                        isSelected={selectedReport?.id === report.id}
-                      />
-                      <Divider />
+                {documents.map((doc, index) => (
+                  <React.Fragment key={doc.id}>
+                    <DocumentItem
+                      document={doc}
+                      onDelete={handleDeleteDocument}
+                      onSelect={handleSelectDocument}
+                      isSelected={selectedDocument?.id === doc.id}
+                    />
+                    {index < documents.length - 1 && <Divider />}
                     </React.Fragment>
                   ))}
                 </List>
-              </CardContent>
-            </Card>
-          </Box>
-        )}
-
-        {/* Punchlist Container */}
-        {selectedReport && (
-          <Paper sx={{ 
-            p: { xs: 1.5, sm: 2 }, 
-            mb: { xs: 2, sm: 3, md: 4 },
-            borderRadius: 1
-          }}>
-            <Typography 
-              variant="h5" 
-              gutterBottom 
-              sx={{ 
-                fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                fontWeight: 600,
-                color: '#000000'
-              }}
-            >
-              Punchlist Report for {selectedReport.report_type || 'Daily Report'}
-            </Typography>
-            <PunchlistReport reportId={selectedReport.id} />
           </Paper>
+          </Grid>
         )}
-
-        {/* Create New Report Section */}
-        <Typography 
-          variant="h5" 
-          sx={{ 
-            mb: { xs: 1.5, sm: 2 }, 
-            color: '#000000',
-            fontWeight: 600,
-            fontSize: { xs: '1.25rem', sm: '1.5rem' }
-          }}
-        >
-          Create New Report
-        </Typography>
-        <Box sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)'
-          },
-          gap: { xs: 1.5, sm: 2 },
-          width: '100%'
-        }}>
-          {reportTypes.map((type, index) => (
-            <Box key={index}>
-              <ReportTypeCard {...type} />
-            </Box>
-          ))}
-        </Box>
+      </Grid>
       </Box>
-    </Container>
   );
 };
 
-export default ReportsDashboard; 
+export default ProjectDocuments; 

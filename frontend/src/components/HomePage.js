@@ -4,224 +4,162 @@ import {
   Card,
   CardContent,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  IconButton,
   Button,
 } from '@mui/material';
 import {
-  Description as DescriptionIcon,
-  Assignment as AssignmentIcon,
-  Architecture as ArchitectureIcon,
-  FormatListBulleted as ListIcon,
-  ChevronRight as ChevronRightIcon,
+  Nature as EnvironmentalIcon,
+  Engineering as WeldingIcon,
+  Brush as CoatingIcon,
+  Build as UtilityIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-const DashboardCard = ({ title, icon: Icon, items = [], path }) => {
+const DepartmentCard = ({ title, icon: Icon, description, path }) => {
   const navigate = useNavigate();
 
   return (
-    <Card sx={{
+  <Card sx={{ 
       height: 200,
       width: '100%',
       display: 'flex',
       flexDirection: 'column',
-      bgcolor: '#fff',
-      borderRadius: '2px',
-      '&:hover': {
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    bgcolor: '#fff',
+      borderRadius: '8px',
+    '&:hover': {
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        transform: 'translateY(-2px)',
+        transition: 'all 0.3s ease',
       },
     }}>
       <CardContent sx={{ 
         flex: 1,
-        p: 1.5,
+        p: 3,
         display: 'flex',
         flexDirection: 'column',
-        gap: 0.5,
-        '&:last-child': { pb: 0 }
+        gap: 2,
+        '&:last-child': { pb: 2 }
       }}>
         <Box sx={{ 
           display: 'flex', 
-          alignItems: 'flex-start',
-          gap: 1,
-          minHeight: 60
+          alignItems: 'center',
+          gap: 2,
         }}>
           <Icon sx={{ 
             color: '#000000',
-            fontSize: '1.25rem',
-            mt: 0.5,
-            flexShrink: 0
+            fontSize: '2rem',
           }} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                color: '#000000', 
-                fontWeight: 600,
-                fontSize: '1rem',
-                wordBreak: 'break-word',
-                mb: 0.5
-              }}
-            >
-              {title}
-            </Typography>
-            <List sx={{ p: 0 }}>
-              {items.slice(0, 2).map((item, index) => (
-                <ListItem 
-                  key={index}
-                  sx={{ 
-                    px: 0, 
-                    py: 0.25,
-                    '&:hover': {
-                      bgcolor: '#f5f5f5',
-                    }
-                  }}
-                >
-                  <ListItemText 
-                    primary={item.title}
-                    secondary={item.date}
-                    primaryTypographyProps={{
-                      sx: { 
-                        color: '#000000',
-                        fontSize: '0.85rem',
-                        fontWeight: 500,
-                        wordBreak: 'break-word',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 1,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }
-                    }}
-                    secondaryTypographyProps={{
-                      sx: { 
-                        color: '#666666',
-                        fontSize: '0.75rem'
-                      }
-                    }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-          <IconButton
-            size="small"
+          <Typography 
+            variant="h6" 
             sx={{ 
-              color: '#666666',
-              mt: 0.5,
-              flexShrink: 0,
-              p: 0.5
+              color: '#000000', 
+              fontWeight: 600,
+              fontSize: '1.25rem',
             }}
-            onClick={() => navigate(path)}
           >
-            <ChevronRightIcon fontSize="small" />
-          </IconButton>
+            {title}
+          </Typography>
         </Box>
-      </CardContent>
-      <Box sx={{ p: 1.5, pt: 0 }}>
+        
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            color: '#666666',
+            flex: 1,
+          }}
+        >
+          {description}
+        </Typography>
+
         <Button
           variant="contained"
           fullWidth
           onClick={() => navigate(path)}
           sx={{
             backgroundColor: '#000000',
-            '&:hover': { backgroundColor: '#333333' },
+            '&:hover': { 
+              backgroundColor: '#333333',
+              transform: 'scale(1.02)',
+              transition: 'all 0.2s ease',
+            },
             color: '#ffffff',
             fontWeight: 500,
-            height: 32,
-            fontSize: '0.875rem'
+            height: 40,
+            fontSize: '0.875rem',
+            textTransform: 'none',
           }}
         >
-          View {title}
+          View {title} Dashboard
         </Button>
-      </Box>
-    </Card>
-  );
+    </CardContent>
+  </Card>
+);
 };
 
 const HomePage = () => {
-  // Sample data - replace with actual data from your backend
-  const draftReports = [
-    { title: 'Site Inspection Report - Area A', date: '2024-04-30' },
-    { title: 'Environmental Assessment - Zone B', date: '2024-04-29' },
-    { title: 'Weekly Progress Report', date: '2024-04-28' },
-  ];
-
-  const projectPermits = [
-    { title: 'Environmental Protection Permit', date: 'Expires: 2025-01-15' },
-    { title: 'Construction Activity Permit', date: 'Expires: 2024-12-31' },
-    { title: 'Water Management License', date: 'Expires: 2024-09-30' },
-  ];
-
-  const projectDrawings = [
-    { title: 'Site Layout Plan - Rev 3', date: 'Updated: 2024-04-25' },
-    { title: 'Drainage System Design', date: 'Updated: 2024-04-20' },
-    { title: 'Environmental Control Measures', date: 'Updated: 2024-04-15' },
-  ];
-
-  const punchLists = [
-    { title: 'Environmental Controls Review', date: '15 items pending' },
-    { title: 'Site Safety Inspection', date: '8 items pending' },
-    { title: 'Compliance Checklist', date: '12 items pending' },
+  const departments = [
+    {
+      title: "Environmental",
+      icon: EnvironmentalIcon,
+      description: "Manage environmental reports, SWPPP inspections, and compliance documentation.",
+      path: "/environmental"
+    },
+    {
+      title: "Welding",
+      icon: WeldingIcon,
+      description: "Track welding procedures, qualifications, and inspection reports.",
+      path: "/welding"
+    },
+    {
+      title: "Coating",
+      icon: CoatingIcon,
+      description: "Monitor coating applications, inspections, and quality control reports.",
+      path: "/coating"
+    },
+    {
+      title: "Utility",
+      icon: UtilityIcon,
+      description: "Oversee utility installations, maintenance records, and service reports.",
+      path: "/utility"
+    }
   ];
 
   return (
     <Box sx={{ 
-      p: { xs: 2, sm: 3 }, 
       bgcolor: '#f5f5f5', 
       minHeight: 'calc(100vh - 64px)',
       overflow: 'auto'
     }}>
-      <Typography 
-        variant="h5" 
-        sx={{ 
-          mb: { xs: 2, sm: 3 }, 
-          color: '#000000',
-          fontWeight: 600,
-          fontSize: { xs: '1.25rem', sm: '1.5rem' }
-        }}
-      >
-        Dashboard
-      </Typography>
-      <Box sx={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 2,
-        '& > *': {
-          width: {
-            xs: '100%',
-            sm: 'calc(50% - 8px)',
-            md: 'calc(33.333% - 16px)'
-          }
-        }
-      }}>
-        <DashboardCard
-          title="Draft Reports"
-          icon={DescriptionIcon}
-          items={draftReports}
-          path="/reports-dashboard"
-        />
-        <DashboardCard
-          title="Project Permits"
-          icon={AssignmentIcon}
-          items={projectPermits}
-          path="/permits"
-        />
-        <DashboardCard
-          title="Project Drawings"
-          icon={ArchitectureIcon}
-          items={projectDrawings}
-          path="/drawings"
-        />
-        <DashboardCard
-          title="Punch Lists"
-          icon={ListIcon}
-          items={punchLists}
-          path="/punchlists"
-        />
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Typography 
+          variant="h5" 
+          sx={{ 
+            mb: { xs: 3, sm: 4 }, 
+            color: '#000000',
+            fontWeight: 600,
+            fontSize: { xs: '1.5rem', sm: '1.75rem' }
+          }}
+        >
+          Department Dashboard
+        </Typography>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(2, 1fr)',
+          },
+          gap: 3,
+        }}>
+          {departments.map((dept, index) => (
+            <DepartmentCard
+              key={index}
+              title={dept.title}
+              icon={dept.icon}
+              description={dept.description}
+              path={dept.path}
+            />
+          ))}
+        </Box>
       </Box>
     </Box>
   );
