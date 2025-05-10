@@ -52,8 +52,11 @@ const initialState = {
   blockGates: { size: '', no: '' },
   cutOut2: { size: '', defect: '' },
   cutOut1: { size: '', defect: '' },
+  weldingInspectorName: '',
   weldingInspectorSignature: '',
+  contractorName: '',
   contractorSignature: '',
+  supervisorName: '',
   supervisorSignature: '',
 };
 
@@ -601,6 +604,73 @@ const DailyWeldingReportForm = () => {
             </Box>
             <TextField label="Size" value={form.cutOut1.size} onChange={e => handleSectionChange('cutOut1', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
             <TextField label="Defect" value={form.cutOut1.defect} onChange={e => handleSectionChange('cutOut1', 'defect', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
+          </Box>
+
+          {/* Signature Section */}
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="h6" sx={{ mb: 2 }}>Signatures</Typography>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: '1fr 1fr 1fr',
+            },
+            gap: 3,
+            width: '100%',
+          }}>
+            {/* Welding Inspector */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                label="Welding Inspector Name"
+                value={form.weldingInspectorName}
+                onChange={e => handleChange({ target: { name: 'weldingInspectorName', value: e.target.value } })}
+                fullWidth
+              />
+              <TextField
+                label="Welding Inspector Signature"
+                value={form.weldingInspectorSignature}
+                onChange={e => handleChange({ target: { name: 'weldingInspectorSignature', value: e.target.value } })}
+                fullWidth
+                multiline
+                rows={2}
+              />
+            </Box>
+
+            {/* Contractor */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                label="Contractor Name"
+                value={form.contractorName}
+                onChange={e => handleChange({ target: { name: 'contractorName', value: e.target.value } })}
+                fullWidth
+              />
+              <TextField
+                label="Contractor Signature"
+                value={form.contractorSignature}
+                onChange={e => handleChange({ target: { name: 'contractorSignature', value: e.target.value } })}
+                fullWidth
+                multiline
+                rows={2}
+              />
+            </Box>
+
+            {/* Supervisor */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                label="Supervisor Name"
+                value={form.supervisorName}
+                onChange={e => handleChange({ target: { name: 'supervisorName', value: e.target.value } })}
+                fullWidth
+              />
+              <TextField
+                label="Supervisor Signature"
+                value={form.supervisorSignature}
+                onChange={e => handleChange({ target: { name: 'supervisorSignature', value: e.target.value } })}
+                fullWidth
+                multiline
+                rows={2}
+              />
+            </Box>
           </Box>
 
           {/* Submit Button */}
