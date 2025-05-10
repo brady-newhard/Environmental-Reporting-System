@@ -425,56 +425,182 @@ const DailyWeldingReportForm = () => {
           {/* Installations Section */}
           <Divider sx={{ my: 3 }} />
           <Typography variant="h6" sx={{ mb: 2 }}>Installations</Typography>
-          {/* Pipe Installed */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr', gap: 2, width: '100%', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>Pipe Installed</Box>
-            <TextField label="Size" value={form.pipeInstalled.size} onChange={e => handleSectionChange('pipeInstalled', 'size', e.target.value)} fullWidth />
-            <TextField label="Footage" value={form.pipeInstalled.footage} onChange={e => handleSectionChange('pipeInstalled', 'footage', e.target.value)} fullWidth />
-            <TextField label="From" value={form.pipeInstalled.from} onChange={e => handleSectionChange('pipeInstalled', 'from', e.target.value)} fullWidth />
-            <TextField label="To" value={form.pipeInstalled.to} onChange={e => handleSectionChange('pipeInstalled', 'to', e.target.value)} fullWidth />
+          {/* Pipe Installed - responsive */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr 1fr',
+              sm: '0.8fr 1.4fr 1.4fr 1.4fr 1.4fr',
+            },
+            gap: 2,
+            width: '100%',
+            mb: 2,
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              gridColumn: { xs: '1 / -1', sm: 'auto' },
+            }}>
+              Pipe Installed
+            </Box>
+            <TextField label="Size" value={form.pipeInstalled.size} onChange={e => handleSectionChange('pipeInstalled', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="Footage" value={form.pipeInstalled.footage} onChange={e => handleSectionChange('pipeInstalled', 'footage', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
+            <TextField label="From" value={form.pipeInstalled.from} onChange={e => handleSectionChange('pipeInstalled', 'from', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="To" value={form.pipeInstalled.to} onChange={e => handleSectionChange('pipeInstalled', 'to', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
           </Box>
-          {/* Road Xing */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 2fr', gap: 2, width: '100%', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>Road Xing</Box>
-            <TextField label="Size" value={form.roadXing.size} onChange={e => handleSectionChange('roadXing', 'size', e.target.value)} fullWidth />
-            <TextField label="Footage" value={form.roadXing.footage} onChange={e => handleSectionChange('roadXing', 'footage', e.target.value)} fullWidth />
-            <TextField select label="Bore / Open Cut / Conduit" value={form.roadXing.bore} onChange={e => handleSectionChange('roadXing', 'bore', e.target.value)} fullWidth>
+          {/* Road Xing - responsive */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr 1fr',
+              sm: '0.8fr 1.4fr 1.4fr 2.4fr',
+            },
+            gap: 2,
+            width: '100%',
+            mb: 2,
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              gridColumn: { xs: '1 / -1', sm: 'auto' },
+            }}>
+              Road Xing
+            </Box>
+            <TextField label="Size" value={form.roadXing.size} onChange={e => handleSectionChange('roadXing', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="Footage" value={form.roadXing.footage} onChange={e => handleSectionChange('roadXing', 'footage', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
+            <TextField select label="Bore / Open Cut / Conduit" value={form.roadXing.bore} onChange={e => handleSectionChange('roadXing', 'bore', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
               <MenuItem value="">Select...</MenuItem>
               <MenuItem value="Yes">Yes</MenuItem>
               <MenuItem value="No">No</MenuItem>
             </TextField>
           </Box>
-          {/* Stream Xings */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr', gap: 2, width: '100%', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>Stream Xings</Box>
-            <TextField label="Size" value={form.streamXings.size} onChange={e => handleSectionChange('streamXings', 'size', e.target.value)} fullWidth />
-            <TextField label="Footage" value={form.streamXings.footage} onChange={e => handleSectionChange('streamXings', 'footage', e.target.value)} fullWidth />
-            <TextField label="From" value={form.streamXings.from} onChange={e => handleSectionChange('streamXings', 'from', e.target.value)} fullWidth />
-            <TextField label="To" value={form.streamXings.to} onChange={e => handleSectionChange('streamXings', 'to', e.target.value)} fullWidth />
+          {/* Stream Xings - responsive */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr 1fr',
+              sm: '0.8fr 1.4fr 1.4fr 1.4fr 1.4fr',
+            },
+            gap: 2,
+            width: '100%',
+            mb: 2,
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              gridColumn: { xs: '1 / -1', sm: 'auto' },
+            }}>
+              Stream Xings
+            </Box>
+            <TextField label="Size" value={form.streamXings.size} onChange={e => handleSectionChange('streamXings', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="Footage" value={form.streamXings.footage} onChange={e => handleSectionChange('streamXings', 'footage', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
+            <TextField label="From" value={form.streamXings.from} onChange={e => handleSectionChange('streamXings', 'from', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="To" value={form.streamXings.to} onChange={e => handleSectionChange('streamXings', 'to', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
           </Box>
-          {/* Taps Installed */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 2fr', gap: 2, width: '100%', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>Taps Installed</Box>
-            <TextField label="Size" value={form.tapsInstalled.size} onChange={e => handleSectionChange('tapsInstalled', 'size', e.target.value)} fullWidth />
-            <TextField label="No." value={form.tapsInstalled.no} onChange={e => handleSectionChange('tapsInstalled', 'no', e.target.value)} fullWidth />
+          {/* Taps Installed - responsive */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr 1fr',
+              sm: '0.8fr 2.1fr 2.1fr',
+            },
+            gap: 2,
+            width: '100%',
+            mb: 2,
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              gridColumn: { xs: '1 / -1', sm: 'auto' },
+            }}>
+              Taps Installed
+            </Box>
+            <TextField label="Size" value={form.tapsInstalled.size} onChange={e => handleSectionChange('tapsInstalled', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="No." value={form.tapsInstalled.no} onChange={e => handleSectionChange('tapsInstalled', 'no', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
           </Box>
-          {/* Block Gates Installed */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 2fr', gap: 2, width: '100%', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>Block Gates Installed</Box>
-            <TextField label="Size" value={form.blockGates.size} onChange={e => handleSectionChange('blockGates', 'size', e.target.value)} fullWidth />
-            <TextField label="No." value={form.blockGates.no} onChange={e => handleSectionChange('blockGates', 'no', e.target.value)} fullWidth />
+          {/* Block Gates Installed - responsive */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr 1fr',
+              sm: '0.8fr 2.1fr 2.1fr',
+            },
+            gap: 2,
+            width: '100%',
+            mb: 2,
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              gridColumn: { xs: '1 / -1', sm: 'auto' },
+            }}>
+              Block Gates Installed
+            </Box>
+            <TextField label="Size" value={form.blockGates.size} onChange={e => handleSectionChange('blockGates', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="No." value={form.blockGates.no} onChange={e => handleSectionChange('blockGates', 'no', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
           </Box>
-          {/* Cut Out Defects in Pipe - 2 cuts */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 2fr', gap: 2, width: '100%', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>Cut Out Defects in Pipe - 2 cuts</Box>
-            <TextField label="Size" value={form.cutOut2.size} onChange={e => handleSectionChange('cutOut2', 'size', e.target.value)} fullWidth />
-            <TextField label="Defect" value={form.cutOut2.defect} onChange={e => handleSectionChange('cutOut2', 'defect', e.target.value)} fullWidth />
+          {/* Cut Out Defects in Pipe - 2 cuts - responsive */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr 1fr',
+              sm: '0.8fr 2.1fr 2.1fr',
+            },
+            gap: 2,
+            width: '100%',
+            mb: 2,
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              gridColumn: { xs: '1 / -1', sm: 'auto' },
+            }}>
+              Cut Out Defects in Pipe - 2 cuts
+            </Box>
+            <TextField label="Size" value={form.cutOut2.size} onChange={e => handleSectionChange('cutOut2', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="Defect" value={form.cutOut2.defect} onChange={e => handleSectionChange('cutOut2', 'defect', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
           </Box>
-          {/* Cut Out Defects in Pipe - 1 cut */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 2fr', gap: 2, width: '100%', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 500 }}>Cut Out Defects in Pipe - 1 cut</Box>
-            <TextField label="Size" value={form.cutOut1.size} onChange={e => handleSectionChange('cutOut1', 'size', e.target.value)} fullWidth />
-            <TextField label="Defect" value={form.cutOut1.defect} onChange={e => handleSectionChange('cutOut1', 'defect', e.target.value)} fullWidth />
+          {/* Cut Out Defects in Pipe - 1 cut - responsive */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr 1fr',
+              sm: '0.8fr 2.1fr 2.1fr',
+            },
+            gap: 2,
+            width: '100%',
+            mb: 2,
+          }}>
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
+              wordBreak: 'break-word',
+              whiteSpace: 'normal',
+              gridColumn: { xs: '1 / -1', sm: 'auto' },
+            }}>
+              Cut Out Defects in Pipe - 1 cut
+            </Box>
+            <TextField label="Size" value={form.cutOut1.size} onChange={e => handleSectionChange('cutOut1', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
+            <TextField label="Defect" value={form.cutOut1.defect} onChange={e => handleSectionChange('cutOut1', 'defect', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
           </Box>
 
           {/* Submit Button */}
