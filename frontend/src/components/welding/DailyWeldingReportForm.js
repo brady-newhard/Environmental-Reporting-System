@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -10,6 +10,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import PageHeader from '../common/PageHeader';
+import SignatureCanvas from 'react-signature-canvas';
 
 const initialState = {
   project: '',
@@ -72,6 +73,57 @@ const PRECIP_TYPE_OPTIONS = [
   'none', 'drizzle', 'rain', 'snow', 'sleet', 'hail'
 ];
 
+// Add these styles at the top of the file, after the imports
+const signaturePadStyles = {
+  canvas: {
+    width: '100%',
+    height: '100%',
+    touchAction: 'none',
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  container: {
+    border: '1px solid #ccc',
+    borderRadius: 1,
+    p: 1,
+    bgcolor: '#fff',
+    height: 150,
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'crosshair',
+    '&:hover': {
+      borderColor: 'primary.main',
+    },
+    '&:active': {
+      borderColor: 'primary.dark',
+    },
+    overflow: 'hidden',
+  },
+  clearButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    minWidth: 'auto',
+    p: 0.5,
+    zIndex: 2,
+    bgcolor: 'rgba(255, 255, 255, 0.9)',
+    '&:hover': {
+      bgcolor: 'rgba(255, 255, 255, 1)',
+    },
+  },
+  prompt: {
+    position: 'absolute',
+    pointerEvents: 'none',
+    opacity: 0.5,
+    zIndex: 1,
+    userSelect: 'none',
+  }
+};
+
 const DailyWeldingReportForm = () => {
   const [form, setForm] = useState(initialState);
   const [submitted, setSubmitted] = useState(false);
@@ -81,8 +133,34 @@ const DailyWeldingReportForm = () => {
     precipitationType: '',
   });
 
+  // Signature pad refs
+  const weldingInspectorPadRef = useRef(null);
+  const contractorPadRef = useRef(null);
+  const supervisorPadRef = useRef(null);
+
   // Helper to safely parse numbers
   const num = (val) => Number(val) || 0;
+
+  // Signature handlers for react-signature-canvas
+  const handleSignatureEnd = (padRef, fieldName) => {
+    if (padRef.current) {
+      try {
+        if (!padRef.current.isEmpty()) {
+          const signatureData = padRef.current.getTrimmedCanvas().toDataURL('image/png');
+          setForm(prev => ({ ...prev, [fieldName]: signatureData }));
+        }
+      } catch (error) {
+        console.error('Error saving signature:', error);
+      }
+    }
+  };
+
+  const clearSignature = (padRef, fieldName) => {
+    if (padRef.current) {
+      padRef.current.clear();
+    }
+    setForm(prev => ({ ...prev, [fieldName]: '' }));
+  };
 
   // Calculate totals for each section
   const calculateWeldsTotal = () => {
@@ -136,6 +214,240 @@ const DailyWeldingReportForm = () => {
     e.preventDefault();
     setSubmitted(true);
   };
+
+  // Signature section using react-signature-canvas
+  const renderSignatureSection = () => (
+    <>
+      <Divider sx={{ my: 3 }} />
+      <Typography variant="h6" sx={{ mb: 2 }}>Signatures</Typography>
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: '1fr',
+          sm: '1fr 1fr 1fr',
+        },
+        gap: 3,
+        width: '100%',
+      }}>
+        {/* Welding Inspector */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Welding Inspector Name"
+            value={form.weldingInspectorName}
+            onChange={e => handleChange({ target: { name: 'weldingInspectorName', value: e.target.value } })}
+            fullWidth
+          />
+          <Box sx={{
+            border: '1px solid #ccc',
+            borderRadius: 1,
+            p: 1,
+            bgcolor: '#fff',
+            height: 150,
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            <SignatureCanvas
+              ref={weldingInspectorPadRef}
+              penColor="black"
+              backgroundColor="white"
+              canvasProps={{
+                width: 400,
+                height: 120,
+                style: {
+                  width: '100%',
+                  height: '100%',
+                  touchAction: 'none',
+                  background: '#fff',
+                  borderRadius: 4,
+                  display: 'block',
+                }
+              }}
+              onEnd={() => handleSignatureEnd(weldingInspectorPadRef, 'weldingInspectorSignature')}
+            />
+            {!form.weldingInspectorSignature && (
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                  opacity: 0.5,
+                  userSelect: 'none',
+                }}
+              >
+                Tap to Sign
+              </Typography>
+            )}
+            <Button
+              size="small"
+              onClick={() => clearSignature(weldingInspectorPadRef, 'weldingInspectorSignature')}
+              sx={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                minWidth: 'auto',
+                p: 0.5,
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 1)',
+                },
+                zIndex: 2,
+              }}
+            >
+              Clear
+            </Button>
+          </Box>
+        </Box>
+        {/* Contractor */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Contractor Name"
+            value={form.contractorName}
+            onChange={e => handleChange({ target: { name: 'contractorName', value: e.target.value } })}
+            fullWidth
+          />
+          <Box sx={{
+            border: '1px solid #ccc',
+            borderRadius: 1,
+            p: 1,
+            bgcolor: '#fff',
+            height: 150,
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            <SignatureCanvas
+              ref={contractorPadRef}
+              penColor="black"
+              backgroundColor="white"
+              canvasProps={{
+                width: 400,
+                height: 120,
+                style: {
+                  width: '100%',
+                  height: '100%',
+                  touchAction: 'none',
+                  background: '#fff',
+                  borderRadius: 4,
+                  display: 'block',
+                }
+              }}
+              onEnd={() => handleSignatureEnd(contractorPadRef, 'contractorSignature')}
+            />
+            {!form.contractorSignature && (
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                  opacity: 0.5,
+                  userSelect: 'none',
+                }}
+              >
+                Tap to Sign
+              </Typography>
+            )}
+            <Button
+              size="small"
+              onClick={() => clearSignature(contractorPadRef, 'contractorSignature')}
+              sx={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                minWidth: 'auto',
+                p: 0.5,
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 1)',
+                },
+                zIndex: 2,
+              }}
+            >
+              Clear
+            </Button>
+          </Box>
+        </Box>
+        {/* Supervisor */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Supervisor Name"
+            value={form.supervisorName}
+            onChange={e => handleChange({ target: { name: 'supervisorName', value: e.target.value } })}
+            fullWidth
+          />
+          <Box sx={{
+            border: '1px solid #ccc',
+            borderRadius: 1,
+            p: 1,
+            bgcolor: '#fff',
+            height: 150,
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            <SignatureCanvas
+              ref={supervisorPadRef}
+              penColor="black"
+              backgroundColor="white"
+              canvasProps={{
+                width: 400,
+                height: 120,
+                style: {
+                  width: '100%',
+                  height: '100%',
+                  touchAction: 'none',
+                  background: '#fff',
+                  borderRadius: 4,
+                  display: 'block',
+                }
+              }}
+              onEnd={() => handleSignatureEnd(supervisorPadRef, 'supervisorSignature')}
+            />
+            {!form.supervisorSignature && (
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                  opacity: 0.5,
+                  userSelect: 'none',
+                }}
+              >
+                Tap to Sign
+              </Typography>
+            )}
+            <Button
+              size="small"
+              onClick={() => clearSignature(supervisorPadRef, 'supervisorSignature')}
+              sx={{
+                position: 'absolute',
+                top: 4,
+                right: 4,
+                minWidth: 'auto',
+                p: 0.5,
+                bgcolor: 'rgba(255, 255, 255, 0.9)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 1)',
+                },
+                zIndex: 2,
+              }}
+            >
+              Clear
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    </>
+  );
 
   if (submitted) {
     return (
@@ -606,72 +918,8 @@ const DailyWeldingReportForm = () => {
             <TextField label="Defect" value={form.cutOut1.defect} onChange={e => handleSectionChange('cutOut1', 'defect', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
           </Box>
 
-          {/* Signature Section */}
-          <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" sx={{ mb: 2 }}>Signatures</Typography>
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: '1fr 1fr 1fr',
-            },
-            gap: 3,
-            width: '100%',
-          }}>
-            {/* Welding Inspector */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Welding Inspector Name"
-                value={form.weldingInspectorName}
-                onChange={e => handleChange({ target: { name: 'weldingInspectorName', value: e.target.value } })}
-                fullWidth
-              />
-              <TextField
-                label="Welding Inspector Signature"
-                value={form.weldingInspectorSignature}
-                onChange={e => handleChange({ target: { name: 'weldingInspectorSignature', value: e.target.value } })}
-                fullWidth
-                multiline
-                rows={2}
-              />
-            </Box>
-
-            {/* Contractor */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Contractor Name"
-                value={form.contractorName}
-                onChange={e => handleChange({ target: { name: 'contractorName', value: e.target.value } })}
-                fullWidth
-              />
-              <TextField
-                label="Contractor Signature"
-                value={form.contractorSignature}
-                onChange={e => handleChange({ target: { name: 'contractorSignature', value: e.target.value } })}
-                fullWidth
-                multiline
-                rows={2}
-              />
-            </Box>
-
-            {/* Supervisor */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Supervisor Name"
-                value={form.supervisorName}
-                onChange={e => handleChange({ target: { name: 'supervisorName', value: e.target.value } })}
-                fullWidth
-              />
-              <TextField
-                label="Supervisor Signature"
-                value={form.supervisorSignature}
-                onChange={e => handleChange({ target: { name: 'supervisorSignature', value: e.target.value } })}
-                fullWidth
-                multiline
-                rows={2}
-              />
-            </Box>
-          </Box>
+          {/* Replace the old signature section with the new one */}
+          {renderSignatureSection()}
 
           {/* Submit Button */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, p: 0 }}>
