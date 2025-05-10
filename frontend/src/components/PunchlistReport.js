@@ -36,8 +36,8 @@ const PunchlistReport = ({ reportId }) => {
   });
 
   useEffect(() => {
-    fetchReport();
-    fetchItems();
+      fetchReport();
+      fetchItems();
   }, [reportId]);
 
   const fetchReport = async () => {
@@ -143,12 +143,12 @@ const PunchlistReport = ({ reportId }) => {
           <TableBody>
             {items.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{item.start_station}</TableCell>
-                <TableCell>{item.end_station}</TableCell>
-                <TableCell>{item.feature}</TableCell>
-                <TableCell>{item.issue}</TableCell>
-                <TableCell>{item.recommendations}</TableCell>
-                <TableCell>
+                    <TableCell>{item.start_station}</TableCell>
+                    <TableCell>{item.end_station}</TableCell>
+                    <TableCell>{item.feature}</TableCell>
+                    <TableCell>{item.issue}</TableCell>
+                    <TableCell>{item.recommendations}</TableCell>
+                    <TableCell>
                   <Button
                     size="small"
                     onClick={() => setEditingItem(item)}
@@ -163,7 +163,7 @@ const PunchlistReport = ({ reportId }) => {
                   >
                     Delete
                   </Button>
-                </TableCell>
+                    </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -327,7 +327,7 @@ const PunchlistReport = ({ reportId }) => {
           <Button onClick={() => setEditingItem(null)}>Cancel</Button>
           <Button onClick={handleEditItem} color="primary">
             Save
-          </Button>
+            </Button>
         </DialogActions>
       </Dialog>
     </Box>

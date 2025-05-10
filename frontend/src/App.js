@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import SearchReports from './components/SearchReports';
 import SignIn from './components/SignIn';
@@ -7,7 +7,7 @@ import SignUp from './components/SignUp';
 import SuccessSignUp from './components/SuccessSignUp';
 import ContactList from './components/ContactList';
 import Navigation from './components/Navigation';
-import ReportsDashboard from './components/ReportsDashboard';
+import ProjectDocuments from './components/ReportsDashboard';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
@@ -22,6 +22,12 @@ import NewSWPPP from './components/NewSWPPP';
 import SWPPPReport from './components/SWPPPReport';
 import SWPPPPhotoPage from './components/SWPPPPhotoPage';
 import NewProgressReport from './components/NewProgressReport';
+import EnvironmentalMain from './components/environmental/EnvironmentalMain';
+import EnvironmentalReports from './components/environmental/EnvironmentalDashboard';
+import NewVarianceReport from './components/environmental/NewVarianceReport';
+import WeldingMain from './components/welding/WeldingMain';
+import DailyWeldingReportForm from './components/welding/DailyWeldingReportForm';
+import WeldingReports from './components/welding/WeldingReports';
 
 const theme = createTheme({
   palette: {
@@ -185,127 +191,181 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <Navigation />
-          <Routes>
-            <Route path="/login" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/success-signup" element={<SuccessSignUp />} />
-            <Route
-              path="/"
-              element={
-                <PrivateRoute>
-                  <HomePage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/reports-dashboard"
-              element={
-                <PrivateRoute>
-                  <ReportsDashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/new-report/*"
-              element={
-                <PrivateRoute>
-                  <ReportForm />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/new-punchlist"
-              element={
-                <PrivateRoute>
-                  <NewPunchlist />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/search"
-              element={
-                <PrivateRoute>
-                  <SearchReports />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/contacts"
-              element={
-                <PrivateRoute>
-                  <ContactList />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/photos"
-              element={
-                <PrivateRoute>
-                  <PhotosPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/review-report/:id"
-              element={
-                <PrivateRoute>
-                  <ReviewReport />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <PrivateRoute>
-                  <Profile />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/punchlist-report/:id"
-              element={
-                <PrivateRoute>
-                  <PunchlistReportPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/swppp/new"
-              element={
-                <PrivateRoute>
-                  <NewSWPPP />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/swppp-report/:reportId"
-              element={
-                <PrivateRoute>
-                  <SWPPPReport />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/swppp-report/:reportId/photos"
-              element={
-                <PrivateRoute>
-                  <SWPPPPhotoPage />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/new-progress-report"
-              element={
-                <PrivateRoute>
-                  <NewProgressReport />
-                </PrivateRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
+        <Navigation />
+        <Routes>
+          <Route path="/login" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/success-signup" element={<SuccessSignUp />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <HomePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental"
+            element={
+              <PrivateRoute>
+                <EnvironmentalMain />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/reports"
+            element={
+              <PrivateRoute>
+                <EnvironmentalReports />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding"
+            element={
+              <PrivateRoute>
+                <WeldingMain />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding/reports/daily"
+            element={
+              <PrivateRoute>
+                <DailyWeldingReportForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding/reports"
+            element={
+              <PrivateRoute>
+                <WeldingReports />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/project-documents"
+            element={
+              <PrivateRoute>
+                <ProjectDocuments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/variance/new"
+            element={
+              <PrivateRoute>
+                <NewVarianceReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/reports-dashboard"
+            element={
+              <PrivateRoute>
+                <ProjectDocuments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/new-report/*"
+            element={
+              <PrivateRoute>
+                <ReportForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/new-punchlist"
+            element={
+              <PrivateRoute>
+                <NewPunchlist />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <PrivateRoute>
+                <SearchReports />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/contacts"
+            element={
+              <PrivateRoute>
+                <ContactList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/photos"
+            element={
+              <PrivateRoute>
+                <PhotosPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/review-report/:id"
+            element={
+              <PrivateRoute>
+                <ReviewReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/punchlist-report/:id"
+            element={
+              <PrivateRoute>
+                <PunchlistReportPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/swppp/new"
+            element={
+              <PrivateRoute>
+                <NewSWPPP />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/swppp-report/:reportId"
+            element={
+              <PrivateRoute>
+                <SWPPPReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/swppp-report/:reportId/photos"
+            element={
+              <PrivateRoute>
+                <SWPPPPhotoPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/new-progress-report"
+            element={
+              <PrivateRoute>
+                <NewProgressReport />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -170,7 +170,7 @@ const NewSWPPP = () => {
               gap: 2,
               width: '100%'
             }}>
-              {Array.isArray(header.precipitation_data) && header.precipitation_data.map((row, idx) => (
+                  {Array.isArray(header.precipitation_data) && header.precipitation_data.map((row, idx) => (
                 <Box key={idx} sx={{ 
                   p: 2,
                   bgcolor: '#f5f5f5',
@@ -181,35 +181,35 @@ const NewSWPPP = () => {
                   width: '100%'
                 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Rain Gauge {idx + 1}</Typography>
-                  <TextField
-                    value={row.location}
-                    onChange={e => handlePrecipitationDataChange(idx, 'location', e.target.value)}
-                    size="small"
-                    placeholder="Rain Gage Location"
+                        <TextField
+                          value={row.location}
+                          onChange={e => handlePrecipitationDataChange(idx, 'location', e.target.value)}
+                          size="small"
+                          placeholder="Rain Gage Location"
                     fullWidth
                   />
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Box>
                       <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Rain</Typography>
-                      <TextField
-                        value={row.rain}
-                        onChange={e => handlePrecipitationDataChange(idx, 'rain', e.target.value)}
-                        size="small"
+                          <TextField
+                            value={row.rain}
+                            onChange={e => handlePrecipitationDataChange(idx, 'rain', e.target.value)}
+                            size="small"
                         placeholder="Rain (in)"
                         fullWidth
-                      />
-                    </Box>
+                          />
+                        </Box>
                     <Box>
                       <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Snow</Typography>
-                      <TextField
-                        value={row.snow}
-                        onChange={e => handlePrecipitationDataChange(idx, 'snow', e.target.value)}
-                        size="small"
+                          <TextField
+                            value={row.snow}
+                            onChange={e => handlePrecipitationDataChange(idx, 'snow', e.target.value)}
+                            size="small"
                         placeholder="Snow (in)"
                         fullWidth
-                      />
+                          />
                     </Box>
-                  </Box>
+                        </Box>
                   <Button 
                     color="error" 
                     onClick={() => handleRemoveRainGage(idx)} 
@@ -217,8 +217,8 @@ const NewSWPPP = () => {
                     size="small"
                     sx={{ alignSelf: 'flex-start' }}
                   >
-                    Remove
-                  </Button>
+                          Remove
+                        </Button>
                 </Box>
               ))}
               <Button 
@@ -333,7 +333,7 @@ const NewSWPPP = () => {
           flexDirection: 'column',
           gap: 3
         }}>
-          {items.map((item, idx) => (
+              {items.map((item, idx) => (
             <Paper key={idx} sx={{ p: 2, bgcolor: '#f5f5f5' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
