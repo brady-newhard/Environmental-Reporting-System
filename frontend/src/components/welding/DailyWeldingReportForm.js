@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import PageHeader from '../common/PageHeader';
 import SignatureCanvas from 'react-signature-canvas';
+import { useNavigate } from 'react-router-dom';
 
 const initialState = {
   project: '',
@@ -132,6 +133,19 @@ const DailyWeldingReportForm = () => {
     temperature: '',
     precipitationType: '',
   });
+  const navigate = useNavigate();
+
+  // Load draft on component mount
+  useEffect(() => {
+    const draftId = new URLSearchParams(window.location.search).get('draftId');
+    if (draftId) {
+      const savedDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
+      const draft = savedDrafts.find(d => d.draftId === draftId);
+      if (draft) {
+        setForm(draft);
+      }
+    }
+  }, []);
 
   // Signature pad refs
   const weldingInspectorPadRef = useRef(null);
@@ -213,6 +227,48 @@ const DailyWeldingReportForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
+  };
+
+  const handleSave = () => {
+    const draftData = {
+      ...form,
+      savedAt: new Date().toISOString(),
+      draftId: `draft_${Date.now()}`
+    };
+    
+    // Get existing drafts
+    const existingDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
+    // Add new draft
+    existingDrafts.push(draftData);
+    // Save updated drafts array
+    localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(existingDrafts));
+    alert('Form saved as draft!');
+  };
+
+  const handleSaveAndExit = () => {
+    const draftData = {
+      ...form,
+      savedAt: new Date().toISOString(),
+      draftId: `draft_${Date.now()}`
+    };
+    
+    // Get existing drafts
+    const existingDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
+    // Add new draft
+    existingDrafts.push(draftData);
+    // Save updated drafts array
+    localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(existingDrafts));
+    window.location.href = '/welding/reports';
+  };
+
+  const handleDelete = () => {
+    const draftId = new URLSearchParams(window.location.search).get('draftId');
+    if (draftId) {
+      const savedDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
+      const updatedDrafts = savedDrafts.filter(draft => draft.draftId !== draftId);
+      localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(updatedDrafts));
+    }
+    navigate('/welding/reports');
   };
 
   // Signature section using react-signature-canvas
@@ -922,8 +978,75 @@ const DailyWeldingReportForm = () => {
           {renderSignatureSection()}
 
           {/* Submit Button */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, p: 0 }}>
-            <Button type="submit" variant="contained" color="primary">Submit Report</Button>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between', 
+            mt: 3, 
+            p: 0,
+            gap: { xs: 0.5, sm: 1 }
+          }}>
+            <Button 
+              onClick={handleDelete} 
+              variant="contained" 
+              size="small"
+              sx={{ 
+                bgcolor: '#ff0000', 
+                '&:hover': { bgcolor: '#cc0000' },
+                color: 'white',
+                flex: { xs: '1 1 25%', sm: '0 1 auto' },
+                minWidth: { xs: '80px', sm: '100px' },
+                py: { xs: 0.5, sm: 1 },
+                px: { xs: 0.5, sm: 2 }
+              }}
+            >
+              Delete
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              variant="contained" 
+              color="secondary"
+              size="small"
+              sx={{ 
+                flex: { xs: '1 1 25%', sm: '0 1 auto' },
+                minWidth: { xs: '80px', sm: '100px' },
+                py: { xs: 0.5, sm: 1 },
+                px: { xs: 0.5, sm: 2 }
+              }}
+            >
+              Save
+            </Button>
+            <Button 
+              onClick={handleSaveAndExit} 
+              variant="contained" 
+              color="secondary"
+              size="small"
+              sx={{ 
+                flex: { xs: '1 1 25%', sm: '0 1 auto' },
+                minWidth: { xs: '80px', sm: '100px' },
+                py: { xs: 0.5, sm: 1 },
+                px: { xs: 0.5, sm: 2 }
+              }}
+            >
+              Save & Exit
+            </Button>
+            <Button 
+              type="submit" 
+              variant="contained" 
+              size="small"
+              sx={{ 
+                bgcolor: 'green', 
+                '&:hover': { bgcolor: 'darkgreen' },
+                color: 'white',
+                flex: { xs: '1 1 25%', sm: '0 1 auto' },
+                minWidth: { xs: '80px', sm: '100px' },
+                py: { xs: 0.5, sm: 1 },
+                px: { xs: 0.5, sm: 2 }
+              }}
+            >
+              Submit
+            </Button>
           </Box>
         </form>
       </Box>
