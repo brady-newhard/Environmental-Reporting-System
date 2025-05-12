@@ -272,12 +272,12 @@ const CoatingDailyReportForm = () => {
               <table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse', fontSize: '0.95rem' }}>
                 <thead>
                   <tr style={{ background: '#f5f5f5' }}>
-                    <th style={{ border: '1px solid #bbb', padding: 4 }}>#</th>
-                    <th style={{ border: '1px solid #bbb', padding: 4 }}>Daily Project Oversight Items</th>
+                    <th style={{ border: '1px solid #bbb', padding: 4, width: '3%' }}>#</th>
+                    <th style={{ border: '1px solid #bbb', padding: 4, width: '25%' }}>Daily Project Oversight Items</th>
                     {statusOptions.map(opt => (
-                      <th key={opt} style={{ border: '1px solid #bbb', padding: 4 }}>{opt.toUpperCase()}</th>
+                      <th key={opt} style={{ border: '1px solid #bbb', padding: 4, width: '5%' }}>{opt.toUpperCase()}</th>
                     ))}
-                    <th style={{ border: '1px solid #bbb', padding: 4 }}>Comments</th>
+                    <th style={{ border: '1px solid #bbb', padding: 4, width: 'auto' }}>Comments</th>
                   </tr>
                 </thead>
                 <tbody>
