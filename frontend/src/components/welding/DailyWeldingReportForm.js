@@ -144,6 +144,7 @@ const DailyWeldingReportForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
   const [exitPromptOpen, setExitPromptOpen] = useState(false);
+  const [deletePromptOpen, setDeletePromptOpen] = useState(false);
 
   // Load draft on component mount
   useEffect(() => {
@@ -288,13 +289,22 @@ const DailyWeldingReportForm = () => {
   };
 
   const handleDelete = () => {
+    setDeletePromptOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
     const draftId = new URLSearchParams(window.location.search).get('draftId');
     if (draftId) {
       const savedDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
       const updatedDrafts = savedDrafts.filter(draft => draft.draftId !== draftId);
       localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(updatedDrafts));
     }
+    setDeletePromptOpen(false);
     navigate('/welding/reports');
+  };
+
+  const handleDeleteCancel = () => {
+    setDeletePromptOpen(false);
   };
 
   // Add lock state for each signature
@@ -1121,6 +1131,16 @@ const DailyWeldingReportForm = () => {
             <DialogActions>
               <Button onClick={handleExitSave} color="primary" variant="contained">Yes</Button>
               <Button onClick={handleExitNoSave} color="secondary" variant="outlined">No</Button>
+            </DialogActions>
+          </Dialog>
+          <Dialog open={deletePromptOpen} onClose={handleDeleteCancel}>
+            <DialogTitle>Are you sure you want to delete?</DialogTitle>
+            <DialogContent>
+              <Typography>This action cannot be undone.</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDeleteConfirm} color="primary" variant="contained">Yes</Button>
+              <Button onClick={handleDeleteCancel} color="secondary" variant="outlined">No</Button>
             </DialogActions>
           </Dialog>
         </form>
