@@ -110,13 +110,13 @@ const CoatingDailyReportForm = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', p: { xs: 2, sm: 3 }, maxWidth: '100vw', overflowX: 'hidden' }}>
+    <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', p: { xs: 1, sm: 2, md: 3 }, maxWidth: '100vw', overflowX: 'hidden' }}>
       <PageHeader title="Daily Coating Report" backPath="/coating/reports" />
       <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>Daily Coating Report</Typography>
-      <Box sx={{ bgcolor: '#fff', border: '2px solid #000', borderRadius: 2, boxShadow: 2, p: { xs: 2, sm: 3 }, width: '100%' }}>
+      <Box sx={{ bgcolor: '#fff', border: '2px solid #000', borderRadius: 2, boxShadow: 2, p: { xs: 1, sm: 2, md: 3 }, width: '100%' }}>
         <form onSubmit={handleSubmit} style={{ width: '100%' }}>
           <Typography variant="h6" sx={{ mb: 2 }}>Project Information</Typography>
-          <Grid container spacing={2} sx={{ width: '100%', m: 0, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }} alignItems="stretch">
+          <Grid container spacing={2} sx={{ width: '100%', m: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' } }} alignItems="stretch">
             <Grid item><TextField label="Contractor" name="contractor" value={form.contractor} onChange={handleChange} fullWidth /></Grid>
             <Grid item><TextField label="Report #" name="reportNumber" value={form.reportNumber} onChange={handleChange} fullWidth /></Grid>
             <Grid item><TextField label="OQ Personnel*" name="oqPersonnel" value={form.oqPersonnel} onChange={handleChange} fullWidth /></Grid>
@@ -129,72 +129,134 @@ const CoatingDailyReportForm = () => {
           </Grid>
           <Divider sx={{ my: 3 }} />
           <Typography variant="h6" sx={{ mb: 2 }}>Daily Project Oversight Items</Typography>
-          <Box sx={{ width: '100%', overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#e3f0fa' }}>
-                  <th style={{ border: '1px solid #bbb', padding: 4 }}>#</th>
-                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Daily Project Oversight Items</th>
-                  {statusOptions.map(opt => (
-                    <th key={opt} style={{ border: '1px solid #bbb', padding: 4 }}>{opt.toUpperCase()}</th>
-                  ))}
-                  <th style={{ border: '1px solid #bbb', padding: 4 }}>Comments</th>
-                </tr>
-              </thead>
-              <tbody>
-                {oversightItems.map((item, idx) => (
-                  <React.Fragment key={idx}>
-                    <tr>
-                      <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top' }}>{idx + 1}</td>
-                      <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top' }}>{item}</td>
-                      {statusOptions.map(opt => (
-                        <td key={opt} style={{ border: '1px solid #bbb', padding: 4, textAlign: 'center' }}>
-                          <input
-                            type="checkbox"
-                            checked={!!form.items[idx][opt]}
-                            onChange={e => handleItemChange(idx, opt, e.target.checked)}
-                          />
-                        </td>
-                      ))}
-                      <td style={{ border: '1px solid #bbb', padding: 4 }}>
-                        <TextField
-                          value={form.items[idx].comments}
-                          onChange={e => handleItemChange(idx, 'comments', e.target.value)}
-                          size="small"
-                          fullWidth
-                        />
-                      </td>
-                    </tr>
-                    {subItems[idx] && subItems[idx].map((sub, subIdx) => (
-                      <tr key={subIdx}>
-                        <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top' }}></td>
-                        <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top', paddingLeft: 24 }}>{sub}</td>
+          <Box sx={{ width: '100%' }}>
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+                <thead>
+                  <tr style={{ background: '#f5f5f5' }}>
+                    <th style={{ border: '1px solid #bbb', padding: 4 }}>#</th>
+                    <th style={{ border: '1px solid #bbb', padding: 4 }}>Daily Project Oversight Items</th>
+                    {statusOptions.map(opt => (
+                      <th key={opt} style={{ border: '1px solid #bbb', padding: 4 }}>{opt.toUpperCase()}</th>
+                    ))}
+                    <th style={{ border: '1px solid #bbb', padding: 4 }}>Comments</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {oversightItems.map((item, idx) => (
+                    <React.Fragment key={idx}>
+                      <tr>
+                        <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top' }}>{idx + 1}</td>
+                        <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top' }}>{item}</td>
                         {statusOptions.map(opt => (
                           <td key={opt} style={{ border: '1px solid #bbb', padding: 4, textAlign: 'center' }}>
                             <input
                               type="checkbox"
-                              checked={!!(form.items[idx].subItems && form.items[idx].subItems[subIdx] && form.items[idx].subItems[subIdx][opt])}
-                              onChange={e => handleSubItemChange(idx, subIdx, opt, e.target.checked)}
+                              checked={!!form.items[idx][opt]}
+                              onChange={e => handleItemChange(idx, opt, e.target.checked)}
                             />
                           </td>
                         ))}
                         <td style={{ border: '1px solid #bbb', padding: 4 }}>
                           <TextField
-                            value={form.items[idx].subItems && form.items[idx].subItems[subIdx] ? form.items[idx].subItems[subIdx].comments || '' : ''}
-                            onChange={e => handleSubItemChange(idx, subIdx, 'comments', e.target.value)}
+                            value={form.items[idx].comments}
+                            onChange={e => handleItemChange(idx, 'comments', e.target.value)}
                             size="small"
                             fullWidth
+                            multiline
+                            minRows={2}
                           />
                         </td>
                       </tr>
+                      {subItems[idx] && subItems[idx].map((sub, subIdx) => (
+                        <tr key={subIdx}>
+                          <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top' }}></td>
+                          <td style={{ border: '1px solid #bbb', padding: 4, verticalAlign: 'top', paddingLeft: 24 }}>{sub}</td>
+                          {statusOptions.map(opt => (
+                            <td key={opt} style={{ border: '1px solid #bbb', padding: 4, textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                checked={!!(form.items[idx].subItems && form.items[idx].subItems[subIdx] && form.items[idx].subItems[subIdx][opt])}
+                                onChange={e => handleSubItemChange(idx, subIdx, opt, e.target.checked)}
+                              />
+                            </td>
+                          ))}
+                          <td style={{ border: '1px solid #bbb', padding: 4 }}>
+                            <TextField
+                              value={form.items[idx].subItems && form.items[idx].subItems[subIdx] ? form.items[idx].subItems[subIdx].comments || '' : ''}
+                              onChange={e => handleSubItemChange(idx, subIdx, 'comments', e.target.value)}
+                              size="small"
+                              fullWidth
+                              multiline
+                              minRows={2}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </Box>
+            <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+              {oversightItems.map((item, idx) => (
+                <Box key={idx} sx={{ mb: 2, p: 2, border: '1px solid #bbb', borderRadius: 2, bgcolor: '#fafafa' }}>
+                  <Typography sx={{ fontWeight: 600, mb: 1 }}>{idx + 1}. {item}</Typography>
+                  <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+                    {statusOptions.map(opt => (
+                      <Box key={opt} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <input
+                          type="checkbox"
+                          checked={!!form.items[idx][opt]}
+                          onChange={e => handleItemChange(idx, opt, e.target.checked)}
+                          id={`main-${idx}-${opt}`}
+                        />
+                        <label htmlFor={`main-${idx}-${opt}`} style={{ fontSize: 13 }}>{opt.toUpperCase()}</label>
+                      </Box>
                     ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+                  </Box>
+                  <TextField
+                    value={form.items[idx].comments}
+                    onChange={e => handleItemChange(idx, 'comments', e.target.value)}
+                    size="small"
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    label="Comments"
+                  />
+                  {subItems[idx] && subItems[idx].map((sub, subIdx) => (
+                    <Box key={subIdx} sx={{ mt: 2, ml: 2, p: 1, borderLeft: '3px solid #bbb', bgcolor: '#fff' }}>
+                      <Typography sx={{ fontWeight: 500, mb: 1 }}>{sub}</Typography>
+                      <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+                        {statusOptions.map(opt => (
+                          <Box key={opt} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <input
+                              type="checkbox"
+                              checked={!!(form.items[idx].subItems && form.items[idx].subItems[subIdx] && form.items[idx].subItems[subIdx][opt])}
+                              onChange={e => handleSubItemChange(idx, subIdx, opt, e.target.checked)}
+                              id={`sub-${idx}-${subIdx}-${opt}`}
+                            />
+                            <label htmlFor={`sub-${idx}-${subIdx}-${opt}`} style={{ fontSize: 13 }}>{opt.toUpperCase()}</label>
+                          </Box>
+                        ))}
+                      </Box>
+                      <TextField
+                        value={form.items[idx].subItems && form.items[idx].subItems[subIdx] ? form.items[idx].subItems[subIdx].comments || '' : ''}
+                        onChange={e => handleSubItemChange(idx, subIdx, 'comments', e.target.value)}
+                        size="small"
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        label="Comments"
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+            </Box>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button type="submit" variant="contained" color="primary">Submit</Button>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+            <Button type="submit" variant="contained" color="primary" sx={{ minWidth: 120 }}>Submit</Button>
           </Box>
         </form>
       </Box>
