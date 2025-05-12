@@ -9,6 +9,11 @@ import {
   Divider,
 } from '@mui/material';
 import PageHeader from '../common/PageHeader';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import { useNavigate } from 'react-router-dom';
 
 const initialState = {
   contractor: '',
@@ -69,6 +74,91 @@ const statusOptions = ['sat', 'unsat', 'na', 'nw'];
 const CoatingDailyReportForm = () => {
   const [form, setForm] = useState(initialState);
   const [submitted, setSubmitted] = useState(false);
+  const [deletePromptOpen, setDeletePromptOpen] = useState(false);
+  const [exitPromptOpen, setExitPromptOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Load draft on mount if draftId in URL
+  React.useEffect(() => {
+    const draftId = new URLSearchParams(window.location.search).get('draftId');
+    if (draftId) {
+      const savedDrafts = JSON.parse(localStorage.getItem('dailyCoatingReportDrafts') || '[]');
+      const draft = savedDrafts.find(d => d.draftId === draftId);
+      if (draft) {
+        setForm({ ...draft, draftId });
+      }
+    }
+  }, []);
+
+  const getCurrentDraftId = () => {
+    return form.draftId || new URLSearchParams(window.location.search).get('draftId');
+  };
+
+  const handleSave = () => {
+    const draftId = getCurrentDraftId() || `draft_${Date.now()}`;
+    const draftData = { ...form, savedAt: new Date().toISOString(), draftId };
+    const existingDrafts = JSON.parse(localStorage.getItem('dailyCoatingReportDrafts') || '[]');
+    const draftIndex = existingDrafts.findIndex(d => d.draftId === draftId);
+    let updatedDrafts;
+    if (draftIndex !== -1) {
+      updatedDrafts = [...existingDrafts];
+      updatedDrafts[draftIndex] = draftData;
+    } else {
+      updatedDrafts = [...existingDrafts, draftData];
+    }
+    localStorage.setItem('dailyCoatingReportDrafts', JSON.stringify(updatedDrafts));
+    setForm(prev => ({ ...prev, draftId }));
+    alert('Form saved as draft!');
+  };
+
+  const handleSaveAndExit = () => {
+    const draftId = getCurrentDraftId() || `draft_${Date.now()}`;
+    const draftData = { ...form, savedAt: new Date().toISOString(), draftId };
+    const existingDrafts = JSON.parse(localStorage.getItem('dailyCoatingReportDrafts') || '[]');
+    const draftIndex = existingDrafts.findIndex(d => d.draftId === draftId);
+    let updatedDrafts;
+    if (draftIndex !== -1) {
+      updatedDrafts = [...existingDrafts];
+      updatedDrafts[draftIndex] = draftData;
+    } else {
+      updatedDrafts = [...existingDrafts, draftData];
+    }
+    localStorage.setItem('dailyCoatingReportDrafts', JSON.stringify(updatedDrafts));
+    setForm(prev => ({ ...prev, draftId }));
+    navigate('/coating/reports');
+  };
+
+  const handleDelete = () => {
+    setDeletePromptOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    const draftId = getCurrentDraftId();
+    if (draftId) {
+      const savedDrafts = JSON.parse(localStorage.getItem('dailyCoatingReportDrafts') || '[]');
+      const updatedDrafts = savedDrafts.filter(draft => draft.draftId !== draftId);
+      localStorage.setItem('dailyCoatingReportDrafts', JSON.stringify(updatedDrafts));
+    }
+    setDeletePromptOpen(false);
+    navigate('/coating/reports');
+  };
+
+  const handleDeleteCancel = () => {
+    setDeletePromptOpen(false);
+  };
+
+  const handleExit = () => {
+    setExitPromptOpen(true);
+  };
+
+  const handleExitConfirm = () => {
+    setExitPromptOpen(false);
+    navigate('/coating/reports');
+  };
+
+  const handleExitCancel = () => {
+    setExitPromptOpen(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -94,6 +184,7 @@ const CoatingDailyReportForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // TODO: Final submit logic (send to backend)
     setSubmitted(true);
   };
 
@@ -255,9 +346,131 @@ const CoatingDailyReportForm = () => {
               ))}
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-            <Button type="submit" variant="contained" color="primary" sx={{ minWidth: 120 }}>Submit</Button>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              flexWrap: { xs: 'nowrap', sm: 'wrap' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', sm: 'center' },
+              mt: 3,
+              gap: { xs: 1, sm: 2 },
+              width: '100%',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'row', sm: 'row' },
+                gap: { xs: 1, sm: 2 },
+                flex: 1,
+                width: '100%',
+                justifyContent: { xs: 'space-between', sm: 'space-between' },
+              }}
+            >
+              <Button
+                onClick={handleDelete}
+                variant="contained"
+                size="large"
+                fullWidth
+                color="error"
+                sx={{
+                  minWidth: { xs: 0, sm: 120 },
+                  fontSize: { xs: '0.85rem', sm: '1rem' },
+                  flex: 1,
+                  bgcolor: '#d32f2f',
+                  '&:hover': { bgcolor: '#b71c1c' },
+                  height: { sm: 56 },
+                }}
+              >
+                Delete
+              </Button>
+              <Button
+                onClick={handleSave}
+                variant="contained"
+                size="large"
+                fullWidth
+                color="secondary"
+                sx={{
+                  minWidth: { xs: 0, sm: 120 },
+                  fontSize: { xs: '0.85rem', sm: '1rem' },
+                  flex: 1,
+                  height: { sm: 56 },
+                }}
+              >
+                Save
+              </Button>
+              <Button
+                onClick={handleSaveAndExit}
+                variant="contained"
+                size="large"
+                fullWidth
+                color="secondary"
+                sx={{
+                  minWidth: { xs: 0, sm: 120 },
+                  fontSize: { xs: '0.85rem', sm: '1rem' },
+                  flex: 1,
+                  height: { sm: 56 },
+                }}
+              >
+                Save & Exit
+              </Button>
+              <Button
+                onClick={handleExit}
+                variant="outlined"
+                size="large"
+                fullWidth
+                color="primary"
+                sx={{
+                  minWidth: { xs: 0, sm: 120 },
+                  fontSize: { xs: '0.85rem', sm: '1rem' },
+                  flex: 1,
+                  height: { sm: 56 },
+                }}
+              >
+                Exit
+              </Button>
+            </Box>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              sx={{
+                minWidth: { xs: 0, sm: 120 },
+                fontSize: { xs: '0.85rem', sm: '1rem' },
+                flex: 1,
+                bgcolor: '#388e3c',
+                color: '#fff',
+                '&:hover': { bgcolor: '#1b5e20' },
+                height: { sm: 56 },
+                mt: { xs: 1, sm: 0 },
+                ml: { xs: 0, sm: 2 },
+              }}
+            >
+              Submit
+            </Button>
           </Box>
+          <Dialog open={deletePromptOpen} onClose={handleDeleteCancel}>
+            <DialogTitle>Delete Draft?</DialogTitle>
+            <DialogContent>
+              Are you sure you want to delete this draft? This action cannot be undone.
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDeleteCancel} color="primary">Cancel</Button>
+              <Button onClick={handleDeleteConfirm} color="error">Delete</Button>
+            </DialogActions>
+          </Dialog>
+          <Dialog open={exitPromptOpen} onClose={handleExitCancel}>
+            <DialogTitle>Exit Without Saving?</DialogTitle>
+            <DialogContent>
+              Do you want to exit without saving changes?
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleExitCancel} color="primary">Cancel</Button>
+              <Button onClick={handleExitConfirm} color="error">Exit</Button>
+            </DialogActions>
+          </Dialog>
         </form>
       </Box>
     </Box>
