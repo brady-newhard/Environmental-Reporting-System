@@ -29,6 +29,8 @@ import WeldingMain from './components/welding/WeldingMain';
 import DailyWeldingReportForm from './components/welding/DailyWeldingReportForm';
 import WeldingReports from './components/welding/WeldingReports';
 import WeldingDraftReports from './components/welding/WeldingDraftReports';
+import CoatingMain from './components/coating/CoatingMain';
+import CoatingRoutes from './routes/coatingRoutes';
 
 const theme = createTheme({
   palette: {
@@ -370,6 +372,22 @@ function App() {
             element={
               <PrivateRoute>
                 <NewProgressReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/coating"
+            element={
+              <PrivateRoute>
+                <CoatingMain />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/coating/*"
+            element={
+              <PrivateRoute>
+                <CoatingRoutes />
               </PrivateRoute>
             }
           />
