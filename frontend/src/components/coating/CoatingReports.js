@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Card, CardContent, Typography, Button, Link } from '@mui/material';
-import { Assignment as DailyReportIcon, Drafts as DraftsIcon } from '@mui/icons-material';
+import { Assignment as DailyReportIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../common/PageHeader';
 import Badge from '@mui/material/Badge';
@@ -32,13 +32,14 @@ const ReportCard = ({ title, icon: Icon, description, path, secondaryAction }) =
       flexDirection: 'column',
       bgcolor: '#fff',
       borderRadius: '8px',
+      pb: 2,
       '&:hover': {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         transform: 'translateY(-2px)',
         transition: 'all 0.3s ease',
       },
     }}>
-      <CardContent sx={{ 
+      <CardContent sx={{
         flex: 1,
         p: 3,
         display: 'flex',
@@ -46,70 +47,50 @@ const ReportCard = ({ title, icon: Icon, description, path, secondaryAction }) =
         gap: 2,
         '&:last-child': { pb: 2 }
       }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          gap: 2,
-        }}>
-          <Icon sx={{ 
-            color: '#000000',
-            fontSize: '2rem',
-          }} />
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              color: '#000000', 
-              fontWeight: 600,
-              fontSize: '1.25rem',
-            }}
-          >
-            {title}
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Icon sx={{ color: '#000000', fontSize: '2rem' }} />
+          <Typography variant="h6" sx={{ color: '#000000', fontWeight: 600, fontSize: '1.25rem' }}>{title}</Typography>
         </Box>
-        
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            color: '#666666',
-            flex: 1,
-          }}
-        >
-          {description}
-        </Typography>
-
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Typography variant="body2" sx={{ color: '#666666', flex: 1 }}>{description}</Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Button
             variant="contained"
+            fullWidth
             onClick={handleFillOut}
             sx={{
-              bgcolor: '#000',
-              color: '#fff',
-              '&:hover': {
-                bgcolor: '#222',
-              },
+              backgroundColor: '#000000',
+              '&:hover': { backgroundColor: '#333333', transform: 'scale(1.02)', transition: 'all 0.2s ease' },
+              color: '#ffffff',
+              fontWeight: 500,
+              height: 40,
+              fontSize: '0.875rem',
+              textTransform: 'none',
+              mt: 0
             }}
           >
-            Fill Out
+            Create New Report
           </Button>
-          {secondaryAction && (
-            <Button
-              variant="outlined"
-              onClick={handleViewDrafts}
-              sx={{
-                borderColor: '#000',
-                color: '#000',
-                '&:hover': {
-                  borderColor: '#222',
-                  bgcolor: 'rgba(0, 0, 0, 0.04)',
-                },
-              }}
-            >
-              <Badge badgeContent={draftCount} color="error" sx={{ mr: 1 }}>
-                {secondaryAction.text}
-              </Badge>
-            </Button>
-          )}
         </Box>
+        {secondaryAction && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5, mb: 0 }}>
+            <Badge badgeContent={draftCount} color="error" sx={{ '& .MuiBadge-badge': { right: -18, top: 8 } }}>
+              <Link
+                component="button"
+                variant="body2"
+                onClick={handleViewDrafts}
+                sx={{
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                  color: '#666666',
+                  '&:hover': { color: '#000000' },
+                  fontWeight: 500
+                }}
+              >
+                {secondaryAction.text}
+              </Link>
+            </Badge>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );
