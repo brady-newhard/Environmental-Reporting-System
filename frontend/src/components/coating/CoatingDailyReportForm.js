@@ -14,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import { useNavigate } from 'react-router-dom';
+import SignatureCanvas from 'react-signature-canvas';
 
 const initialState = {
   contractor: '',
@@ -71,12 +72,39 @@ const subItems = {
 
 const statusOptions = ['sat', 'unsat', 'na', 'nw'];
 
+const signaturePadStyles = {
+  canvas: {
+    width: '100%',
+    height: '100%',
+    touchAction: 'none',
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  container: {
+    border: '1px solid #ccc',
+    borderRadius: 1,
+    p: 1,
+    bgcolor: '#fff',
+    height: 150,
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'crosshair',
+    overflow: 'hidden',
+  },
+};
+
 const CoatingDailyReportForm = () => {
   const [form, setForm] = useState(initialState);
   const [submitted, setSubmitted] = useState(false);
   const [deletePromptOpen, setDeletePromptOpen] = useState(false);
   const [exitPromptOpen, setExitPromptOpen] = useState(false);
   const navigate = useNavigate();
+  const [inspectorSigning, setInspectorSigning] = useState(false);
+  const inspectorPadRef = React.useRef(null);
 
   // Load draft on mount if draftId in URL
   React.useEffect(() => {
@@ -188,6 +216,26 @@ const CoatingDailyReportForm = () => {
     setSubmitted(true);
   };
 
+  const handleSignatureEnd = () => {
+    if (inspectorPadRef.current) {
+      try {
+        if (!inspectorPadRef.current.isEmpty()) {
+          const signatureData = inspectorPadRef.current.getTrimmedCanvas().toDataURL('image/png');
+          setForm(prev => ({ ...prev, signature: signatureData }));
+        }
+      } catch (error) {
+        console.error('Error saving signature:', error);
+      }
+    }
+  };
+
+  const clearSignature = () => {
+    if (inspectorPadRef.current) {
+      inspectorPadRef.current.clear();
+    }
+    setForm(prev => ({ ...prev, signature: '' }));
+  };
+
   if (submitted) {
     return (
       <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -201,10 +249,10 @@ const CoatingDailyReportForm = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', p: { xs: 1, sm: 2, md: 3 }, maxWidth: '100vw', overflowX: 'hidden' }}>
+    <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', width: '100vw', maxWidth: '100vw', overflowX: 'hidden', p: { xs: 2, sm: 3 } }}>
       <PageHeader title="Daily Coating Report" backPath="/coating/reports" />
       <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>Daily Coating Report</Typography>
-      <Box sx={{ bgcolor: '#fff', border: '2px solid #000', borderRadius: 2, boxShadow: 2, p: { xs: 1, sm: 2, md: 3 }, width: '100%' }}>
+      <Box sx={{ bgcolor: '#fff', border: '2px solid #000', borderRadius: 2, boxShadow: 2, p: { xs: 2, sm: 3 }, width: '100%', maxWidth: 1200, margin: '0 auto' }}>
         <form onSubmit={handleSubmit} style={{ width: '100%' }}>
           <Typography variant="h6" sx={{ mb: 2 }}>Project Information</Typography>
           <Grid container spacing={2} sx={{ width: '100%', m: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' } }} alignItems="stretch">
@@ -216,7 +264,6 @@ const CoatingDailyReportForm = () => {
             <Grid item><TextField label="Purchase Order No." name="purchaseOrder" value={form.purchaseOrder} onChange={handleChange} fullWidth /></Grid>
             <Grid item><TextField label="Location" name="location" value={form.location} onChange={handleChange} fullWidth /></Grid>
             <Grid item><TextField label="QA Inspector Name" name="qaInspector" value={form.qaInspector} onChange={handleChange} fullWidth /></Grid>
-            <Grid item><TextField label="Signature" name="signature" value={form.signature} onChange={handleChange} fullWidth /></Grid>
           </Grid>
           <Divider sx={{ my: 3 }} />
           <Typography variant="h6" sx={{ mb: 2 }}>Daily Project Oversight Items</Typography>
@@ -344,6 +391,74 @@ const CoatingDailyReportForm = () => {
                   ))}
                 </Box>
               ))}
+            </Box>
+          </Box>
+          <Divider sx={{ my: 3 }} />
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>QA Inspector</Typography>
+            <TextField label="QA Inspector Name" name="qaInspector" value={form.qaInspector} onChange={handleChange} fullWidth sx={{ mb: 2, maxWidth: 400 }} />
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>QA Inspector Signature</Typography>
+            <Box sx={{ ...signaturePadStyles.container, minHeight: 150 }}>
+              {!inspectorSigning && form.signature ? (
+                <>
+                  <img
+                    src={form.signature}
+                    alt="QA Inspector Signature"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }}
+                  />
+                  <Button
+                    size="small"
+                    onClick={() => { setInspectorSigning(true); clearSignature(); }}
+                    sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                  >
+                    Sign Again
+                  </Button>
+                </>
+              ) : inspectorSigning ? (
+                <>
+                  <SignatureCanvas
+                    ref={inspectorPadRef}
+                    penColor="black"
+                    backgroundColor="white"
+                    canvasProps={{
+                      width: 400,
+                      height: 120,
+                      style: {
+                        width: '100%',
+                        height: '100%',
+                        touchAction: 'none',
+                        background: '#fff',
+                        borderRadius: 4,
+                        display: 'block',
+                      }
+                    }}
+                    onEnd={handleSignatureEnd}
+                  />
+                  <Button
+                    size="small"
+                    onClick={() => setInspectorSigning(false)}
+                    sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                  >
+                    Done
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={clearSignature}
+                    sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                  >
+                    Clear
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outlined"
+                  onClick={() => setInspectorSigning(true)}
+                  fullWidth
+                  sx={{ height: '100%' }}
+                >
+                  Sign
+                </Button>
+              )}
             </Box>
           </Box>
           <Box
