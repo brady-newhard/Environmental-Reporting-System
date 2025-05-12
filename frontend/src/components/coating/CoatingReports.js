@@ -114,7 +114,7 @@ const CoatingReports = () => {
           gap: 3 
         }}>
           <ReportCard
-            title="Daily Coating Report"
+            title="Daily QA Report"
             icon={DailyReportIcon}
             description="Complete the daily coating report for pipelines."
             path="/coating/reports/daily"
