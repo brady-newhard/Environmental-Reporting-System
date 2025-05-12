@@ -118,7 +118,7 @@ const CoatingMain = () => {
       overflow: 'auto'
     }}>
       <Box sx={{ p: { xs: 2, sm: 3 } }}>
-        <PageHeader title="Coating Management" />
+        <PageHeader title="Coating Management" backPath="/dashboard" />
         <Box sx={{
           display: 'grid',
           gridTemplateColumns: {
