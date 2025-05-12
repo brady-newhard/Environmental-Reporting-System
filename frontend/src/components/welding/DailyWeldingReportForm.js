@@ -12,6 +12,10 @@ import {
 import PageHeader from '../common/PageHeader';
 import SignatureCanvas from 'react-signature-canvas';
 import { useNavigate } from 'react-router-dom';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 
 const initialState = {
   project: '',
@@ -60,6 +64,11 @@ const initialState = {
   contractorSignature: '',
   supervisorName: '',
   supervisorSignature: '',
+  weather: {
+    skyCover: '',
+    temperature: '',
+    precipitationType: '',
+  },
 };
 
 // Weather dropdown options from SWPPP
@@ -125,15 +134,16 @@ const signaturePadStyles = {
   }
 };
 
+const useSignaturePadLock = () => {
+  const [isSigning, setIsSigning] = useState(false);
+  return [isSigning, setIsSigning];
+};
+
 const DailyWeldingReportForm = () => {
   const [form, setForm] = useState(initialState);
   const [submitted, setSubmitted] = useState(false);
-  const [weather, setWeather] = useState({
-    skyCover: '',
-    temperature: '',
-    precipitationType: '',
-  });
   const navigate = useNavigate();
+  const [exitPromptOpen, setExitPromptOpen] = useState(false);
 
   // Load draft on component mount
   useEffect(() => {
@@ -142,7 +152,11 @@ const DailyWeldingReportForm = () => {
       const savedDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
       const draft = savedDrafts.find(d => d.draftId === draftId);
       if (draft) {
-        setForm(draft);
+        setForm({
+          ...draft,
+          draftId,
+          weather: draft.weather || { skyCover: '', temperature: '', precipitationType: '' }
+        });
       }
     }
   }, []);
@@ -221,7 +235,13 @@ const DailyWeldingReportForm = () => {
 
   const handleWeatherChange = (e) => {
     const { name, value } = e.target;
-    setWeather((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      weather: {
+        ...prev.weather,
+        [name]: value,
+      },
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -229,35 +249,41 @@ const DailyWeldingReportForm = () => {
     setSubmitted(true);
   };
 
+  const getCurrentDraftId = () => {
+    return form.draftId || new URLSearchParams(window.location.search).get('draftId');
+  };
+
   const handleSave = () => {
-    const draftData = {
-      ...form,
-      savedAt: new Date().toISOString(),
-      draftId: `draft_${Date.now()}`
-    };
-    
-    // Get existing drafts
+    const draftId = getCurrentDraftId() || `draft_${Date.now()}`;
+    const draftData = { ...form, savedAt: new Date().toISOString(), draftId };
     const existingDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
-    // Add new draft
-    existingDrafts.push(draftData);
-    // Save updated drafts array
-    localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(existingDrafts));
+    const draftIndex = existingDrafts.findIndex(d => d.draftId === draftId);
+    let updatedDrafts;
+    if (draftIndex !== -1) {
+      updatedDrafts = [...existingDrafts];
+      updatedDrafts[draftIndex] = draftData;
+    } else {
+      updatedDrafts = [...existingDrafts, draftData];
+    }
+    localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(updatedDrafts));
+    setForm(prev => ({ ...prev, draftId }));
     alert('Form saved as draft!');
   };
 
   const handleSaveAndExit = () => {
-    const draftData = {
-      ...form,
-      savedAt: new Date().toISOString(),
-      draftId: `draft_${Date.now()}`
-    };
-    
-    // Get existing drafts
+    const draftId = getCurrentDraftId() || `draft_${Date.now()}`;
+    const draftData = { ...form, savedAt: new Date().toISOString(), draftId };
     const existingDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
-    // Add new draft
-    existingDrafts.push(draftData);
-    // Save updated drafts array
-    localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(existingDrafts));
+    const draftIndex = existingDrafts.findIndex(d => d.draftId === draftId);
+    let updatedDrafts;
+    if (draftIndex !== -1) {
+      updatedDrafts = [...existingDrafts];
+      updatedDrafts[draftIndex] = draftData;
+    } else {
+      updatedDrafts = [...existingDrafts, draftData];
+    }
+    localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(updatedDrafts));
+    setForm(prev => ({ ...prev, draftId }));
     window.location.href = '/welding/reports';
   };
 
@@ -270,6 +296,11 @@ const DailyWeldingReportForm = () => {
     }
     navigate('/welding/reports');
   };
+
+  // Add lock state for each signature
+  const [inspectorSigning, setInspectorSigning] = useState(false);
+  const [contractorSigning, setContractorSigning] = useState(false);
+  const [supervisorSigning, setSupervisorSigning] = useState(false);
 
   // Signature section using react-signature-canvas
   const renderSignatureSection = () => (
@@ -293,68 +324,69 @@ const DailyWeldingReportForm = () => {
             onChange={e => handleChange({ target: { name: 'weldingInspectorName', value: e.target.value } })}
             fullWidth
           />
-          <Box sx={{
-            border: '1px solid #ccc',
-            borderRadius: 1,
-            p: 1,
-            bgcolor: '#fff',
-            height: 150,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <SignatureCanvas
-              ref={weldingInspectorPadRef}
-              penColor="black"
-              backgroundColor="white"
-              canvasProps={{
-                width: 400,
-                height: 120,
-                style: {
-                  width: '100%',
-                  height: '100%',
-                  touchAction: 'none',
-                  background: '#fff',
-                  borderRadius: 4,
-                  display: 'block',
-                }
-              }}
-              onEnd={() => handleSignatureEnd(weldingInspectorPadRef, 'weldingInspectorSignature')}
-            />
-            {!form.weldingInspectorSignature && (
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  pointerEvents: 'none',
-                  opacity: 0.5,
-                  userSelect: 'none',
-                }}
+          <Box sx={{ ...signaturePadStyles.container, minHeight: 150 }}>
+            {/* If locked and signature exists, show image and 'Sign Again' */}
+            {!inspectorSigning && form.weldingInspectorSignature ? (
+              <>
+                <img
+                  src={form.weldingInspectorSignature}
+                  alt="Welding Inspector Signature"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }}
+                />
+                <Button
+                  size="small"
+                  onClick={() => { setInspectorSigning(true); clearSignature(weldingInspectorPadRef, 'weldingInspectorSignature'); }}
+                  sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Sign Again
+                </Button>
+              </>
+            ) : inspectorSigning ? (
+              <>
+                <SignatureCanvas
+                  ref={weldingInspectorPadRef}
+                  penColor="black"
+                  backgroundColor="white"
+                  canvasProps={{
+                    width: 400,
+                    height: 120,
+                    style: {
+                      width: '100%',
+                      height: '100%',
+                      touchAction: 'none',
+                      background: '#fff',
+                      borderRadius: 4,
+                      display: 'block',
+                    }
+                  }}
+                  onEnd={() => handleSignatureEnd(weldingInspectorPadRef, 'weldingInspectorSignature')}
+                />
+                <Button
+                  size="small"
+                  onClick={() => setInspectorSigning(false)}
+                  sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Done
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => clearSignature(weldingInspectorPadRef, 'weldingInspectorSignature')}
+                  sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Clear
+                </Button>
+              </>
+            ) : (
+              // Always show Sign button if locked and no signature
+              <Button
+                variant="outlined"
+                onClick={() => setInspectorSigning(true)}
+                fullWidth
+                sx={{ height: '100%' }}
               >
-                Tap to Sign
-              </Typography>
+                Sign
+              </Button>
             )}
-            <Button
-              size="small"
-              onClick={() => clearSignature(weldingInspectorPadRef, 'weldingInspectorSignature')}
-              sx={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                minWidth: 'auto',
-                p: 0.5,
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 1)',
-                },
-                zIndex: 2,
-              }}
-            >
-              Clear
-            </Button>
           </Box>
         </Box>
         {/* Contractor */}
@@ -365,68 +397,69 @@ const DailyWeldingReportForm = () => {
             onChange={e => handleChange({ target: { name: 'contractorName', value: e.target.value } })}
             fullWidth
           />
-          <Box sx={{
-            border: '1px solid #ccc',
-            borderRadius: 1,
-            p: 1,
-            bgcolor: '#fff',
-            height: 150,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <SignatureCanvas
-              ref={contractorPadRef}
-              penColor="black"
-              backgroundColor="white"
-              canvasProps={{
-                width: 400,
-                height: 120,
-                style: {
-                  width: '100%',
-                  height: '100%',
-                  touchAction: 'none',
-                  background: '#fff',
-                  borderRadius: 4,
-                  display: 'block',
-                }
-              }}
-              onEnd={() => handleSignatureEnd(contractorPadRef, 'contractorSignature')}
-            />
-            {!form.contractorSignature && (
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  pointerEvents: 'none',
-                  opacity: 0.5,
-                  userSelect: 'none',
-                }}
+          <Box sx={{ ...signaturePadStyles.container, minHeight: 150 }}>
+            {/* If locked and signature exists, show image and 'Sign Again' */}
+            {!contractorSigning && form.contractorSignature ? (
+              <>
+                <img
+                  src={form.contractorSignature}
+                  alt="Contractor Signature"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }}
+                />
+                <Button
+                  size="small"
+                  onClick={() => { setContractorSigning(true); clearSignature(contractorPadRef, 'contractorSignature'); }}
+                  sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Sign Again
+                </Button>
+              </>
+            ) : contractorSigning ? (
+              <>
+                <SignatureCanvas
+                  ref={contractorPadRef}
+                  penColor="black"
+                  backgroundColor="white"
+                  canvasProps={{
+                    width: 400,
+                    height: 120,
+                    style: {
+                      width: '100%',
+                      height: '100%',
+                      touchAction: 'none',
+                      background: '#fff',
+                      borderRadius: 4,
+                      display: 'block',
+                    }
+                  }}
+                  onEnd={() => handleSignatureEnd(contractorPadRef, 'contractorSignature')}
+                />
+                <Button
+                  size="small"
+                  onClick={() => setContractorSigning(false)}
+                  sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Done
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => clearSignature(contractorPadRef, 'contractorSignature')}
+                  sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Clear
+                </Button>
+              </>
+            ) : (
+              // Always show Sign button if locked and no signature
+              <Button
+                variant="outlined"
+                onClick={() => setContractorSigning(true)}
+                fullWidth
+                sx={{ height: '100%' }}
               >
-                Tap to Sign
-              </Typography>
+                Sign
+              </Button>
             )}
-            <Button
-              size="small"
-              onClick={() => clearSignature(contractorPadRef, 'contractorSignature')}
-              sx={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                minWidth: 'auto',
-                p: 0.5,
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 1)',
-                },
-                zIndex: 2,
-              }}
-            >
-              Clear
-            </Button>
           </Box>
         </Box>
         {/* Supervisor */}
@@ -437,73 +470,89 @@ const DailyWeldingReportForm = () => {
             onChange={e => handleChange({ target: { name: 'supervisorName', value: e.target.value } })}
             fullWidth
           />
-          <Box sx={{
-            border: '1px solid #ccc',
-            borderRadius: 1,
-            p: 1,
-            bgcolor: '#fff',
-            height: 150,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <SignatureCanvas
-              ref={supervisorPadRef}
-              penColor="black"
-              backgroundColor="white"
-              canvasProps={{
-                width: 400,
-                height: 120,
-                style: {
-                  width: '100%',
-                  height: '100%',
-                  touchAction: 'none',
-                  background: '#fff',
-                  borderRadius: 4,
-                  display: 'block',
-                }
-              }}
-              onEnd={() => handleSignatureEnd(supervisorPadRef, 'supervisorSignature')}
-            />
-            {!form.supervisorSignature && (
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  pointerEvents: 'none',
-                  opacity: 0.5,
-                  userSelect: 'none',
-                }}
+          <Box sx={{ ...signaturePadStyles.container, minHeight: 150 }}>
+            {/* If locked and signature exists, show image and 'Sign Again' */}
+            {!supervisorSigning && form.supervisorSignature ? (
+              <>
+                <img
+                  src={form.supervisorSignature}
+                  alt="Supervisor Signature"
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }}
+                />
+                <Button
+                  size="small"
+                  onClick={() => { setSupervisorSigning(true); clearSignature(supervisorPadRef, 'supervisorSignature'); }}
+                  sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Sign Again
+                </Button>
+              </>
+            ) : supervisorSigning ? (
+              <>
+                <SignatureCanvas
+                  ref={supervisorPadRef}
+                  penColor="black"
+                  backgroundColor="white"
+                  canvasProps={{
+                    width: 400,
+                    height: 120,
+                    style: {
+                      width: '100%',
+                      height: '100%',
+                      touchAction: 'none',
+                      background: '#fff',
+                      borderRadius: 4,
+                      display: 'block',
+                    }
+                  }}
+                  onEnd={() => handleSignatureEnd(supervisorPadRef, 'supervisorSignature')}
+                />
+                <Button
+                  size="small"
+                  onClick={() => setSupervisorSigning(false)}
+                  sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Done
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => clearSignature(supervisorPadRef, 'supervisorSignature')}
+                  sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                >
+                  Clear
+                </Button>
+              </>
+            ) : (
+              // Always show Sign button if locked and no signature
+              <Button
+                variant="outlined"
+                onClick={() => setSupervisorSigning(true)}
+                fullWidth
+                sx={{ height: '100%' }}
               >
-                Tap to Sign
-              </Typography>
+                Sign
+              </Button>
             )}
-            <Button
-              size="small"
-              onClick={() => clearSignature(supervisorPadRef, 'supervisorSignature')}
-              sx={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                minWidth: 'auto',
-                p: 0.5,
-                bgcolor: 'rgba(255, 255, 255, 0.9)',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 1)',
-                },
-                zIndex: 2,
-              }}
-            >
-              Clear
-            </Button>
           </Box>
         </Box>
       </Box>
     </>
   );
+
+  const handleExit = () => {
+    setExitPromptOpen(true);
+  };
+
+  const handleExitSave = () => {
+    handleSave();
+    setExitPromptOpen(false);
+    navigate('/welding/reports');
+  };
+
+  const handleExitNoSave = () => {
+    setExitPromptOpen(false);
+    navigate('/welding/reports');
+  };
 
   if (submitted) {
     return (
@@ -555,7 +604,7 @@ const DailyWeldingReportForm = () => {
               select
               label="Sky Cover"
               name="skyCover"
-              value={weather.skyCover}
+              value={form.weather.skyCover}
               onChange={handleWeatherChange}
               fullWidth
               InputLabelProps={{
@@ -570,7 +619,7 @@ const DailyWeldingReportForm = () => {
             <TextField
               label="Temp"
               name="temperature"
-              value={weather.temperature}
+              value={form.weather.temperature}
               onChange={handleWeatherChange}
               fullWidth
               InputLabelProps={{
@@ -581,7 +630,7 @@ const DailyWeldingReportForm = () => {
               select
               label="Precip"
               name="precipitationType"
-              value={weather.precipitationType}
+              value={form.weather.precipitationType}
               onChange={handleWeatherChange}
               fullWidth
               InputLabelProps={{
@@ -1031,6 +1080,22 @@ const DailyWeldingReportForm = () => {
             >
               Save & Exit
             </Button>
+            <Button
+              onClick={handleExit}
+              variant="outlined"
+              size="small"
+              sx={{
+                flex: { xs: '1 1 25%', sm: '0 1 auto' },
+                minWidth: { xs: '80px', sm: '100px' },
+                py: { xs: 0.5, sm: 1 },
+                px: { xs: 0.5, sm: 2 },
+                borderColor: '#000',
+                color: '#000',
+                ml: 1
+              }}
+            >
+              Exit
+            </Button>
             <Button 
               type="submit" 
               variant="contained" 
@@ -1048,6 +1113,16 @@ const DailyWeldingReportForm = () => {
               Submit
             </Button>
           </Box>
+          <Dialog open={exitPromptOpen} onClose={() => setExitPromptOpen(false)}>
+            <DialogTitle>Save Changes Before Exiting</DialogTitle>
+            <DialogContent>
+              <Typography>Would you like to save your changes before exiting?</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleExitSave} color="primary" variant="contained">Yes</Button>
+              <Button onClick={handleExitNoSave} color="secondary" variant="outlined">No</Button>
+            </DialogActions>
+          </Dialog>
         </form>
       </Box>
     </Box>
