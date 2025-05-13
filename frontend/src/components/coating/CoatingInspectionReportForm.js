@@ -203,6 +203,10 @@ const CoatingInspectionReportForm = () => {
     );
   };
 
+  // Add state for new Section 3C
+  const [backfillUsed, setBackfillUsed] = useState('');
+  const [rockShieldUsed, setRockShieldUsed] = useState('');
+
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <PageHeader title="Daily Inspection Report" backPath="/coating/reports" />
@@ -738,8 +742,49 @@ const CoatingInspectionReportForm = () => {
         ))}
         <Divider sx={{ my: 3 }} />
 
-        {/* Section 3C: Instrument Record */}
-        <Typography variant="h6" sx={{ mb: 2 }}>Section 3C – Instrument Record</Typography>
+        {/* Section 3C: Backfill and Rock Shield */}
+        <Typography variant="h6" sx={{ mb: 2 }}>Section 3C – Backfill & Rock Shield</Typography>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            width: '100%',
+            m: 0,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
+          }}
+        >
+          <Grid item>
+            <TextField
+              select
+              label="Was backfill used?"
+              value={backfillUsed}
+              onChange={e => setBackfillUsed(e.target.value)}
+              fullWidth
+            >
+              <option value=""></option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </TextField>
+          </Grid>
+          <Grid item>
+            <TextField
+              select
+              label="Was Rock Shield Used?"
+              value={rockShieldUsed}
+              onChange={e => setRockShieldUsed(e.target.value)}
+              fullWidth
+            >
+              <option value=""></option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </TextField>
+          </Grid>
+        </Grid>
+        <Divider sx={{ my: 3 }} />
+
+        {/* Section 3D: Instrument Record (was 3C) */}
+        <Typography variant="h6" sx={{ mb: 2 }}>Section 3D – Instrument Record</Typography>
         <Grid
           container
           spacing={2}
