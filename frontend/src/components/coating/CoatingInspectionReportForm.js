@@ -633,64 +633,106 @@ const CoatingInspectionReportForm = () => {
           <Grid item><TextField label="Act Induct Time" fullWidth /></Grid>
           <Grid item><TextField label="Pot Life (min)" fullWidth /></Grid>
           <Grid item><TextField label="Qty Used" fullWidth /></Grid>
-          <Grid item><TextField label="Witnessed By" fullWidth /></Grid>
+          <Grid item>
+            <TextField
+              select
+              label="Witnessed"
+              fullWidth
+              defaultValue=""
+            >
+              <option value=""></option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </TextField>
+          </Grid>
         </Grid>
         <Divider sx={{ my: 3 }} />
 
         {/* Section 2C: Coating Application Checklist */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 2C – Coating Application Checklist</Typography>
-        <TableContainer component={Paper} sx={{ mb: 2 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
-                  Checklist Item
-                </TableCell>
-                <TableCell
-                  colSpan={3}
-                  sx={{
-                    background: '#ddd',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    borderBottom: '1px solid #333'
-                  }}
-                >
-                  ACCEPTABLE
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>YES</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>NO</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {coatingAppChecklistItems.map((item, i) => (
-                <TableRow key={i}>
-                  <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
-                  <TableCell align="center">
-                    <Checkbox
-                      checked={coatingAppChecklist[i].yes}
-                      onChange={() => handleCoatingAppChecklistCheck(i, 'yes')}
+        {isMobile ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+            {coatingAppChecklistItems.map((item, i) => (
+              <Card key={i} variant="outlined" sx={{ p: 1 }}>
+                <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>{item}</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', textAlign: 'center', mb: 1 }}>
+                    Acceptable
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'nowrap', justifyContent: 'center' }}>
+                    <FormControlLabel
+                      control={<Checkbox checked={coatingAppChecklist[i].yes} onChange={() => handleCoatingAppChecklistCheck(i, 'yes')} />}
+                      label="YES"
+                      sx={{ mr: 1 }}
                     />
+                    <FormControlLabel
+                      control={<Checkbox checked={coatingAppChecklist[i].no} onChange={() => handleCoatingAppChecklistCheck(i, 'no')} />}
+                      label="NO"
+                      sx={{ mr: 1 }}
+                    />
+                    <FormControlLabel
+                      control={<Checkbox checked={coatingAppChecklist[i].na} onChange={() => handleCoatingAppChecklistCheck(i, 'na')} />}
+                      label="N/A"
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        ) : (
+          <TableContainer component={Paper} sx={{ mb: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
+                    Checklist Item
                   </TableCell>
-                  <TableCell align="center">
-                    <Checkbox
-                      checked={coatingAppChecklist[i].no}
-                      onChange={() => handleCoatingAppChecklistCheck(i, 'no')}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Checkbox
-                      checked={coatingAppChecklist[i].na}
-                      onChange={() => handleCoatingAppChecklistCheck(i, 'na')}
-                    />
+                  <TableCell
+                    colSpan={3}
+                    sx={{
+                      background: '#ddd',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                      borderBottom: '1px solid #333'
+                    }}
+                  >
+                    ACCEPTABLE
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                <TableRow>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>YES</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>NO</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {coatingAppChecklistItems.map((item, i) => (
+                  <TableRow key={i}>
+                    <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={coatingAppChecklist[i].yes}
+                        onChange={() => handleCoatingAppChecklistCheck(i, 'yes')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={coatingAppChecklist[i].no}
+                        onChange={() => handleCoatingAppChecklistCheck(i, 'no')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={coatingAppChecklist[i].na}
+                        onChange={() => handleCoatingAppChecklistCheck(i, 'na')}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
         <Divider sx={{ my: 3 }} />
 
         {/* Section 3A: DFT Readings */}
