@@ -4,6 +4,10 @@ import PageHeader from '../common/PageHeader';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SignatureCanvas from 'react-signature-canvas';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 
 const initialAmbientRow = {
   location: '',
@@ -289,6 +293,19 @@ const CoatingInspectionReportForm = () => {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [deletePromptOpen, setDeletePromptOpen] = useState(false);
+
+  const handleDelete = () => setDeletePromptOpen(true);
+  const handleDeleteConfirm = () => {
+    setDeletePromptOpen(false);
+    // TODO: Delete logic
+  };
+  const handleDeleteCancel = () => setDeletePromptOpen(false);
+  const handleSave = () => { /* TODO: Save logic */ };
+  const handleSaveExit = () => { /* TODO: Save & Exit logic */ };
+  const handleExit = () => { /* TODO: Exit logic */ };
+  const handleSubmit = () => { /* TODO: Submit logic */ };
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -1209,9 +1226,70 @@ const CoatingInspectionReportForm = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-          <Button variant="contained" color="primary">Submit</Button>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: { xs: 'stretch', sm: 'flex-end' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            mt: 3,
+            gap: { xs: 0, sm: 2 },
+            flexWrap: 'wrap',
+          }}
+        >
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleDelete}
+            fullWidth
+            sx={{ mb: { xs: 1.5, sm: 0 }, maxWidth: { sm: 120 } }}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ bgcolor: '#222', color: '#fff', '&:hover': { bgcolor: '#111' }, mb: { xs: 1.5, sm: 0 }, maxWidth: { sm: 120 } }}
+            onClick={handleSave}
+          >
+            Save
+          </Button>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ bgcolor: '#222', color: '#fff', '&:hover': { bgcolor: '#111' }, mb: { xs: 1.5, sm: 0 }, maxWidth: { sm: 140 } }}
+            onClick={handleSaveExit}
+          >
+            Save & Exit
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
+            sx={{ bgcolor: '#fff', color: '#222', borderColor: '#ccc', '&:hover': { bgcolor: '#f5f5f5', borderColor: '#aaa' }, mb: { xs: 2.5, sm: 0 }, maxWidth: { sm: 120 } }}
+            onClick={handleExit}
+          >
+            Exit
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleSubmit}
+            fullWidth
+            sx={{ maxWidth: { sm: 120 } }}
+          >
+            Submit
+          </Button>
         </Box>
+        <Dialog open={deletePromptOpen} onClose={handleDeleteCancel}>
+          <DialogTitle>Delete Report?</DialogTitle>
+          <DialogContent>
+            Are you sure you want to delete this report? This action cannot be undone.
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel}>Cancel</Button>
+            <Button onClick={handleDeleteConfirm} color="error" variant="contained">Delete</Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
     </Box>
   );
