@@ -448,20 +448,22 @@ const CoatingInspectionReportForm = () => {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
-                  Checklist Item
-                </TableCell>
-                <TableCell
-                  colSpan={3}
-                  sx={{
-                    background: '#ddd',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    borderBottom: '1px solid #333'
-                  }}
-                >
-                  ACCEPTABLE
-                </TableCell>
+                <TableRow>
+                  <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
+                    Checklist Item
+                  </TableCell>
+                  <TableCell
+                    colSpan={3}
+                    sx={{
+                      background: '#ddd',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                      borderBottom: '1px solid #333'
+                    }}
+                  >
+                    ACCEPTABLE
+                  </TableCell>
+                </TableRow>
               </TableRow>
               <TableRow>
                 <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>YES</TableCell>
@@ -857,21 +859,70 @@ const CoatingInspectionReportForm = () => {
         </TableContainer>
         <Divider sx={{ my: 3 }} />
 
+        {/* Section 3E: Additional Comments */}
+        <Typography variant="h6" sx={{ mb: 2 }}>Section 3E – Additional Comments</Typography>
+        <TextField label="Comments" fullWidth multiline minRows={3} sx={{ mb: 3 }} />
+
         {/* Section 4: Comments/Signatures */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 4 – Comments / Signatures</Typography>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            width: '100%',
-            m: 0,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }
-          }}
-        >
-          <Grid item><TextField label="Comments" fullWidth multiline minRows={2} /></Grid>
-          <Grid item><TextField label="Signature" fullWidth /></Grid>
-        </Grid>
+        <TableContainer component={Paper} sx={{ mb: 2 }}>
+          <Table size="small">
+            <TableBody>
+              {/* Contractor QC Inspector Block */}
+              <TableRow>
+                <TableCell sx={{ width: '50%' }}>
+                  <TextField label="Contractor QC Inspector" fullWidth size="small" />
+                </TableCell>
+                <TableCell sx={{ width: '50%' }}>
+                  <TextField label="Date" type="date" InputLabelProps={{ shrink: true }} fullWidth size="small" />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <TextField label="NACE No." fullWidth size="small" InputProps={{ style: { fontStyle: 'italic' } }} />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <TextField label="Print / Type Name" fullWidth size="small" />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <Box sx={{ mt: 1, border: '1px solid #ccc', borderRadius: 1, height: 60, display: 'flex', alignItems: 'center', pl: 2, background: '#fafafa' }}>
+                    <Typography color="textSecondary">Signature (Sign here)</Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+              {/* i3 Rep Block */}
+              <TableRow>
+                <TableCell sx={{ width: '50%' }}>
+                  <TextField label="Received by i3 Rep." fullWidth size="small" />
+                </TableCell>
+                <TableCell sx={{ width: '50%' }}>
+                  <TextField label="Date" type="date" InputLabelProps={{ shrink: true }} fullWidth size="small" />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <TextField label="NACE No." fullWidth size="small" InputProps={{ style: { fontStyle: 'italic' } }} />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <TextField label="Print / Type Name" fullWidth size="small" />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <Box sx={{ mt: 1, border: '1px solid #ccc', borderRadius: 1, height: 60, display: 'flex', alignItems: 'center', pl: 2, background: '#fafafa' }}>
+                    <Typography color="textSecondary">Signature (Sign here)</Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
           <Button variant="contained" color="primary">Submit</Button>
         </Box>
