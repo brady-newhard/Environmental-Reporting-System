@@ -207,6 +207,34 @@ const CoatingInspectionReportForm = () => {
   const [backfillUsed, setBackfillUsed] = useState('');
   const [rockShieldUsed, setRockShieldUsed] = useState('');
 
+  // Section 3D instrument rows
+  const instrumentRows = [
+    'Psychrometer',
+    'Surface Thermometer',
+    'Testex Tape & Micrometer',
+    'Surface Prep. Comparator',
+    'Chloride Test Kit',
+    'Dry Film Gage',
+    'Coating Thermometer',
+    'Holiday Inspection (Jeep)',
+    'Shore D Hardness'
+  ];
+  const [instrumentTable, setInstrumentTable] = useState(
+    instrumentRows.map(() => ({ calibrated: { yes: false, no: false, na: false }, brand: '', serial: '' }))
+  );
+  const handleInstrumentCheck = (idx, field) => {
+    setInstrumentTable(prev => prev.map((row, i) =>
+      i === idx
+        ? { ...row, calibrated: { yes: field === 'yes' ? !row.calibrated.yes : false, no: field === 'no' ? !row.calibrated.no : false, na: field === 'na' ? !row.calibrated.na : false } }
+        : row
+    ));
+  };
+  const handleInstrumentChange = (idx, key, value) => {
+    setInstrumentTable(prev => prev.map((row, i) =>
+      i === idx ? { ...row, [key]: value } : row
+    ));
+  };
+
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <PageHeader title="Daily Inspection Report" backPath="/coating/reports" />
@@ -417,7 +445,7 @@ const CoatingInspectionReportForm = () => {
         {/* Section 1C: Surface Preparation Checklist */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 1C – Surface Preparation Checklist</Typography>
         <TableContainer component={Paper} sx={{ mb: 2 }}>
-          <Table>
+          <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
@@ -785,23 +813,48 @@ const CoatingInspectionReportForm = () => {
 
         {/* Section 3D: Instrument Record (was 3C) */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 3D – Instrument Record</Typography>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            width: '100%',
-            m: 0,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
-          }}
-        >
-          <Grid item><TextField label="Instrument" fullWidth /></Grid>
-          <Grid item><TextField label="Brand" fullWidth /></Grid>
-          <Grid item><TextField label="Model" fullWidth /></Grid>
-          <Grid item><TextField label="Serial Number" fullWidth /></Grid>
-          <Grid item><TextField label="Calibration Date" fullWidth /></Grid>
-          <Grid item><TextField label="Comments" fullWidth /></Grid>
-        </Grid>
+        <TableContainer component={Paper} sx={{ mb: 2 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ background: '#ddd' }}></TableCell>
+                <TableCell sx={{ background: '#ddd' }}></TableCell>
+                <TableCell sx={{ background: '#ddd' }}></TableCell>
+                <TableCell colSpan={3} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #333' }}>Calibrated</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>Instrument</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>Brand</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>Serial Number</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #333' }}>Yes</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>No</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {instrumentRows.map((instrument, i) => (
+                <TableRow key={instrument} sx={{ py: 0.5 }}>
+                  <TableCell sx={{ borderRight: '1px solid #333', fontWeight: 'bold', py: 0.5 }}>{instrument}</TableCell>
+                  <TableCell sx={{ py: 0.5 }}>
+                    <TextField value={instrumentTable[i].brand} onChange={e => handleInstrumentChange(i, 'brand', e.target.value)} variant="outlined" fullWidth size="small" />
+                  </TableCell>
+                  <TableCell sx={{ py: 0.5 }}>
+                    <TextField value={instrumentTable[i].serial} onChange={e => handleInstrumentChange(i, 'serial', e.target.value)} variant="outlined" fullWidth size="small" />
+                  </TableCell>
+                  <TableCell align="center" sx={{ borderLeft: '1px solid #333', py: 0.5 }}>
+                    <Checkbox checked={instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ py: 0.5 }}>
+                    <Checkbox checked={instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />
+                  </TableCell>
+                  <TableCell align="center" sx={{ py: 0.5 }}>
+                    <Checkbox checked={instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <Divider sx={{ my: 3 }} />
 
         {/* Section 4: Comments/Signatures */}
