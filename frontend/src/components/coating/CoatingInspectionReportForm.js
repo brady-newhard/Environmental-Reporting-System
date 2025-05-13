@@ -31,6 +31,16 @@ const initialSurfaceRow = {
   comments: '',
 };
 
+const initialDFTRow = {
+  no: '',
+  location: '',
+  specified: '',
+  average: '',
+  range: '',
+  rework: '', // 'yes' or 'no'
+  comments: '',
+};
+
 const checklistGroups = [
   {
     title: 'SURFACE PREPARATION CHECKLIST',
@@ -49,11 +59,26 @@ const checklistGroups = [
   }
 ];
 
+const coatingAppChecklistItems = [
+  "Protective coverings in place?",
+  "Compressed air check satisfactory?",
+  "Material agitation satisfactory?",
+  "Application equipment satisfactory?: AS/CS/B/R",
+  "Time from surface preparation to coat:",
+  "Recoat times satisfactory?",
+  "Intercoat cleanliness sat? (Hold Point)",
+  "Stripe coat applied?",
+  "Free of application deficiencies?",
+  "Caulking satisfactory? (Hold Point)"
+];
+
 const CoatingInspectionReportForm = () => {
   // Section 1A: Ambient Conditions state
   const [ambientRows, setAmbientRows] = useState([{ ...initialAmbientRow }]);
   // Section 1B: Surface Preparation state
   const [surfaceRows, setSurfaceRows] = useState([{ ...initialSurfaceRow }]);
+  // Section 3A: DFT Readings state
+  const [dftRows, setDFTRows] = useState([{ ...initialDFTRow }]);
   // Checklist state: always matches checklistGroups/items
   const [checklist, setChecklist] = useState(() => {
     const state = {};
@@ -109,6 +134,32 @@ const CoatingInspectionReportForm = () => {
         na: field === 'na' ? !prev[key].na : false,
       }
     }));
+  };
+
+  const handleDFTChange = (idx, field, value) => {
+    setDFTRows(rows => rows.map((row, i) => i === idx ? { ...row, [field]: value } : row));
+  };
+
+  const handleAddDFTRow = () => setDFTRows(rows => [...rows, { ...initialDFTRow }]);
+
+  const handleDeleteDFTRow = idx => setDFTRows(rows => rows.filter((_, i) => i !== idx));
+
+  const [coatingAppChecklist, setCoatingAppChecklist] = useState(
+    coatingAppChecklistItems.map(() => ({ yes: false, no: false, na: false }))
+  );
+
+  const handleCoatingAppChecklistCheck = (idx, field) => {
+    setCoatingAppChecklist(prev =>
+      prev.map((row, i) =>
+        i === idx
+          ? {
+              yes: field === 'yes' ? !row.yes : false,
+              no: field === 'no' ? !row.no : false,
+              na: field === 'na' ? !row.na : false
+            }
+          : row
+      )
+    );
   };
 
   return (
@@ -426,44 +477,131 @@ const CoatingInspectionReportForm = () => {
 
         {/* Section 2C: Coating Application Checklist */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 2C – Coating Application Checklist</Typography>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            width: '100%',
-            m: 0,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }
-          }}
-        >
-          <Grid item><TextField label="Checklist Item" fullWidth /></Grid>
-          <Grid item><TextField label="Yes" fullWidth /></Grid>
-          <Grid item><TextField label="No" fullWidth /></Grid>
-          <Grid item><TextField label="N/A" fullWidth /></Grid>
-        </Grid>
+        <TableContainer component={Paper} sx={{ mb: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
+                  Checklist Item
+                </TableCell>
+                <TableCell
+                  colSpan={3}
+                  sx={{
+                    background: '#ddd',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    borderBottom: '1px solid #333'
+                  }}
+                >
+                  ACCEPTABLE
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>YES</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>NO</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {coatingAppChecklistItems.map((item, i) => (
+                <TableRow key={i}>
+                  <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
+                  <TableCell align="center">
+                    <Checkbox
+                      checked={coatingAppChecklist[i].yes}
+                      onChange={() => handleCoatingAppChecklistCheck(i, 'yes')}
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    <Checkbox
+                      checked={coatingAppChecklist[i].no}
+                      onChange={() => handleCoatingAppChecklistCheck(i, 'no')}
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    <Checkbox
+                      checked={coatingAppChecklist[i].na}
+                      onChange={() => handleCoatingAppChecklistCheck(i, 'na')}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <Divider sx={{ my: 3 }} />
 
         {/* Section 3A: DFT Readings */}
-        <Typography variant="h6" sx={{ mb: 2 }}>Section 3A – DFT Readings (Hold Point)</Typography>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            width: '100%',
-            m: 0,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(8, 1fr)' }
-          }}
-        >
-          <Grid item><TextField label="No." fullWidth /></Grid>
-          <Grid item><TextField label="Location" fullWidth /></Grid>
-          <Grid item><TextField label="Specified" fullWidth /></Grid>
-          <Grid item><TextField label="Average" fullWidth /></Grid>
-          <Grid item><TextField label="Range" fullWidth /></Grid>
-          <Grid item><TextField label="Yes" fullWidth /></Grid>
-          <Grid item><TextField label="No" fullWidth /></Grid>
-          <Grid item><TextField label="Comments" fullWidth /></Grid>
-        </Grid>
+        <Typography variant="h6" sx={{ mb: 2 }}>Section 3A – Dry Film Thickness (Hold Point)</Typography>
+        <Box sx={{ mb: 2 }}>
+          {dftRows.map((row, idx) => (
+            <Box key={idx} sx={{ mb: 3 }}>
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  width: '100%',
+                  m: 0,
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
+                }}
+              >
+                <Grid item>
+                  <TextField label="No." value={row.no} onChange={e => handleDFTChange(idx, 'no', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Location" value={row.location} onChange={e => handleDFTChange(idx, 'location', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Specified (mils)" value={row.specified} onChange={e => handleDFTChange(idx, 'specified', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Average (mils)" value={row.average} onChange={e => handleDFTChange(idx, 'average', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Range (mils)" value={row.range} onChange={e => handleDFTChange(idx, 'range', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    select
+                    label="Rework Required"
+                    value={row.rework}
+                    onChange={e => handleDFTChange(idx, 'rework', e.target.value)}
+                    fullWidth
+                    SelectProps={{ native: true }}
+                  >
+                    <option value=""></option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </TextField>
+                </Grid>
+              </Grid>
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  width: '100%',
+                  m: 0,
+                  mt: 1,
+                  display: 'grid',
+                  gridTemplateColumns: '1fr'
+                }}
+              >
+                <Grid item>
+                  <TextField label="Comments" value={row.comments} onChange={e => handleDFTChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
+                </Grid>
+              </Grid>
+            </Box>
+          ))}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+            <Button variant="outlined" onClick={handleAddDFTRow}>Add Location</Button>
+            {dftRows.length > 1 && (
+              <Button variant="outlined" color="error" onClick={() => handleDeleteDFTRow(dftRows.length - 1)}>
+                Delete Last Location
+              </Button>
+            )}
+          </Box>
+        </Box>
         <Divider sx={{ my: 3 }} />
 
         {/* Section 3B: Holiday Inspection (Hold Point) */}
