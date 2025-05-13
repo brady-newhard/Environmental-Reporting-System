@@ -8,6 +8,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import { useNavigate } from 'react-router-dom';
 
 const initialAmbientRow = {
   location: '',
@@ -307,6 +308,81 @@ const CoatingInspectionReportForm = () => {
   const handleExit = () => { /* TODO: Exit logic */ };
   const handleSubmit = () => { /* TODO: Submit logic */ };
 
+  const navigate = useNavigate();
+
+  // Add state for project info fields
+  const [contractor, setContractor] = useState('');
+  const [projectNo, setProjectNo] = useState('');
+  const [facilityId, setFacilityId] = useState('');
+  const [oqPersonnel, setOqPersonnel] = useState('');
+  const [reportNumber, setReportNumber] = useState('');
+  const [date, setDate] = useState('');
+  const [inspectorTime, setInspectorTime] = useState('');
+  const [crewTime, setCrewTime] = useState('');
+  const [generalLocation, setGeneralLocation] = useState('');
+
+  // Gather all form state into a single report object for print preview
+  const report = {
+    contractor,
+    reportNumber,
+    date,
+    projectNo,
+    inspectorTime,
+    crewTime,
+    facilityId,
+    location: generalLocation,
+    oqPersonnel,
+    // Section 1A
+    ambientRows,
+    // Section 1B
+    surfaceRows,
+    // Section 1C
+    checklist: checklistGroups[0].items.map((item, i) => {
+      const key = `0-${i}`;
+      return {
+        item,
+        yes: checklist[key]?.yes,
+        no: checklist[key]?.no,
+        na: checklist[key]?.na,
+      };
+    }),
+    // Section 2A, 2B, 2C, 3A, 3B, 3C, 3D, 3E, 4: Add your other form state here as needed
+    // Example placeholders:
+    coatingAppRows: [], // Fill with your Section 2A state
+    mixingRows: [], // Fill with your Section 2B state
+    coatingChecklist: coatingAppChecklistItems.map((item, i) => ({
+      item,
+      yes: coatingAppChecklist[i]?.yes,
+      no: coatingAppChecklist[i]?.no,
+      na: coatingAppChecklist[i]?.na,
+    })),
+    dftRows, // Section 3A
+    holidayRows: [], // Fill with your Section 3B state
+    backfill: backfillUsed,
+    rockShield: rockShieldUsed,
+    instrumentRows: instrumentTable.map((row, i) => ({
+      instrument: instrumentRows[i],
+      brand: row.brand,
+      serial: row.serial,
+      yes: row.calibrated.yes,
+      no: row.calibrated.no,
+      na: row.calibrated.na,
+    })),
+    comments: '', // Fill with your Section 3E comments state
+    qcInspector: {
+      name: '', // Fill with your QC Inspector name state
+      nace: '', // Fill with your QC Inspector NACE state
+      date: '', // Fill with your QC Inspector date state
+      signature: qcSignature,
+    },
+    clientRep: {
+      name: '', // Fill with your Client Rep name state
+      nace: '', // Fill with your Client Rep NACE state
+      date: '', // Fill with your Client Rep date state
+      signature: i3Signature,
+    },
+  };
+
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <PageHeader title="Daily Inspection Report" backPath="/coating/reports" />
@@ -323,15 +399,15 @@ const CoatingInspectionReportForm = () => {
             gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' }
           }}
         >
-          <Grid item><TextField label="Contractor" fullWidth /></Grid>
-          <Grid item><TextField label="Project No./WBS" fullWidth /></Grid>
-          <Grid item><TextField label="Facility ID" fullWidth /></Grid>
-          <Grid item><TextField label="OQ Personnel" fullWidth /></Grid>
-          <Grid item><TextField label="Report #" fullWidth /></Grid>
-          <Grid item><TextField label="Date" type="date" InputLabelProps={{ shrink: true }} fullWidth /></Grid>
-          <Grid item><TextField label="QC Inspector Start/Stop Time" fullWidth /></Grid>
-          <Grid item><TextField label="Crew Start/Stop Time" fullWidth /></Grid>
-          <Grid item><TextField label="General Location" fullWidth /></Grid>
+          <Grid item><TextField label="Contractor" value={contractor} onChange={e => setContractor(e.target.value)} fullWidth /></Grid>
+          <Grid item><TextField label="Project No./WBS" value={projectNo} onChange={e => setProjectNo(e.target.value)} fullWidth /></Grid>
+          <Grid item><TextField label="Facility ID" value={facilityId} onChange={e => setFacilityId(e.target.value)} fullWidth /></Grid>
+          <Grid item><TextField label="OQ Personnel" value={oqPersonnel} onChange={e => setOqPersonnel(e.target.value)} fullWidth /></Grid>
+          <Grid item><TextField label="Report #" value={reportNumber} onChange={e => setReportNumber(e.target.value)} fullWidth /></Grid>
+          <Grid item><TextField label="Date" type="date" value={date} onChange={e => setDate(e.target.value)} InputLabelProps={{ shrink: true }} fullWidth /></Grid>
+          <Grid item><TextField label="QC Inspector Start/Stop Time" value={inspectorTime} onChange={e => setInspectorTime(e.target.value)} fullWidth /></Grid>
+          <Grid item><TextField label="Crew Start/Stop Time" value={crewTime} onChange={e => setCrewTime(e.target.value)} fullWidth /></Grid>
+          <Grid item><TextField label="General Location" value={generalLocation} onChange={e => setGeneralLocation(e.target.value)} fullWidth /></Grid>
         </Grid>
         <Divider sx={{ my: 3 }} />
 
@@ -352,16 +428,16 @@ const CoatingInspectionReportForm = () => {
                 }}
               >
                 <Grid item>
-                  <TextField label="Location" value={row.location} onChange={e => handleAmbientChange(idx, 'location', e.target.value)} fullWidth />
+                  <TextField label="Location" value={row.location || ''} onChange={e => handleAmbientChange(idx, 'location', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Time" value={row.time} onChange={e => handleAmbientChange(idx, 'time', e.target.value)} fullWidth />
+                  <TextField label="Time" value={row.time || ''} onChange={e => handleAmbientChange(idx, 'time', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Weather" value={row.weather} onChange={e => handleAmbientChange(idx, 'weather', e.target.value)} fullWidth />
+                  <TextField label="Weather" value={row.weather || ''} onChange={e => handleAmbientChange(idx, 'weather', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Wind (MPH)" value={row.wind} onChange={e => handleAmbientChange(idx, 'wind', e.target.value)} fullWidth />
+                  <TextField label="Wind (MPH)" value={row.wind || ''} onChange={e => handleAmbientChange(idx, 'wind', e.target.value)} fullWidth />
                 </Grid>
               </Grid>
               {/* Row 2 */}
@@ -377,25 +453,25 @@ const CoatingInspectionReportForm = () => {
                 }}
               >
                 <Grid item>
-                  <TextField label="°F" value={row.temp} onChange={e => handleAmbientChange(idx, 'temp', e.target.value)} fullWidth />
+                  <TextField label="°F" value={row.temp || ''} onChange={e => handleAmbientChange(idx, 'temp', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="% RH" value={row.rh} onChange={e => handleAmbientChange(idx, 'rh', e.target.value)} fullWidth />
+                  <TextField label="% RH" value={row.rh || ''} onChange={e => handleAmbientChange(idx, 'rh', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="°F Steel" value={row.steel} onChange={e => handleAmbientChange(idx, 'steel', e.target.value)} fullWidth />
+                  <TextField label="°F Steel" value={row.steel || ''} onChange={e => handleAmbientChange(idx, 'steel', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="°F Dew Pt" value={row.dew} onChange={e => handleAmbientChange(idx, 'dew', e.target.value)} fullWidth />
+                  <TextField label="°F Dew Pt" value={row.dew || ''} onChange={e => handleAmbientChange(idx, 'dew', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="DB °F" value={row.db} onChange={e => handleAmbientChange(idx, 'db', e.target.value)} fullWidth />
+                  <TextField label="DB °F" value={row.db || ''} onChange={e => handleAmbientChange(idx, 'db', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="WB °F" value={row.wb} onChange={e => handleAmbientChange(idx, 'wb', e.target.value)} fullWidth />
+                  <TextField label="WB °F" value={row.wb || ''} onChange={e => handleAmbientChange(idx, 'wb', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="+/-" value={row.plusminus} onChange={e => handleAmbientChange(idx, 'plusminus', e.target.value)} fullWidth />
+                  <TextField label="+/-" value={row.plusminus || ''} onChange={e => handleAmbientChange(idx, 'plusminus', e.target.value)} fullWidth />
                 </Grid>
               </Grid>
               {/* Row 3 */}
@@ -411,7 +487,7 @@ const CoatingInspectionReportForm = () => {
                 }}
               >
                 <Grid item>
-                  <TextField label="Comments" value={row.comments} onChange={e => handleAmbientChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
+                  <TextField label="Comments" value={row.comments || ''} onChange={e => handleAmbientChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
                 </Grid>
               </Grid>
             </Box>
@@ -446,16 +522,16 @@ const CoatingInspectionReportForm = () => {
                 }}
               >
                 <Grid item>
-                  <TextField label="No." value={row.no} onChange={e => handleSurfaceChange(idx, 'no', e.target.value)} fullWidth />
+                  <TextField label="No." value={row.no || ''} onChange={e => handleSurfaceChange(idx, 'no', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Location" value={row.location} onChange={e => handleSurfaceChange(idx, 'location', e.target.value)} fullWidth />
+                  <TextField label="Location" value={row.location || ''} onChange={e => handleSurfaceChange(idx, 'location', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Surface Cleanliness" value={row.cleanliness} onChange={e => handleSurfaceChange(idx, 'cleanliness', e.target.value)} fullWidth />
+                  <TextField label="Surface Cleanliness" value={row.cleanliness || ''} onChange={e => handleSurfaceChange(idx, 'cleanliness', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Specified" value={row.specified} onChange={e => handleSurfaceChange(idx, 'specified', e.target.value)} fullWidth />
+                  <TextField label="Specified" value={row.specified || ''} onChange={e => handleSurfaceChange(idx, 'specified', e.target.value)} fullWidth />
                 </Grid>
               </Grid>
               {/* Row 2 */}
@@ -471,16 +547,16 @@ const CoatingInspectionReportForm = () => {
                 }}
               >
                 <Grid item>
-                  <TextField label="Actual" value={row.actual} onChange={e => handleSurfaceChange(idx, 'actual', e.target.value)} fullWidth />
+                  <TextField label="Actual" value={row.actual || ''} onChange={e => handleSurfaceChange(idx, 'actual', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Surface Profile" value={row.profile} onChange={e => handleSurfaceChange(idx, 'profile', e.target.value)} fullWidth />
+                  <TextField label="Surface Profile" value={row.profile || ''} onChange={e => handleSurfaceChange(idx, 'profile', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Specified" value={row.profileSpecified} onChange={e => handleSurfaceChange(idx, 'profileSpecified', e.target.value)} fullWidth />
+                  <TextField label="Specified" value={row.profileSpecified || ''} onChange={e => handleSurfaceChange(idx, 'profileSpecified', e.target.value)} fullWidth />
                 </Grid>
                 <Grid item>
-                  <TextField label="Actual" value={row.profileActual} onChange={e => handleSurfaceChange(idx, 'profileActual', e.target.value)} fullWidth />
+                  <TextField label="Actual" value={row.profileActual || ''} onChange={e => handleSurfaceChange(idx, 'profileActual', e.target.value)} fullWidth />
                 </Grid>
               </Grid>
               {/* Row 3 */}
@@ -496,7 +572,7 @@ const CoatingInspectionReportForm = () => {
                 }}
               >
                 <Grid item>
-                  <TextField label="Comments" value={row.comments} onChange={e => handleSurfaceChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
+                  <TextField label="Comments" value={row.comments || ''} onChange={e => handleSurfaceChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
                 </Grid>
               </Grid>
             </Box>
@@ -529,17 +605,17 @@ const CoatingInspectionReportForm = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'nowrap', justifyContent: 'center' }}>
                       <FormControlLabel
-                        control={<Checkbox checked={checklist[key].yes} onChange={() => handleChecklistCheck(key, 'yes')} />}
+                        control={<Checkbox checked={!!checklist[key]?.yes} onChange={() => handleChecklistCheck(key, 'yes')} />}
                         label="YES"
                         sx={{ mr: 1 }}
                       />
                       <FormControlLabel
-                        control={<Checkbox checked={checklist[key].no} onChange={() => handleChecklistCheck(key, 'no')} />}
+                        control={<Checkbox checked={!!checklist[key]?.no} onChange={() => handleChecklistCheck(key, 'no')} />}
                         label="NO"
                         sx={{ mr: 1 }}
                       />
                       <FormControlLabel
-                        control={<Checkbox checked={checklist[key].na} onChange={() => handleChecklistCheck(key, 'na')} />}
+                        control={<Checkbox checked={!!checklist[key]?.na} onChange={() => handleChecklistCheck(key, 'na')} />}
                         label="N/A"
                       />
                     </Box>
@@ -582,19 +658,19 @@ const CoatingInspectionReportForm = () => {
                       <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
                       <TableCell align="center">
                         <Checkbox
-                          checked={checklist[key].yes}
+                          checked={!!checklist[key]?.yes}
                           onChange={() => handleChecklistCheck(key, 'yes')}
                         />
                       </TableCell>
                       <TableCell align="center">
                         <Checkbox
-                          checked={checklist[key].no}
+                          checked={!!checklist[key]?.no}
                           onChange={() => handleChecklistCheck(key, 'no')}
                         />
                       </TableCell>
                       <TableCell align="center">
                         <Checkbox
-                          checked={checklist[key].na}
+                          checked={!!checklist[key]?.na}
                           onChange={() => handleChecklistCheck(key, 'na')}
                         />
                       </TableCell>
@@ -678,17 +754,17 @@ const CoatingInspectionReportForm = () => {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'nowrap', justifyContent: 'center' }}>
                     <FormControlLabel
-                      control={<Checkbox checked={coatingAppChecklist[i].yes} onChange={() => handleCoatingAppChecklistCheck(i, 'yes')} />}
+                      control={<Checkbox checked={!!coatingAppChecklist[i]?.yes} onChange={() => handleCoatingAppChecklistCheck(i, 'yes')} />}
                       label="YES"
                       sx={{ mr: 1 }}
                     />
                     <FormControlLabel
-                      control={<Checkbox checked={coatingAppChecklist[i].no} onChange={() => handleCoatingAppChecklistCheck(i, 'no')} />}
+                      control={<Checkbox checked={!!coatingAppChecklist[i]?.no} onChange={() => handleCoatingAppChecklistCheck(i, 'no')} />}
                       label="NO"
                       sx={{ mr: 1 }}
                     />
                     <FormControlLabel
-                      control={<Checkbox checked={coatingAppChecklist[i].na} onChange={() => handleCoatingAppChecklistCheck(i, 'na')} />}
+                      control={<Checkbox checked={!!coatingAppChecklist[i]?.na} onChange={() => handleCoatingAppChecklistCheck(i, 'na')} />}
                       label="N/A"
                     />
                   </Box>
@@ -728,19 +804,19 @@ const CoatingInspectionReportForm = () => {
                     <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
                     <TableCell align="center">
                       <Checkbox
-                        checked={coatingAppChecklist[i].yes}
+                        checked={!!coatingAppChecklist[i]?.yes}
                         onChange={() => handleCoatingAppChecklistCheck(i, 'yes')}
                       />
                     </TableCell>
                     <TableCell align="center">
                       <Checkbox
-                        checked={coatingAppChecklist[i].no}
+                        checked={!!coatingAppChecklist[i]?.no}
                         onChange={() => handleCoatingAppChecklistCheck(i, 'no')}
                       />
                     </TableCell>
                     <TableCell align="center">
                       <Checkbox
-                        checked={coatingAppChecklist[i].na}
+                        checked={!!coatingAppChecklist[i]?.na}
                         onChange={() => handleCoatingAppChecklistCheck(i, 'na')}
                       />
                     </TableCell>
@@ -767,25 +843,25 @@ const CoatingInspectionReportForm = () => {
               }}
             >
               <Grid item>
-                <TextField label="No." value={row.no} onChange={e => handleDFTChange(idx, 'no', e.target.value)} fullWidth />
+                <TextField label="No." value={row.no || ''} onChange={e => handleDFTChange(idx, 'no', e.target.value)} fullWidth />
               </Grid>
               <Grid item>
-                <TextField label="Location" value={row.location} onChange={e => handleDFTChange(idx, 'location', e.target.value)} fullWidth />
+                <TextField label="Location" value={row.location || ''} onChange={e => handleDFTChange(idx, 'location', e.target.value)} fullWidth />
               </Grid>
               <Grid item>
-                <TextField label="Specified (mils)" value={row.specified} onChange={e => handleDFTChange(idx, 'specified', e.target.value)} fullWidth />
+                <TextField label="Specified (mils)" value={row.specified || ''} onChange={e => handleDFTChange(idx, 'specified', e.target.value)} fullWidth />
               </Grid>
               <Grid item>
-                <TextField label="Average (mils)" value={row.average} onChange={e => handleDFTChange(idx, 'average', e.target.value)} fullWidth />
+                <TextField label="Average (mils)" value={row.average || ''} onChange={e => handleDFTChange(idx, 'average', e.target.value)} fullWidth />
               </Grid>
               <Grid item>
-                <TextField label="Range (mils)" value={row.range} onChange={e => handleDFTChange(idx, 'range', e.target.value)} fullWidth />
+                <TextField label="Range (mils)" value={row.range || ''} onChange={e => handleDFTChange(idx, 'range', e.target.value)} fullWidth />
               </Grid>
               <Grid item>
                 <TextField
                   select
                   label="Rework Required"
-                  value={row.rework}
+                  value={row.rework || ''}
                   onChange={e => handleDFTChange(idx, 'rework', e.target.value)}
                   fullWidth
                   SelectProps={{ native: true }}
@@ -808,7 +884,7 @@ const CoatingInspectionReportForm = () => {
               }}
             >
               <Grid item>
-                <TextField label="Comments" value={row.comments} onChange={e => handleDFTChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
+                <TextField label="Comments" value={row.comments || ''} onChange={e => handleDFTChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
               </Grid>
             </Grid>
           </Box>
@@ -829,7 +905,7 @@ const CoatingInspectionReportForm = () => {
           <TextField
             select
             label="Jeep Calibration Verified?"
-            value={holidayInspections[0].jeepCalibration}
+            value={holidayInspections[0].jeepCalibration || ''}
             onChange={e => handleHolidayChange(0, 'jeepCalibration', e.target.value)}
             sx={{ minWidth: 250 }}
           >
@@ -854,7 +930,7 @@ const CoatingInspectionReportForm = () => {
               <Grid item>
                 <TextField
                   label="Location"
-                  value={holidayInspections[idx].inspectionLocation}
+                  value={holidayInspections[idx].inspectionLocation || ''}
                   onChange={e => handleHolidayChange(idx, 'inspectionLocation', e.target.value)}
                   fullWidth
                 />
@@ -862,7 +938,7 @@ const CoatingInspectionReportForm = () => {
               <Grid item>
                 <TextField
                   label="Number of Holidays"
-                  value={holidayInspections[idx].numHolidays}
+                  value={holidayInspections[idx].numHolidays || ''}
                   onChange={e => handleHolidayChange(idx, 'numHolidays', e.target.value)}
                   fullWidth
                 />
@@ -870,7 +946,7 @@ const CoatingInspectionReportForm = () => {
               <Grid item>
                 <TextField
                   label="Material Used for Repairs"
-                  value={holidayInspections[idx].materialUsed}
+                  value={holidayInspections[idx].materialUsed || ''}
                   onChange={e => handleHolidayChange(idx, 'materialUsed', e.target.value)}
                   fullWidth
                 />
@@ -878,7 +954,7 @@ const CoatingInspectionReportForm = () => {
               <Grid item>
                 <TextField
                   label="Holiday Detection Voltage"
-                  value={holidayInspections[idx].voltage}
+                  value={holidayInspections[idx].voltage || ''}
                   onChange={e => handleHolidayChange(idx, 'voltage', e.target.value)}
                   fullWidth
                 />
@@ -886,7 +962,7 @@ const CoatingInspectionReportForm = () => {
               <Grid item>
                 <TextField
                   label="Cure Test Shore D Hardness Reading"
-                  value={holidayInspections[idx].shoreDHardness}
+                  value={holidayInspections[idx].shoreDHardness || ''}
                   onChange={e => handleHolidayChange(idx, 'shoreDHardness', e.target.value)}
                   fullWidth
                 />
@@ -906,7 +982,7 @@ const CoatingInspectionReportForm = () => {
               <Grid item>
                 <TextField
                   label="Comments"
-                  value={holidayInspections[idx].comments}
+                  value={holidayInspections[idx].comments || ''}
                   onChange={e => handleHolidayChange(idx, 'comments', e.target.value)}
                   fullWidth
                   multiline
@@ -934,7 +1010,7 @@ const CoatingInspectionReportForm = () => {
             <TextField
               select
               label="Was backfill used?"
-              value={backfillUsed}
+              value={backfillUsed || ''}
               onChange={e => setBackfillUsed(e.target.value)}
               fullWidth
             >
@@ -947,7 +1023,7 @@ const CoatingInspectionReportForm = () => {
             <TextField
               select
               label="Was Rock Shield Used?"
-              value={rockShieldUsed}
+              value={rockShieldUsed || ''}
               onChange={e => setRockShieldUsed(e.target.value)}
               fullWidth
             >
@@ -969,7 +1045,7 @@ const CoatingInspectionReportForm = () => {
                   <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>{instrument}</Typography>
                   <TextField
                     label="Brand"
-                    value={instrumentTable[i].brand}
+                    value={instrumentTable[i].brand || ''}
                     onChange={e => handleInstrumentChange(i, 'brand', e.target.value)}
                     variant="outlined"
                     fullWidth
@@ -978,7 +1054,7 @@ const CoatingInspectionReportForm = () => {
                   />
                   <TextField
                     label="Serial Number"
-                    value={instrumentTable[i].serial}
+                    value={instrumentTable[i].serial || ''}
                     onChange={e => handleInstrumentChange(i, 'serial', e.target.value)}
                     variant="outlined"
                     fullWidth
@@ -988,17 +1064,17 @@ const CoatingInspectionReportForm = () => {
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'nowrap' }}>
                     <Typography variant="body2" sx={{ fontWeight: 500, mr: 1 }}>Calibrated:</Typography>
                     <FormControlLabel
-                      control={<Checkbox checked={instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />}
+                      control={<Checkbox checked={!!instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />}
                       label="Yes"
                       sx={{ mr: 1 }}
                     />
                     <FormControlLabel
-                      control={<Checkbox checked={instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />}
+                      control={<Checkbox checked={!!instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />}
                       label="No"
                       sx={{ mr: 1 }}
                     />
                     <FormControlLabel
-                      control={<Checkbox checked={instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />}
+                      control={<Checkbox checked={!!instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />}
                       label="N/A"
                     />
                   </Box>
@@ -1030,19 +1106,19 @@ const CoatingInspectionReportForm = () => {
                   <TableRow key={instrument} sx={{ py: 0.5 }}>
                     <TableCell sx={{ borderRight: '1px solid #333', fontWeight: 'bold', py: 0.5, whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.95rem', sm: '1rem' } }}>{instrument}</TableCell>
                     <TableCell sx={{ py: 0.5, whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
-                      <TextField value={instrumentTable[i].brand} onChange={e => handleInstrumentChange(i, 'brand', e.target.value)} variant="outlined" fullWidth size="small" />
+                      <TextField value={instrumentTable[i].brand || ''} onChange={e => handleInstrumentChange(i, 'brand', e.target.value)} variant="outlined" fullWidth size="small" />
                     </TableCell>
                     <TableCell sx={{ py: 0.5, whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
-                      <TextField value={instrumentTable[i].serial} onChange={e => handleInstrumentChange(i, 'serial', e.target.value)} variant="outlined" fullWidth size="small" />
+                      <TextField value={instrumentTable[i].serial || ''} onChange={e => handleInstrumentChange(i, 'serial', e.target.value)} variant="outlined" fullWidth size="small" />
                     </TableCell>
                     <TableCell align="center" sx={{ borderLeft: '1px solid #333', py: 0.5, p: { xs: 0.5, sm: 1 } }}>
-                      <Checkbox checked={instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />
+                      <Checkbox checked={!!instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.5, p: { xs: 0.5, sm: 1 } }}>
-                      <Checkbox checked={instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />
+                      <Checkbox checked={!!instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.5, p: { xs: 0.5, sm: 1 } }}>
-                      <Checkbox checked={instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />
+                      <Checkbox checked={!!instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1237,6 +1313,19 @@ const CoatingInspectionReportForm = () => {
             flexWrap: 'wrap',
           }}
         >
+          {/* Preview / Print Button */}
+          <Button
+            className="no-print"
+            variant="outlined"
+            color="primary"
+            onClick={() => {
+              console.log('Report for print:', report);
+              navigate('/coating/reports/print/preview', { state: { report } });
+            }}
+            sx={{ mb: { xs: 2, sm: 0 }, maxWidth: { sm: 180 } }}
+          >
+            Preview / Print Report
+          </Button>
           <Button
             variant="outlined"
             color="error"
