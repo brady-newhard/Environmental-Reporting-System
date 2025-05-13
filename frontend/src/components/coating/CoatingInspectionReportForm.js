@@ -72,6 +72,37 @@ const coatingAppChecklistItems = [
   "Caulking satisfactory? (Hold Point)"
 ];
 
+const coatingChecklistLeft = [
+  "Protective coverings in place?",
+  "Compressed air check satisfactory?",
+  "Material agitation satisfactory?",
+  "Application equipment satisfactory?: AS/CS/B/R",
+  "Time from surface preparation to coat:"
+];
+
+const coatingChecklistRight = [
+  "Recoat times satisfactory?",
+  "Intercoat cleanliness sat? (Hold Point)",
+  "Stripe coat applied?",
+  "Free of application deficiencies?",
+  "Caulking satisfactory? (Hold Point)"
+];
+
+const inspectionStages = [
+  "Coating Inspection 1st",
+  "Coating Inspection 2nd",
+  "Coating Inspection Final"
+];
+
+const initialHolidayRow = {
+  inspectionLocation: '',
+  jeepCalibration: '',
+  numHolidays: '',
+  voltage: '',
+  repairLocation: '',
+  comments: '',
+};
+
 const CoatingInspectionReportForm = () => {
   // Section 1A: Ambient Conditions state
   const [ambientRows, setAmbientRows] = useState([{ ...initialAmbientRow }]);
@@ -159,6 +190,16 @@ const CoatingInspectionReportForm = () => {
             }
           : row
       )
+    );
+  };
+
+  const [holidayInspections, setHolidayInspections] = useState(
+    inspectionStages.map(() => ({ ...initialHolidayRow }))
+  );
+
+  const handleHolidayChange = (idx, field, value) => {
+    setHolidayInspections(rows =>
+      rows.map((row, i) => i === idx ? { ...row, [field]: value } : row)
     );
   };
 
@@ -533,96 +574,157 @@ const CoatingInspectionReportForm = () => {
 
         {/* Section 3A: DFT Readings */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 3A – Dry Film Thickness (Hold Point)</Typography>
-        <Box sx={{ mb: 2 }}>
-          {dftRows.map((row, idx) => (
-            <Box key={idx} sx={{ mb: 3 }}>
-              <Grid
-                container
-                spacing={2}
-                sx={{
-                  width: '100%',
-                  m: 0,
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
-                }}
-              >
-                <Grid item>
-                  <TextField label="No." value={row.no} onChange={e => handleDFTChange(idx, 'no', e.target.value)} fullWidth />
-                </Grid>
-                <Grid item>
-                  <TextField label="Location" value={row.location} onChange={e => handleDFTChange(idx, 'location', e.target.value)} fullWidth />
-                </Grid>
-                <Grid item>
-                  <TextField label="Specified (mils)" value={row.specified} onChange={e => handleDFTChange(idx, 'specified', e.target.value)} fullWidth />
-                </Grid>
-                <Grid item>
-                  <TextField label="Average (mils)" value={row.average} onChange={e => handleDFTChange(idx, 'average', e.target.value)} fullWidth />
-                </Grid>
-                <Grid item>
-                  <TextField label="Range (mils)" value={row.range} onChange={e => handleDFTChange(idx, 'range', e.target.value)} fullWidth />
-                </Grid>
-                <Grid item>
-                  <TextField
-                    select
-                    label="Rework Required"
-                    value={row.rework}
-                    onChange={e => handleDFTChange(idx, 'rework', e.target.value)}
-                    fullWidth
-                    SelectProps={{ native: true }}
-                  >
-                    <option value=""></option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </TextField>
-                </Grid>
+        {dftRows.map((row, idx) => (
+          <Box key={idx} sx={{ mb: 3 }}>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                width: '100%',
+                m: 0,
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
+              }}
+            >
+              <Grid item>
+                <TextField label="No." value={row.no} onChange={e => handleDFTChange(idx, 'no', e.target.value)} fullWidth />
               </Grid>
-              <Grid
-                container
-                spacing={2}
-                sx={{
-                  width: '100%',
-                  m: 0,
-                  mt: 1,
-                  display: 'grid',
-                  gridTemplateColumns: '1fr'
-                }}
-              >
-                <Grid item>
-                  <TextField label="Comments" value={row.comments} onChange={e => handleDFTChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
-                </Grid>
+              <Grid item>
+                <TextField label="Location" value={row.location} onChange={e => handleDFTChange(idx, 'location', e.target.value)} fullWidth />
               </Grid>
-            </Box>
-          ))}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-            <Button variant="outlined" onClick={handleAddDFTRow}>Add Location</Button>
-            {dftRows.length > 1 && (
-              <Button variant="outlined" color="error" onClick={() => handleDeleteDFTRow(dftRows.length - 1)}>
-                Delete Last Location
-              </Button>
-            )}
+              <Grid item>
+                <TextField label="Specified (mils)" value={row.specified} onChange={e => handleDFTChange(idx, 'specified', e.target.value)} fullWidth />
+              </Grid>
+              <Grid item>
+                <TextField label="Average (mils)" value={row.average} onChange={e => handleDFTChange(idx, 'average', e.target.value)} fullWidth />
+              </Grid>
+              <Grid item>
+                <TextField label="Range (mils)" value={row.range} onChange={e => handleDFTChange(idx, 'range', e.target.value)} fullWidth />
+              </Grid>
+              <Grid item>
+                <TextField
+                  select
+                  label="Rework Required"
+                  value={row.rework}
+                  onChange={e => handleDFTChange(idx, 'rework', e.target.value)}
+                  fullWidth
+                  SelectProps={{ native: true }}
+                >
+                  <option value=""></option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </TextField>
+              </Grid>
+            </Grid>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                width: '100%',
+                m: 0,
+                mt: 1,
+                display: 'grid',
+                gridTemplateColumns: '1fr'
+              }}
+            >
+              <Grid item>
+                <TextField label="Comments" value={row.comments} onChange={e => handleDFTChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
+              </Grid>
+            </Grid>
           </Box>
+        ))}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+          <Button variant="outlined" onClick={handleAddDFTRow}>Add Location</Button>
+          {dftRows.length > 1 && (
+            <Button variant="outlined" color="error" onClick={() => handleDeleteDFTRow(dftRows.length - 1)}>
+              Delete Last Location
+            </Button>
+          )}
         </Box>
         <Divider sx={{ my: 3 }} />
 
         {/* Section 3B: Holiday Inspection (Hold Point) */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 3B – Holiday Inspection (Hold Point)</Typography>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            width: '100%',
-            m: 0,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
-          }}
-        >
-          <Grid item><TextField label="Inspection Location" fullWidth /></Grid>
-          <Grid item><TextField label="Jeep Calibration Verified?" fullWidth /></Grid>
-          <Grid item><TextField label="Number of Holidays" fullWidth /></Grid>
-          <Grid item><TextField label="Voltage" fullWidth /></Grid>
-          <Grid item><TextField label="Location of Repairs" fullWidth /></Grid>
-          <Grid item><TextField label="Comments" fullWidth /></Grid>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12}>
+            <TextField
+              label="Jeep Calibration Verified?"
+              value={holidayInspections[0].jeepCalibration}
+              onChange={e => handleHolidayChange(0, 'jeepCalibration', e.target.value)}
+              fullWidth
+            />
+          </Grid>
         </Grid>
+        {inspectionStages.map((stage, idx) => (
+          <Box key={stage} sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>{stage}</Typography>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                width: '100%',
+                m: 0,
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
+              }}
+            >
+              <Grid item>
+                <TextField
+                  label="Inspection Location"
+                  value={holidayInspections[idx].inspectionLocation}
+                  onChange={e => handleHolidayChange(idx, 'inspectionLocation', e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item>
+                <TextField
+                  label="Number of Holidays"
+                  value={holidayInspections[idx].numHolidays}
+                  onChange={e => handleHolidayChange(idx, 'numHolidays', e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item>
+                <TextField
+                  label="Voltage"
+                  value={holidayInspections[idx].voltage}
+                  onChange={e => handleHolidayChange(idx, 'voltage', e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item>
+                <TextField
+                  label="Location of Repairs"
+                  value={holidayInspections[idx].repairLocation}
+                  onChange={e => handleHolidayChange(idx, 'repairLocation', e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                width: '100%',
+                m: 0,
+                mt: 1,
+                display: 'grid',
+                gridTemplateColumns: '1fr'
+              }}
+            >
+              <Grid item>
+                <TextField
+                  label="Comments"
+                  value={holidayInspections[idx].comments}
+                  onChange={e => handleHolidayChange(idx, 'comments', e.target.value)}
+                  fullWidth
+                  multiline
+                  minRows={2}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        ))}
         <Divider sx={{ my: 3 }} />
 
         {/* Section 3C: Instrument Record */}
