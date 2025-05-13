@@ -1,45 +1,23 @@
 import React from 'react';
-import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableRow, Button } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableRow, Box } from '@mui/material';
 import { useLocation } from 'react-router-dom';
-
-const printStyles = `
-@media print {
-  body { margin: 0; font-family: Arial, sans-serif; }
-  .no-print, .MuiButton-root, .MuiAppBar-root, .MuiToolbar-root { display: none !important; }
-  .section-table { page-break-inside: avoid !important; }
-  table { border-collapse: collapse !important; width: 100%; }
-  th, td { border: 1px solid #222 !important; padding: 4px 8px !important; font-size: 0.95rem; }
-  h1, h2, h3, h4, h5, h6 { margin: 0 0 8px 0; }
-  .section-header { background: #eee; font-weight: bold; font-size: 1.1rem; padding: 6px 0; }
-}
-`;
+import ReportPrintTemplate from '../common/ReportPrintTemplate';
 
 export default function CoatingInspectionReportPrint() {
   const location = useLocation();
   const report = location.state?.report;
 
-  if (!report) return <Box sx={{ p: 4, textAlign: 'center' }}>No report data provided.</Box>;
+  if (!report) return <div>No report data provided.</div>;
 
-  // Helper to render at least one empty row if array is empty
   const renderRows = (rows, renderFn, emptyRowFn) => {
     if (rows && rows.length > 0) return rows.map(renderFn);
     return [emptyRowFn()];
   };
 
-  return (
-    <Box sx={{ p: 3, maxWidth: 1100, margin: '0 auto' }}>
-      <style>{printStyles}</style>
-      {/* HEADER */}
-      <Typography variant="h5" align="center" fontWeight="bold" gutterBottom>
-        DAILY COATING INSPECTION REPORT (Underground)
-      </Typography>
-      <Typography variant="body2" align="center" color="error" gutterBottom>
-        *Please attach the list of qualified coating applicators for this job as part of the project transmittal package!*
-      </Typography>
-
-      {/* PROJECT INFO */}
-      <Box sx={{ mb: 2 }}>
-        <Typography className="section-header">Project Information</Typography>
+  const sections = [
+    {
+      header: 'Project Information',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -72,11 +50,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 1A */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 1A – Ambient Conditions</Typography>
+      ),
+    },
+    {
+      header: 'Section 1A – Ambient Conditions',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -119,11 +97,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 1B */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 1B – Surface Preparation (Hold Point)</Typography>
+      ),
+    },
+    {
+      header: 'Section 1B – Surface Preparation (Hold Point)',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -158,11 +136,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 1C */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 1C – Surface Preparation Checklist</Typography>
+      ),
+    },
+    {
+      header: 'Section 1C – Surface Preparation Checklist',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -191,11 +169,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 2A */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 2A – Coating Application</Typography>
+      ),
+    },
+    {
+      header: 'Section 2A – Coating Application',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -234,11 +212,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 2B */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 2B – Mixing Report</Typography>
+      ),
+    },
+    {
+      header: 'Section 2B – Mixing Report',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -283,11 +261,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 2C */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 2C – Coating Application Checklist</Typography>
+      ),
+    },
+    {
+      header: 'Section 2C – Coating Application Checklist',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -316,11 +294,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 3A */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 3A – Dry Film Thickness (Hold Point)</Typography>
+      ),
+    },
+    {
+      header: 'Section 3A – Dry Film Thickness (Hold Point)',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -355,11 +333,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 3B */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 3B – Holiday Inspection (Hold Point)</Typography>
+      ),
+    },
+    {
+      header: 'Section 3B – Holiday Inspection (Hold Point)',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -394,11 +372,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 3C */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 3C – Backfill & Rock Shield</Typography>
+      ),
+    },
+    {
+      header: 'Section 3C – Backfill & Rock Shield',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -411,11 +389,11 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 3D */}
-      <Box className="section-table" sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 3D – Instrument Record</Typography>
+      ),
+    },
+    {
+      header: 'Section 3D – Instrument Record',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -448,17 +426,17 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
-
-      {/* SECTION 3E */}
-      <Box sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 3E – Additional Comments</Typography>
-        <Box sx={{ p: 1, border: '1px solid #222', minHeight: 40 }}>{report.comments}</Box>
-      </Box>
-
-      {/* SECTION 4 – SIGNATURES */}
-      <Box sx={{ mb: 2 }}>
-        <Typography className="section-header">Section 4 – Comments / Signatures</Typography>
+      ),
+    },
+    {
+      header: 'Section 3E – Additional Comments',
+      content: (
+        <div style={{ padding: 8, border: '1px solid #222', minHeight: 40 }}>{report.comments}</div>
+      ),
+    },
+    {
+      header: 'Section 4 – Comments / Signatures',
+      content: (
         <TableContainer>
           <Table size="small">
             <TableBody>
@@ -493,18 +471,14 @@ export default function CoatingInspectionReportPrint() {
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
+      ),
+    },
+  ];
 
-      {/* PRINT/EXPORT BUTTON (hidden on print) */}
-      <Button
-        className="no-print"
-        variant="outlined"
-        color="primary"
-        onClick={() => window.print()}
-        sx={{ mt: 3, width: { xs: '100%', sm: 'auto' } }}
-      >
-        Print / Export PDF
-      </Button>
-    </Box>
+  return (
+    <ReportPrintTemplate
+      title="DAILY COATING INSPECTION REPORT (Underground)"
+      sections={sections}
+    />
   );
 } 
