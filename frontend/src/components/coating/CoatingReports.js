@@ -123,6 +123,12 @@ const CoatingReports = () => {
               path: "/coating/reports/drafts"
             }}
           />
+          <ReportCard
+            title="Daily Inspection Report"
+            icon={DailyReportIcon}
+            description="Complete the daily inspection report for pipelines."
+            path="/coating/reports/inspection"
+          />
         </Box>
       </Box>
     </Box>
