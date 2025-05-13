@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Divider, Grid, TextField, Button, IconButton, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Box, Paper, Typography, Divider, Grid, TextField, Button, IconButton, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, useTheme, useMediaQuery, Card, CardContent, FormControlLabel } from '@mui/material';
 import PageHeader from '../common/PageHeader';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -286,6 +286,9 @@ const CoatingInspectionReportForm = () => {
     }
     setSignature('');
   };
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -867,48 +870,95 @@ const CoatingInspectionReportForm = () => {
 
         {/* Section 3D: Instrument Record (was 3C) */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 3D – Instrument Record</Typography>
-        <TableContainer component={Paper} sx={{ mb: 2 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ background: '#ddd' }}></TableCell>
-                <TableCell sx={{ background: '#ddd' }}></TableCell>
-                <TableCell sx={{ background: '#ddd' }}></TableCell>
-                <TableCell colSpan={3} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #333' }}>Calibrated</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>Instrument</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>Brand</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>Serial Number</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #333' }}>Yes</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>No</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {instrumentRows.map((instrument, i) => (
-                <TableRow key={instrument} sx={{ py: 0.5 }}>
-                  <TableCell sx={{ borderRight: '1px solid #333', fontWeight: 'bold', py: 0.5 }}>{instrument}</TableCell>
-                  <TableCell sx={{ py: 0.5 }}>
-                    <TextField value={instrumentTable[i].brand} onChange={e => handleInstrumentChange(i, 'brand', e.target.value)} variant="outlined" fullWidth size="small" />
-                  </TableCell>
-                  <TableCell sx={{ py: 0.5 }}>
-                    <TextField value={instrumentTable[i].serial} onChange={e => handleInstrumentChange(i, 'serial', e.target.value)} variant="outlined" fullWidth size="small" />
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderLeft: '1px solid #333', py: 0.5 }}>
-                    <Checkbox checked={instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />
-                  </TableCell>
-                  <TableCell align="center" sx={{ py: 0.5 }}>
-                    <Checkbox checked={instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />
-                  </TableCell>
-                  <TableCell align="center" sx={{ py: 0.5 }}>
-                    <Checkbox checked={instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />
-                  </TableCell>
+        {isMobile ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+            {instrumentRows.map((instrument, i) => (
+              <Card key={instrument} variant="outlined" sx={{ p: 1 }}>
+                <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>{instrument}</Typography>
+                  <TextField
+                    label="Brand"
+                    value={instrumentTable[i].brand}
+                    onChange={e => handleInstrumentChange(i, 'brand', e.target.value)}
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    sx={{ mb: 1 }}
+                  />
+                  <TextField
+                    label="Serial Number"
+                    value={instrumentTable[i].serial}
+                    onChange={e => handleInstrumentChange(i, 'serial', e.target.value)}
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    sx={{ mb: 1 }}
+                  />
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'nowrap' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, mr: 1 }}>Calibrated:</Typography>
+                    <FormControlLabel
+                      control={<Checkbox checked={instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />}
+                      label="Yes"
+                      sx={{ mr: 1 }}
+                    />
+                    <FormControlLabel
+                      control={<Checkbox checked={instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />}
+                      label="No"
+                      sx={{ mr: 1 }}
+                    />
+                    <FormControlLabel
+                      control={<Checkbox checked={instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />}
+                      label="N/A"
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        ) : (
+          <TableContainer component={Paper} sx={{ mb: 2, overflowX: 'auto' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ background: '#ddd', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 } }}></TableCell>
+                  <TableCell sx={{ background: '#ddd', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 } }}></TableCell>
+                  <TableCell sx={{ background: '#ddd', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 } }}></TableCell>
+                  <TableCell colSpan={3} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #333', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 } }}>Calibrated</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                <TableRow>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Instrument</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Brand</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Serial Number</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', borderLeft: '1px solid #333', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>Yes</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>No</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold', whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.85rem', sm: '1rem' } }}>N/A</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {instrumentRows.map((instrument, i) => (
+                  <TableRow key={instrument} sx={{ py: 0.5 }}>
+                    <TableCell sx={{ borderRight: '1px solid #333', fontWeight: 'bold', py: 0.5, whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.95rem', sm: '1rem' } }}>{instrument}</TableCell>
+                    <TableCell sx={{ py: 0.5, whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                      <TextField value={instrumentTable[i].brand} onChange={e => handleInstrumentChange(i, 'brand', e.target.value)} variant="outlined" fullWidth size="small" />
+                    </TableCell>
+                    <TableCell sx={{ py: 0.5, whiteSpace: 'normal', wordBreak: 'break-word', p: { xs: 0.5, sm: 1 }, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                      <TextField value={instrumentTable[i].serial} onChange={e => handleInstrumentChange(i, 'serial', e.target.value)} variant="outlined" fullWidth size="small" />
+                    </TableCell>
+                    <TableCell align="center" sx={{ borderLeft: '1px solid #333', py: 0.5, p: { xs: 0.5, sm: 1 } }}>
+                      <Checkbox checked={instrumentTable[i].calibrated.yes} onChange={() => handleInstrumentCheck(i, 'yes')} />
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 0.5, p: { xs: 0.5, sm: 1 } }}>
+                      <Checkbox checked={instrumentTable[i].calibrated.no} onChange={() => handleInstrumentCheck(i, 'no')} />
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 0.5, p: { xs: 0.5, sm: 1 } }}>
+                      <Checkbox checked={instrumentTable[i].calibrated.na} onChange={() => handleInstrumentCheck(i, 'na')} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
         <Divider sx={{ my: 3 }} />
 
         {/* Section 3E: Additional Comments */}
