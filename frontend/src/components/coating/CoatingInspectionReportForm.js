@@ -645,16 +645,19 @@ const CoatingInspectionReportForm = () => {
 
         {/* Section 3B: Holiday Inspection (Hold Point) */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 3B – Holiday Inspection (Hold Point)</Typography>
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12}>
-            <TextField
-              label="Jeep Calibration Verified?"
-              value={holidayInspections[0].jeepCalibration}
-              onChange={e => handleHolidayChange(0, 'jeepCalibration', e.target.value)}
-              fullWidth
-            />
-          </Grid>
-        </Grid>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <TextField
+            select
+            label="Jeep Calibration Verified?"
+            value={holidayInspections[0].jeepCalibration}
+            onChange={e => handleHolidayChange(0, 'jeepCalibration', e.target.value)}
+            sx={{ minWidth: 250 }}
+          >
+            <option value=""></option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </TextField>
+        </Box>
         {inspectionStages.map((stage, idx) => (
           <Box key={stage} sx={{ mb: 3 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>{stage}</Typography>
@@ -665,12 +668,12 @@ const CoatingInspectionReportForm = () => {
                 width: '100%',
                 m: 0,
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(5, 1fr)' }
               }}
             >
               <Grid item>
                 <TextField
-                  label="Inspection Location"
+                  label="Location"
                   value={holidayInspections[idx].inspectionLocation}
                   onChange={e => handleHolidayChange(idx, 'inspectionLocation', e.target.value)}
                   fullWidth
@@ -686,7 +689,15 @@ const CoatingInspectionReportForm = () => {
               </Grid>
               <Grid item>
                 <TextField
-                  label="Voltage"
+                  label="Material Used for Repairs"
+                  value={holidayInspections[idx].materialUsed}
+                  onChange={e => handleHolidayChange(idx, 'materialUsed', e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item>
+                <TextField
+                  label="Holiday Detection Voltage"
                   value={holidayInspections[idx].voltage}
                   onChange={e => handleHolidayChange(idx, 'voltage', e.target.value)}
                   fullWidth
@@ -694,9 +705,9 @@ const CoatingInspectionReportForm = () => {
               </Grid>
               <Grid item>
                 <TextField
-                  label="Location of Repairs"
-                  value={holidayInspections[idx].repairLocation}
-                  onChange={e => handleHolidayChange(idx, 'repairLocation', e.target.value)}
+                  label="Cure Test Shore D Hardness Reading"
+                  value={holidayInspections[idx].shoreDHardness}
+                  onChange={e => handleHolidayChange(idx, 'shoreDHardness', e.target.value)}
                   fullWidth
                 />
               </Grid>
