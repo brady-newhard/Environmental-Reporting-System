@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Paper, Typography, Divider, Grid, TextField, Button, IconButton } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Paper, Typography, Divider, Grid, TextField, Button, IconButton, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import PageHeader from '../common/PageHeader';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -19,9 +19,62 @@ const initialAmbientRow = {
   comments: '',
 };
 
+const initialSurfaceRow = {
+  no: '',
+  location: '',
+  cleanliness: '',
+  specified: '',
+  actual: '',
+  profile: '',
+  profileSpecified: '',
+  profileActual: '',
+  comments: '',
+};
+
+const checklistGroups = [
+  {
+    title: 'SURFACE PREPARATION CHECKLIST',
+    items: [
+      "Rust scale and pack rust (between mating surfaces) removed?",
+      "Is surface free of visible moisture (except for sweating)?",
+      "Sweating surfaces – surface constantly wiped?",
+      "Compressed air check satisfactory?",
+      "Dust and abrasive removal satisfactory? Hold Point",
+      "Grease and oil removed?",
+      "Protective coverings suitable/in-place?",
+      "Salt removal? Hold Point (Attach Results)",
+      "Record: Base Metal Reading (BMR) in mils",
+      "Record: Type and size abrasive for blasting"
+    ]
+  }
+];
+
 const CoatingInspectionReportForm = () => {
   // Section 1A: Ambient Conditions state
   const [ambientRows, setAmbientRows] = useState([{ ...initialAmbientRow }]);
+  // Section 1B: Surface Preparation state
+  const [surfaceRows, setSurfaceRows] = useState([{ ...initialSurfaceRow }]);
+  // Checklist state: always matches checklistGroups/items
+  const [checklist, setChecklist] = useState(() => {
+    const state = {};
+    checklistGroups.forEach((group, gIdx) => {
+      group.items.forEach((_, i) => {
+        state[`${gIdx}-${i}`] = { yes: false, no: false, na: false };
+      });
+    });
+    return state;
+  });
+
+  // Reset checklist state if checklistGroups/items change (dev safety)
+  useEffect(() => {
+    const state = {};
+    checklistGroups.forEach((group, gIdx) => {
+      group.items.forEach((_, i) => {
+        state[`${gIdx}-${i}`] = { yes: false, no: false, na: false };
+      });
+    });
+    setChecklist(state);
+  }, []);
 
   const handleAmbientChange = (idx, field, value) => {
     setAmbientRows(rows => rows.map((row, i) => i === idx ? { ...row, [field]: value } : row));
@@ -33,6 +86,29 @@ const CoatingInspectionReportForm = () => {
 
   const handleDeleteAmbientRow = (idx) => {
     setAmbientRows(rows => rows.filter((_, i) => i !== idx));
+  };
+
+  const handleSurfaceChange = (idx, field, value) => {
+    setSurfaceRows(rows => rows.map((row, i) => i === idx ? { ...row, [field]: value } : row));
+  };
+
+  const handleAddSurfaceRow = () => {
+    setSurfaceRows(rows => [...rows, { ...initialSurfaceRow }]);
+  };
+
+  const handleDeleteSurfaceRow = (idx) => {
+    setSurfaceRows(rows => rows.filter((_, i) => i !== idx));
+  };
+
+  const handleChecklistCheck = (key, field) => {
+    setChecklist(prev => ({
+      ...prev,
+      [key]: {
+        yes: field === 'yes' ? !prev[key].yes : false,
+        no: field === 'no' ? !prev[key].no : false,
+        na: field === 'na' ? !prev[key].na : false,
+      }
+    }));
   };
 
   return (
@@ -159,45 +235,146 @@ const CoatingInspectionReportForm = () => {
 
         {/* Section 1B: Surface Preparation */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 1B – Surface Preparation (Hold Point)</Typography>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            width: '100%',
-            m: 0,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(6, 1fr)' }
-          }}
-        >
-          <Grid item><TextField label="No." fullWidth /></Grid>
-          <Grid item><TextField label="Location" fullWidth /></Grid>
-          <Grid item><TextField label="Surface Cleanliness" fullWidth /></Grid>
-          <Grid item><TextField label="Specified" fullWidth /></Grid>
-          <Grid item><TextField label="Actual" fullWidth /></Grid>
-          <Grid item><TextField label="Surface Profile" fullWidth /></Grid>
-          <Grid item><TextField label="Specified" fullWidth /></Grid>
-          <Grid item><TextField label="Actual" fullWidth /></Grid>
-          <Grid item><TextField label="Comments" fullWidth /></Grid>
-        </Grid>
+        <Box sx={{ mb: 2 }}>
+          {surfaceRows.map((row, idx) => (
+            <Box key={idx} sx={{ mb: 3 }}>
+              {/* Row 1 */}
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  width: '100%',
+                  m: 0,
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }
+                }}
+              >
+                <Grid item>
+                  <TextField label="No." value={row.no} onChange={e => handleSurfaceChange(idx, 'no', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Location" value={row.location} onChange={e => handleSurfaceChange(idx, 'location', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Surface Cleanliness" value={row.cleanliness} onChange={e => handleSurfaceChange(idx, 'cleanliness', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Specified" value={row.specified} onChange={e => handleSurfaceChange(idx, 'specified', e.target.value)} fullWidth />
+                </Grid>
+              </Grid>
+              {/* Row 2 */}
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  width: '100%',
+                  m: 0,
+                  mt: 1,
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }
+                }}
+              >
+                <Grid item>
+                  <TextField label="Actual" value={row.actual} onChange={e => handleSurfaceChange(idx, 'actual', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Surface Profile" value={row.profile} onChange={e => handleSurfaceChange(idx, 'profile', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Specified" value={row.profileSpecified} onChange={e => handleSurfaceChange(idx, 'profileSpecified', e.target.value)} fullWidth />
+                </Grid>
+                <Grid item>
+                  <TextField label="Actual" value={row.profileActual} onChange={e => handleSurfaceChange(idx, 'profileActual', e.target.value)} fullWidth />
+                </Grid>
+              </Grid>
+              {/* Row 3 */}
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  width: '100%',
+                  m: 0,
+                  mt: 1,
+                  display: 'grid',
+                  gridTemplateColumns: '1fr'
+                }}
+              >
+                <Grid item>
+                  <TextField label="Comments" value={row.comments} onChange={e => handleSurfaceChange(idx, 'comments', e.target.value)} fullWidth multiline minRows={2} />
+                </Grid>
+              </Grid>
+            </Box>
+          ))}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+            <Button startIcon={<AddIcon />} onClick={handleAddSurfaceRow} variant="outlined">
+              Add New Location
+            </Button>
+            {surfaceRows.length > 1 && (
+              <Button startIcon={<DeleteIcon />} onClick={() => handleDeleteSurfaceRow(surfaceRows.length - 1)} variant="outlined" color="error">
+                Delete Last Location
+              </Button>
+            )}
+          </Box>
+        </Box>
         <Divider sx={{ my: 3 }} />
 
         {/* Section 1C: Surface Preparation Checklist */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 1C – Surface Preparation Checklist</Typography>
-        <Grid
-          container
-          spacing={2}
-          sx={{
-            width: '100%',
-            m: 0,
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }
-          }}
-        >
-          <Grid item><TextField label="Checklist Item" fullWidth /></Grid>
-          <Grid item><TextField label="Yes" fullWidth /></Grid>
-          <Grid item><TextField label="No" fullWidth /></Grid>
-          <Grid item><TextField label="N/A" fullWidth /></Grid>
-        </Grid>
+        <TableContainer component={Paper} sx={{ mb: 2 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
+                  Checklist Item
+                </TableCell>
+                <TableCell
+                  colSpan={3}
+                  sx={{
+                    background: '#ddd',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    borderBottom: '1px solid #333'
+                  }}
+                >
+                  ACCEPTABLE
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>YES</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>NO</TableCell>
+                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {checklistGroups[0].items.map((item, i) => {
+                const key = `0-${i}`;
+                return (
+                  <TableRow key={key}>
+                    <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={checklist[key].yes}
+                        onChange={() => handleChecklistCheck(key, 'yes')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={checklist[key].no}
+                        onChange={() => handleChecklistCheck(key, 'no')}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Checkbox
+                        checked={checklist[key].na}
+                        onChange={() => handleChecklistCheck(key, 'na')}
+                      />
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <Divider sx={{ my: 3 }} />
 
         {/* Section 2A: Coating Application */}
