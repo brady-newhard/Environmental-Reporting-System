@@ -3,6 +3,7 @@ import { Box, Paper, Typography, Divider, Grid, TextField, Button, IconButton, C
 import PageHeader from '../common/PageHeader';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SignatureCanvas from 'react-signature-canvas';
 
 const initialAmbientRow = {
   location: '',
@@ -101,6 +102,31 @@ const initialHolidayRow = {
   voltage: '',
   repairLocation: '',
   comments: '',
+};
+
+const signaturePadStyles = {
+  canvas: {
+    width: '100%',
+    height: '100%',
+    touchAction: 'none',
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  container: {
+    border: '1px solid #ccc',
+    borderRadius: 1,
+    p: 1,
+    bgcolor: '#fff',
+    height: 150,
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'crosshair',
+    overflow: 'hidden',
+  },
 };
 
 const CoatingInspectionReportForm = () => {
@@ -233,6 +259,32 @@ const CoatingInspectionReportForm = () => {
     setInstrumentTable(prev => prev.map((row, i) =>
       i === idx ? { ...row, [key]: value } : row
     ));
+  };
+
+  const [qcSignature, setQCSignature] = useState('');
+  const [qcSigning, setQCSigning] = useState(false);
+  const qcPadRef = React.useRef(null);
+  const [i3Signature, setI3Signature] = useState('');
+  const [i3Signing, setI3Signing] = useState(false);
+  const i3PadRef = React.useRef(null);
+
+  const handleSignatureEnd = (padRef, setSignature) => {
+    if (padRef.current) {
+      try {
+        if (!padRef.current.isEmpty()) {
+          const signatureData = padRef.current.getTrimmedCanvas().toDataURL('image/png');
+          setSignature(signatureData);
+        }
+      } catch (error) {
+        console.error('Error saving signature:', error);
+      }
+    }
+  };
+  const clearSignature = (padRef, setSignature) => {
+    if (padRef.current) {
+      padRef.current.clear();
+    }
+    setSignature('');
   };
 
   return (
@@ -871,7 +923,7 @@ const CoatingInspectionReportForm = () => {
               {/* Contractor QC Inspector Block */}
               <TableRow>
                 <TableCell sx={{ width: '50%' }}>
-                  <TextField label="Contractor QC Inspector" fullWidth size="small" />
+                  <TextField label="Contractor QC Inspector NACE #" fullWidth size="small" InputProps={{ style: { fontStyle: 'italic' } }} />
                 </TableCell>
                 <TableCell sx={{ width: '50%' }}>
                   <TextField label="Date" type="date" InputLabelProps={{ shrink: true }} fullWidth size="small" />
@@ -879,25 +931,80 @@ const CoatingInspectionReportForm = () => {
               </TableRow>
               <TableRow>
                 <TableCell colSpan={2}>
-                  <TextField label="NACE No." fullWidth size="small" InputProps={{ style: { fontStyle: 'italic' } }} />
+                  <TextField label="Contractor QC Inspector Name" fullWidth size="small" />
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell colSpan={2}>
-                  <TextField label="Print / Type Name" fullWidth size="small" />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={2}>
-                  <Box sx={{ mt: 1, border: '1px solid #ccc', borderRadius: 1, height: 60, display: 'flex', alignItems: 'center', pl: 2, background: '#fafafa' }}>
-                    <Typography color="textSecondary">Signature (Sign here)</Typography>
+                  {/* Contractor QC Inspector Signature Pad */}
+                  <Box sx={signaturePadStyles.container}>
+                    {!qcSigning && qcSignature ? (
+                      <React.Fragment>
+                        <img
+                          src={qcSignature}
+                          alt="QC Inspector Signature"
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => { setQCSigning(true); clearSignature(qcPadRef, setQCSignature); }}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Sign Again
+                        </Button>
+                      </React.Fragment>
+                    ) : qcSigning ? (
+                      <React.Fragment>
+                        <SignatureCanvas
+                          ref={qcPadRef}
+                          penColor="black"
+                          backgroundColor="white"
+                          canvasProps={{
+                            width: 400,
+                            height: 150,
+                            style: {
+                              width: '100%',
+                              height: '100%',
+                              touchAction: 'none',
+                              background: '#fff',
+                              borderRadius: 4,
+                              display: 'block',
+                            }
+                          }}
+                          onEnd={() => handleSignatureEnd(qcPadRef, setQCSignature)}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => setQCSigning(false)}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Done
+                        </Button>
+                        <Button
+                          size="small"
+                          onClick={() => clearSignature(qcPadRef, setQCSignature)}
+                          sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Clear
+                        </Button>
+                      </React.Fragment>
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        onClick={() => setQCSigning(true)}
+                        fullWidth
+                        sx={{ height: '100%' }}
+                      >
+                        Sign
+                      </Button>
+                    )}
                   </Box>
                 </TableCell>
               </TableRow>
               {/* i3 Rep Block */}
               <TableRow>
                 <TableCell sx={{ width: '50%' }}>
-                  <TextField label="Received by i3 Rep." fullWidth size="small" />
+                  <TextField label="Client NACE #" fullWidth size="small" InputProps={{ style: { fontStyle: 'italic' } }} />
                 </TableCell>
                 <TableCell sx={{ width: '50%' }}>
                   <TextField label="Date" type="date" InputLabelProps={{ shrink: true }} fullWidth size="small" />
@@ -905,18 +1012,73 @@ const CoatingInspectionReportForm = () => {
               </TableRow>
               <TableRow>
                 <TableCell colSpan={2}>
-                  <TextField label="NACE No." fullWidth size="small" InputProps={{ style: { fontStyle: 'italic' } }} />
+                  <TextField label="Client Name" fullWidth size="small" />
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell colSpan={2}>
-                  <TextField label="Print / Type Name" fullWidth size="small" />
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell colSpan={2}>
-                  <Box sx={{ mt: 1, border: '1px solid #ccc', borderRadius: 1, height: 60, display: 'flex', alignItems: 'center', pl: 2, background: '#fafafa' }}>
-                    <Typography color="textSecondary">Signature (Sign here)</Typography>
+                  {/* i3 Rep Signature Pad */}
+                  <Box sx={signaturePadStyles.container}>
+                    {!i3Signing && i3Signature ? (
+                      <React.Fragment>
+                        <img
+                          src={i3Signature}
+                          alt="i3 Rep Signature"
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff' }}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => { setI3Signing(true); clearSignature(i3PadRef, setI3Signature); }}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Sign Again
+                        </Button>
+                      </React.Fragment>
+                    ) : i3Signing ? (
+                      <React.Fragment>
+                        <SignatureCanvas
+                          ref={i3PadRef}
+                          penColor="black"
+                          backgroundColor="white"
+                          canvasProps={{
+                            width: 400,
+                            height: 150,
+                            style: {
+                              width: '100%',
+                              height: '100%',
+                              touchAction: 'none',
+                              background: '#fff',
+                              borderRadius: 4,
+                              display: 'block',
+                            }
+                          }}
+                          onEnd={() => handleSignatureEnd(i3PadRef, setI3Signature)}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => setI3Signing(false)}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Done
+                        </Button>
+                        <Button
+                          size="small"
+                          onClick={() => clearSignature(i3PadRef, setI3Signature)}
+                          sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Clear
+                        </Button>
+                      </React.Fragment>
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        onClick={() => setI3Signing(true)}
+                        fullWidth
+                        sx={{ height: '100%' }}
+                      >
+                        Sign
+                      </Button>
+                    )}
                   </Box>
                 </TableCell>
               </TableRow>
