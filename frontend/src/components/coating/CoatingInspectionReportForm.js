@@ -499,10 +499,42 @@ const CoatingInspectionReportForm = () => {
 
         {/* Section 1C: Surface Preparation Checklist */}
         <Typography variant="h6" sx={{ mb: 2 }}>Section 1C – Surface Preparation Checklist</Typography>
-        <TableContainer component={Paper} sx={{ mb: 2 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
+        {isMobile ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+            {checklistGroups[0].items.map((item, i) => {
+              const key = `0-${i}`;
+              return (
+                <Card key={key} variant="outlined" sx={{ p: 1 }}>
+                  <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>{item}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold', textAlign: 'center', mb: 1 }}>
+                      Acceptable
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'nowrap', justifyContent: 'center' }}>
+                      <FormControlLabel
+                        control={<Checkbox checked={checklist[key].yes} onChange={() => handleChecklistCheck(key, 'yes')} />}
+                        label="YES"
+                        sx={{ mr: 1 }}
+                      />
+                      <FormControlLabel
+                        control={<Checkbox checked={checklist[key].no} onChange={() => handleChecklistCheck(key, 'no')} />}
+                        label="NO"
+                        sx={{ mr: 1 }}
+                      />
+                      <FormControlLabel
+                        control={<Checkbox checked={checklist[key].na} onChange={() => handleChecklistCheck(key, 'na')} />}
+                        label="N/A"
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Box>
+        ) : (
+          <TableContainer component={Paper} sx={{ mb: 2 }}>
+            <Table size="small">
+              <TableHead>
                 <TableRow>
                   <TableCell rowSpan={2} sx={{ background: '#ddd', textAlign: 'center', fontWeight: 'bold', borderRight: '1px solid #333' }}>
                     Checklist Item
@@ -519,43 +551,43 @@ const CoatingInspectionReportForm = () => {
                     ACCEPTABLE
                   </TableCell>
                 </TableRow>
-              </TableRow>
-              <TableRow>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>YES</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>NO</TableCell>
-                <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {checklistGroups[0].items.map((item, i) => {
-                const key = `0-${i}`;
-                return (
-                  <TableRow key={key}>
-                    <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
-                    <TableCell align="center">
-                      <Checkbox
-                        checked={checklist[key].yes}
-                        onChange={() => handleChecklistCheck(key, 'yes')}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Checkbox
-                        checked={checklist[key].no}
-                        onChange={() => handleChecklistCheck(key, 'no')}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Checkbox
-                        checked={checklist[key].na}
-                        onChange={() => handleChecklistCheck(key, 'na')}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                <TableRow>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>YES</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>NO</TableCell>
+                  <TableCell sx={{ background: '#eee', textAlign: 'center', fontWeight: 'bold' }}>N/A</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {checklistGroups[0].items.map((item, i) => {
+                  const key = `0-${i}`;
+                  return (
+                    <TableRow key={key}>
+                      <TableCell sx={{ borderRight: '1px solid #333' }}>{item}</TableCell>
+                      <TableCell align="center">
+                        <Checkbox
+                          checked={checklist[key].yes}
+                          onChange={() => handleChecklistCheck(key, 'yes')}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Checkbox
+                          checked={checklist[key].no}
+                          onChange={() => handleChecklistCheck(key, 'no')}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Checkbox
+                          checked={checklist[key].na}
+                          onChange={() => handleChecklistCheck(key, 'na')}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
         <Divider sx={{ my: 3 }} />
 
         {/* Section 2A: Coating Application */}
