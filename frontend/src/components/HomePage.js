@@ -96,6 +96,7 @@ const DepartmentCard = ({ title, icon: Icon, description, path }) => {
 };
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const departments = [
     {
       title: "Environmental",
@@ -160,6 +161,22 @@ const HomePage = () => {
             />
           ))}
         </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate('/swppp/new')}
+          sx={{ mb: 1 }}
+        >
+          Create New Report
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate('/swppp-drafts')}
+          sx={{ mb: 1 }}
+        >
+          View Draft Reports
+        </Button>
       </Box>
     </Box>
   );

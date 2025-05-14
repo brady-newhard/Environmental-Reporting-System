@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
-import { Box, Paper, Typography, TextField, Button, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, FormControl, InputLabel, Select, MenuItem, Divider } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Box, Paper, Typography, TextField, Button, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Grid, FormControl, InputLabel, Select, MenuItem, Divider, IconButton } from '@mui/material';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import SaveIcon from '@mui/icons-material/Save';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import SendIcon from '@mui/icons-material/Send';
 import api from '../services/api';
 
 const RAIN_GAGE_LOCATIONS = [
@@ -62,10 +72,45 @@ const initialItem = {
 
 const NewSWPPP = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [header, setHeader] = useState(initialHeader);
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState(initialItem);
   const [submitting, setSubmitting] = useState(false);
+  const [newItemPhotos, setNewItemPhotos] = useState([]);
+  const [photoComments, setPhotoComments] = useState([]);
+  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState(null);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [reportId, setReportId] = useState(null);
+  const [editingItemIndex, setEditingItemIndex] = useState(null);
+  const [draftId, setDraftId] = useState(null);
+  const [isDraft, setIsDraft] = useState(false);
+
+  const clearForm = () => {
+    setHeader(initialHeader);
+    setItems([]);
+    setNewItem(initialItem);
+    setNewItemPhotos([]);
+    setPhotoComments([]);
+    setDraftId(null);
+    setIsDraft(false);
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const draftIdParam = params.get('draftId');
+    if (draftIdParam) {
+      const draft = JSON.parse(localStorage.getItem(`swppp_draft_${draftIdParam}`));
+      if (draft) {
+        setHeader(draft.header);
+        setItems(draft.items);
+        setDraftId(draft.id);
+        setIsDraft(true);
+      }
+    } else {
+      clearForm();
+    }
+  }, [location.search]);
 
   const handleHeaderChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -84,8 +129,11 @@ const NewSWPPP = () => {
   };
 
   const handleAddItem = () => {
-    setItems([...items, newItem]);
+    // Add the item to the local state
+    setItems([...items, { ...newItem, photos: [...newItemPhotos], photoComments: [...photoComments] }]);
     setNewItem(initialItem);
+    setNewItemPhotos([]);
+    setPhotoComments([]);
   };
 
   const handleDeleteItem = (idx) => {
@@ -118,6 +166,49 @@ const NewSWPPP = () => {
     }));
   };
 
+  const handleEditItem = (idx) => {
+    const itemToEdit = items[idx];
+    setNewItem({
+      location: itemToEdit.location,
+      ll_number: itemToEdit.ll_number,
+      feature_details: itemToEdit.feature_details,
+      inspector_id: itemToEdit.inspector_id,
+      soil_presently_disturbed: itemToEdit.soil_presently_disturbed,
+      inspection_date: itemToEdit.inspection_date,
+      inspection_time: itemToEdit.inspection_time,
+      ecd_functional: itemToEdit.ecd_functional,
+      ecd_needs_maintenance: itemToEdit.ecd_needs_maintenance,
+      date_corrected: itemToEdit.date_corrected,
+      comments: itemToEdit.comments
+    });
+    setNewItemPhotos(itemToEdit.photos || []);
+    setPhotoComments(itemToEdit.photoComments || []);
+    setEditingItemIndex(idx);
+  };
+
+  const handleUpdateItem = () => {
+    if (editingItemIndex === null) return;
+
+    const updatedItems = [...items];
+    updatedItems[editingItemIndex] = {
+      ...newItem,
+      photos: [...newItemPhotos],
+      photoComments: [...photoComments]
+    };
+    setItems(updatedItems);
+    setNewItem(initialItem);
+    setNewItemPhotos([]);
+    setPhotoComments([]);
+    setEditingItemIndex(null);
+  };
+
+  const handleCancelEdit = () => {
+    setNewItem(initialItem);
+    setNewItemPhotos([]);
+    setPhotoComments([]);
+    setEditingItemIndex(null);
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
@@ -126,17 +217,99 @@ const NewSWPPP = () => {
         ...header,
         inspection_date: header.inspection_date || null,
       });
-      const reportId = response.data.id;
-      // Create each item
+      const newReportId = response.data.id;
+      
+      // Create each item with its photos
       for (const item of items) {
-        await api.post(`/swppp/reports/${reportId}/items/`, item);
+        // First add the item
+        const itemResponse = await api.post(`/swppp/reports/${newReportId}/items/`, {
+          location: item.location,
+          ll_number: item.ll_number,
+          feature_details: item.feature_details,
+          inspector_id: item.inspector_id,
+          soil_presently_disturbed: item.soil_presently_disturbed,
+          inspection_date: item.inspection_date,
+          inspection_time: item.inspection_time,
+          ecd_functional: item.ecd_functional,
+          ecd_needs_maintenance: item.ecd_needs_maintenance,
+          date_corrected: item.date_corrected,
+          comments: item.comments
+        });
+
+        // Then upload any photos associated with this item
+        if (item.photos && item.photos.length > 0) {
+          const photoPromises = item.photos.map(async (photo, index) => {
+            const formData = new FormData();
+            formData.append('image', photo instanceof File ? photo : await fetch(photo).then(r => r.blob()));
+            formData.append('location', item.location);
+            formData.append('description', item.photoComments[index] || '');
+
+            return api.post(`/swppp/reports/${newReportId}/photos/`, formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            });
+          });
+
+          await Promise.all(photoPromises);
+        }
       }
-      navigate(`/swppp-report/${reportId}`);
+      
+      // Clean up any draft data
+      if (draftId) {
+        localStorage.removeItem(`swppp_draft_${draftId}`);
+      }
+      
+      navigate(`/swppp-report/${newReportId}`);
     } catch (error) {
       alert('Error submitting SWPPP report.');
       console.error(error);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const saveDraft = () => {
+    const draft = {
+      id: draftId || Date.now().toString(),
+      header,
+      items: items.map(item => ({
+        ...item,
+        photos: item.photos.map(photo => {
+          if (photo instanceof File) {
+            return URL.createObjectURL(photo);
+          }
+          return photo;
+        })
+      })),
+      lastModified: new Date().toISOString()
+    };
+    localStorage.setItem(`swppp_draft_${draft.id}`, JSON.stringify(draft));
+    setDraftId(draft.id);
+    setIsDraft(true);
+  };
+
+  const handleSaveAndExit = () => {
+    saveDraft();
+    navigate('/reports');
+  };
+
+  const handleExit = () => {
+    if (isDraft) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to exit?')) {
+        navigate('/reports');
+      }
+    } else {
+      navigate('/reports');
+    }
+  };
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this report?')) {
+      if (draftId) {
+        localStorage.removeItem(`swppp_draft_${draftId}`);
+      }
+      navigate('/reports');
     }
   };
 
@@ -161,7 +334,7 @@ const NewSWPPP = () => {
           <ArrowBackIcon />
         </Button>
         <Typography variant="h4">
-          Create New SWPPP Report
+          {isDraft ? 'Edit SWPPP Report Draft' : 'Create New SWPPP Report'}
         </Typography>
       </Box>
       <Paper sx={{ p: { xs: 2, sm: 4, md: 6 }, mb: 4 }}>
@@ -418,248 +591,449 @@ const NewSWPPP = () => {
         <Divider sx={{ my: 3 }} />
         {/* Checklist Items Section */}
         <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>Checklist Items</Typography>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: 3,
-          width: '100%'
-        }}>
-          {items.map((item, idx) => (
-            <Paper key={idx} sx={{ p: 3, bgcolor: '#f5f5f5' }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Location</Typography>
-                  <Typography>{item.location}</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>LL Number</Typography>
-                  <Typography>{item.ll_number}</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Inspector ID</Typography>
-                  <Typography>{item.inspector_id}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Feature Details</Typography>
-                  <Typography>{item.feature_details}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                    <FormControl size="small" sx={{ flex: 1, minWidth: 200 }}>
-                      <InputLabel id={`soil-disturbed-label`}>Soil Disturbed?</InputLabel>
-                      <Select
-                        labelId={`soil-disturbed-label`}
-                        name="soil_presently_disturbed"
-                        value={item.soil_presently_disturbed ? 'Yes' : 'No'}
-                        label="Soil Disturbed?"
-                        onChange={e => {
-                          // Handle soil disturbed change
-                        }}
+        <TableContainer component={Paper} sx={{ mb: 3 }}>
+          <Table sx={{ 
+            '& .MuiTableCell-root': {
+              borderRight: '1px solid rgba(224, 224, 224, 1)',
+              '&:last-child': {
+                borderRight: 'none'
+              }
+            }
+          }}>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Station Start</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Station End</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Inspector ID</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Soil Disturbed?</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Inspection Date</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Inspection Time</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>ECD Functional?</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', whiteSpace: 'normal', maxWidth: '100px' }}>ECD Needs<br />Maintenance?</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', width: '25%' }}>Comments</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Photos</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {items.map((item, idx) => (
+                <TableRow key={idx}>
+                  <TableCell align="center">{item.location}</TableCell>
+                  <TableCell align="center">{item.ll_number}</TableCell>
+                  <TableCell align="center">{item.inspector_id}</TableCell>
+                  <TableCell align="center">{item.soil_presently_disturbed ? 'Yes' : 'No'}</TableCell>
+                  <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>{item.inspection_date}</TableCell>
+                  <TableCell align="center">{item.inspection_time}</TableCell>
+                  <TableCell align="center">{item.ecd_functional ? 'Yes' : 'No'}</TableCell>
+                  <TableCell align="center" sx={{ whiteSpace: 'normal', maxWidth: '100px' }}>{item.ecd_needs_maintenance ? 'Yes' : 'No'}</TableCell>
+                  <TableCell align="center" sx={{ width: '25%' }}>{item.comments}</TableCell>
+                  <TableCell align="center">
+                    {item.photos && item.photos.length > 0 ? (
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        {item.photos.map((photo, photoIdx) => (
+                          <Box
+                            key={photoIdx}
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                opacity: 0.9
+                              }
+                            }}
+                            onClick={() => { setSelectedPhotoIdx(photoIdx); setPhotoDialogOpen(true); }}
+                          >
+                            <img
+                              src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+                              alt={`Preview ${photoIdx + 1}`}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                          </Box>
+                        ))}
+                      </Box>
+                    ) : (
+                      'No photos'
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleEditItem(idx)}
+                        size="small"
                       >
-                        <MenuItem value="Yes">Yes</MenuItem>
-                        <MenuItem value="No">No</MenuItem>
-                      </Select>
-                    </FormControl>
-                    <TextField 
-                      label="Inspection Date" 
-                      value={item.inspection_date}
-                      size="small"
-                      InputLabelProps={{ shrink: true }}
-                      sx={{ flex: 1, minWidth: 200 }}
-                    />
-                    <TextField 
-                      label="Inspection Time" 
-                      value={item.inspection_time}
-                      size="small"
-                      InputLabelProps={{ shrink: true }}
-                      sx={{ flex: 1, minWidth: 200 }}
-                    />
-                    <FormControl size="small" sx={{ flex: 1, minWidth: 200 }}>
-                      <InputLabel id={`ecd-functional-label`}>ECD Functional?</InputLabel>
-                      <Select
-                        labelId={`ecd-functional-label`}
-                        name="ecd_functional"
-                        value={item.ecd_functional ? 'Yes' : 'No'}
-                        label="ECD Functional?"
-                        onChange={e => {
-                          // Handle ECD functional change
-                        }}
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDeleteItem(idx)}
+                        size="small"
                       >
-                        <MenuItem value="Yes">Yes</MenuItem>
-                        <MenuItem value="No">No</MenuItem>
-                      </Select>
-                    </FormControl>
-                    <FormControl size="small" sx={{ flex: 1, minWidth: 200 }}>
-                      <InputLabel id={`ecd-needs-maintenance-label`}>ECD Needs Maintenance?</InputLabel>
-                      <Select
-                        labelId={`ecd-needs-maintenance-label`}
-                        name="ecd_needs_maintenance"
-                        value={item.ecd_needs_maintenance ? 'Yes' : 'No'}
-                        label="ECD Needs Maintenance?"
-                        onChange={e => {
-                          // Handle ECD needs maintenance change
-                        }}
-                      >
-                        <MenuItem value="Yes">Yes</MenuItem>
-                        <MenuItem value="No">No</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>Comments</Typography>
-                  <Typography>{item.comments}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Button 
-                    color="error" 
-                    onClick={() => handleDeleteItem(idx)}
-                    sx={{ mt: 1 }}
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {/* Add New Item Form */}
+        <Paper sx={{ p: 3, bgcolor: '#f5f5f5', width: '100%' }}>
+          <Typography variant="h6" gutterBottom>
+            {editingItemIndex !== null ? 'Edit Item' : 'Add New Item'}
+          </Typography>
+          <Grid container spacing={2} sx={{ width: '100%' }}>
+            {/* Row 1: Inspector ID, Station Start, Station End - responsive, min width, fills 100% */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+                <TextField
+                  name="inspector_id"
+                  value={newItem.inspector_id}
+                  onChange={handleItemChange}
+                  label="Inspector ID"
+                  size="small"
+                  sx={{ flex: '1 1 180px', minWidth: 180 }}
+                  fullWidth
+                />
+                <TextField
+                  name="location"
+                  value={newItem.location}
+                  onChange={handleItemChange}
+                  label="Station Start"
+                  size="small"
+                  sx={{ flex: '1 1 180px', minWidth: 180 }}
+                  fullWidth
+                />
+                <TextField
+                  name="ll_number"
+                  value={newItem.ll_number}
+                  onChange={handleItemChange}
+                  label="Station End"
+                  size="small"
+                  sx={{ flex: '1 1 180px', minWidth: 180 }}
+                  fullWidth
+                />
+              </Box>
+            </Grid>
+            {/* Row 2: Five fields with adjusted widths */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: '100%' }}>
+                <FormControl size="small" sx={{ flex: '1 1 18%', minWidth: 150 }}>
+                  <InputLabel id="soil-disturbed-label">Soil Disturbed?</InputLabel>
+                  <Select
+                    labelId="soil-disturbed-label"
+                    name="soil_presently_disturbed"
+                    value={newItem.soil_presently_disturbed ? 'Yes' : 'No'}
+                    label="Soil Disturbed?"
+                    onChange={e => setNewItem(prev => ({ ...prev, soil_presently_disturbed: e.target.value === 'Yes' }))}
                   >
-                    Delete
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
-          ))}
-          {/* Add New Item Form */}
-          <Paper sx={{ p: 3, bgcolor: '#f5f5f5', width: '100%' }}>
-            <Grid container spacing={2} sx={{ width: '100%' }}>
-              {/* Row 1: Inspector ID, Station Start, Station End - each 25% width */}
-              <Grid item xs={12} md={3} sx={{ width: '25%' }}>
+                    <MenuItem value="Yes">Yes</MenuItem>
+                    <MenuItem value="No">No</MenuItem>
+                  </Select>
+                </FormControl>
                 <TextField 
-                  name="inspector_id" 
-                  value={newItem.inspector_id} 
+                  name="inspection_date" 
+                  type="date" 
+                  value={newItem.inspection_date} 
                   onChange={handleItemChange} 
-                  label="Inspector ID" 
-                  fullWidth 
+                  label="Inspection Date" 
                   size="small" 
+                  InputLabelProps={{ shrink: true }} 
+                  sx={{ flex: '1 1 18%', minWidth: 150 }} 
                 />
-              </Grid>
-              <Grid item xs={12} md={3} sx={{ width: '25%' }}>
                 <TextField 
-                  name="location" 
-                  value={newItem.location} 
+                  name="inspection_time" 
+                  type="time" 
+                  value={newItem.inspection_time} 
                   onChange={handleItemChange} 
-                  label="Station Start" 
-                  fullWidth 
+                  label="Inspection Time" 
                   size="small" 
+                  InputLabelProps={{ shrink: true }} 
+                  sx={{ flex: '1 1 18%', minWidth: 150 }} 
                 />
-              </Grid>
-              <Grid item xs={12} md={3} sx={{ width: '25%' }}>
-                <TextField 
-                  name="ll_number" 
-                  value={newItem.ll_number} 
-                  onChange={handleItemChange} 
-                  label="Station End" 
-                  fullWidth 
-                  size="small" 
-                />
-              </Grid>
-              {/* Row 2: Five fields with adjusted widths */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', width: '100%' }}>
-                  <FormControl size="small" sx={{ flex: '1 1 18%', minWidth: 150 }}>
-                    <InputLabel id="soil-disturbed-label">Soil Disturbed?</InputLabel>
-                    <Select
-                      labelId="soil-disturbed-label"
-                      name="soil_presently_disturbed"
-                      value={newItem.soil_presently_disturbed ? 'Yes' : 'No'}
-                      label="Soil Disturbed?"
-                      onChange={e => setNewItem(prev => ({ ...prev, soil_presently_disturbed: e.target.value === 'Yes' }))}
+                <FormControl size="small" sx={{ flex: '1 1 18%', minWidth: 150 }}>
+                  <InputLabel id="ecd-functional-label">ECD Functional?</InputLabel>
+                  <Select
+                    labelId="ecd-functional-label"
+                    name="ecd_functional"
+                    value={newItem.ecd_functional ? 'Yes' : 'No'}
+                    label="ECD Functional?"
+                    onChange={e => setNewItem(prev => ({ ...prev, ecd_functional: e.target.value === 'Yes' }))}
+                  >
+                    <MenuItem value="Yes">Yes</MenuItem>
+                    <MenuItem value="No">No</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ flex: '1 1 18%', minWidth: 150 }}>
+                  <InputLabel id="ecd-needs-maintenance-label">ECD Needs Maintenance?</InputLabel>
+                  <Select
+                    labelId="ecd-needs-maintenance-label"
+                    name="ecd_needs_maintenance"
+                    value={newItem.ecd_needs_maintenance ? 'Yes' : 'No'}
+                    label="ECD Needs Maintenance?"
+                    onChange={e => setNewItem(prev => ({ ...prev, ecd_needs_maintenance: e.target.value === 'Yes' }))}
+                  >
+                    <MenuItem value="Yes">Yes</MenuItem>
+                    <MenuItem value="No">No</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Grid>
+
+            {/* Row 3: Comments - Full width, force 100% width */}
+            <Grid item xs={12} sx={{ width: '100%' }}>
+              <TextField 
+                name="comments" 
+                value={newItem.comments} 
+                onChange={handleItemChange} 
+                label="Comments" 
+                fullWidth 
+                multiline 
+                rows={2} 
+                size="small" 
+                sx={{ width: '100%' }}
+              />
+            </Grid>
+
+            {/* Buttons */}
+            <Grid item xs={12}>
+              {newItemPhotos.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>Photo Preview:</Typography>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    {newItemPhotos.map((photo, idx) => (
+                      <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 130 }}>
+                        <Typography variant="caption" sx={{ mb: 0.5 }}>{`Photo ${idx + 1}`}</Typography>
+                        <Box
+                          sx={{
+                            width: 120,
+                            height: 120,
+                            borderRadius: 1,
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              opacity: 0.9
+                            }
+                          }}
+                          onClick={() => { setSelectedPhotoIdx(idx); setPhotoDialogOpen(true); }}
+                        >
+                          <img
+                            src={URL.createObjectURL(photo)}
+                            alt={`Preview ${idx + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                          />
+                        </Box>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => {
+                            setNewItemPhotos(photos => photos.filter((_, i) => i !== idx));
+                            setPhotoComments(comments => comments.filter((_, i) => i !== idx));
+                          }}
+                          sx={{ mt: 1 }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                  {/* Large photo dialog */}
+                  <Dialog 
+                    open={photoDialogOpen} 
+                    onClose={() => setPhotoDialogOpen(false)} 
+                    maxWidth="md" 
+                    fullWidth
+                    PaperProps={{
+                      sx: {
+                        maxWidth: '90vw',
+                        maxHeight: '90vh',
+                        width: 'auto',
+                        height: 'auto',
+                        position: 'relative'
+                      }
+                    }}
+                  >
+                    <IconButton
+                      onClick={() => setPhotoDialogOpen(false)}
+                      sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        zIndex: 1,
+                        bgcolor: 'rgba(255, 255, 255, 0.8)',
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 255, 255, 0.9)'
+                        }
+                      }}
                     >
-                      <MenuItem value="Yes">Yes</MenuItem>
-                      <MenuItem value="No">No</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <TextField 
-                    name="inspection_date" 
-                    type="date" 
-                    value={newItem.inspection_date} 
-                    onChange={handleItemChange} 
-                    label="Inspection Date" 
-                    size="small" 
-                    InputLabelProps={{ shrink: true }} 
-                    sx={{ flex: '1 1 18%', minWidth: 150 }} 
-                  />
-                  <TextField 
-                    name="inspection_time" 
-                    type="time" 
-                    value={newItem.inspection_time} 
-                    onChange={handleItemChange} 
-                    label="Inspection Time" 
-                    size="small" 
-                    InputLabelProps={{ shrink: true }} 
-                    sx={{ flex: '1 1 18%', minWidth: 150 }} 
-                  />
-                  <FormControl size="small" sx={{ flex: '1 1 18%', minWidth: 150 }}>
-                    <InputLabel id="ecd-functional-label">ECD Functional?</InputLabel>
-                    <Select
-                      labelId="ecd-functional-label"
-                      name="ecd_functional"
-                      value={newItem.ecd_functional ? 'Yes' : 'No'}
-                      label="ECD Functional?"
-                      onChange={e => setNewItem(prev => ({ ...prev, ecd_functional: e.target.value === 'Yes' }))}
+                      <CloseIcon />
+                    </IconButton>
+                    <DialogTitle>
+                      {selectedPhotoIdx !== null ? `Photo ${selectedPhotoIdx + 1}` : 'Photo'}
+                    </DialogTitle>
+                    <DialogContent
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        p: 2,
+                        gap: 2,
+                        height: 'auto'
+                      }}
                     >
-                      <MenuItem value="Yes">Yes</MenuItem>
-                      <MenuItem value="No">No</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ flex: '1 1 18%', minWidth: 150 }}>
-                    <InputLabel id="ecd-needs-maintenance-label">ECD Needs Maintenance?</InputLabel>
-                    <Select
-                      labelId="ecd-needs-maintenance-label"
-                      name="ecd_needs_maintenance"
-                      value={newItem.ecd_needs_maintenance ? 'Yes' : 'No'}
-                      label="ECD Needs Maintenance?"
-                      onChange={e => setNewItem(prev => ({ ...prev, ecd_needs_maintenance: e.target.value === 'Yes' }))}
-                    >
-                      <MenuItem value="Yes">Yes</MenuItem>
-                      <MenuItem value="No">No</MenuItem>
-                    </Select>
-                  </FormControl>
+                      {selectedPhotoIdx !== null && newItemPhotos[selectedPhotoIdx] && (
+                        <Box
+                          sx={{
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 2
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: 'auto',
+                              maxHeight: '60vh',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <img
+                              src={URL.createObjectURL(newItemPhotos[selectedPhotoIdx])}
+                              alt={`Large Preview`}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '60vh',
+                                objectFit: 'contain',
+                                borderRadius: 8
+                              }}
+                            />
+                          </Box>
+                          <TextField
+                            size="small"
+                            placeholder="Add comment"
+                            value={photoComments[selectedPhotoIdx] || ''}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setPhotoComments(comments => {
+                                const newComments = [...comments];
+                                newComments[selectedPhotoIdx] = val;
+                                return newComments;
+                              });
+                            }}
+                            fullWidth
+                            label="Photo Comment"
+                            multiline
+                            rows={3}
+                            sx={{ 
+                              '& .MuiInputBase-root': {
+                                maxHeight: '120px'
+                              }
+                            }}
+                          />
+                        </Box>
+                      )}
+                    </DialogContent>
+                  </Dialog>
                 </Box>
-              </Grid>
-
-              {/* Row 3: Comments - Full width, force 100% width */}
-              <Grid item xs={12} sx={{ width: '100%' }}>
-                <TextField 
-                  name="comments" 
-                  value={newItem.comments} 
-                  onChange={handleItemChange} 
-                  label="Comments" 
-                  fullWidth 
-                  multiline 
-                  rows={2} 
-                  size="small" 
-                  sx={{ width: '100%' }}
-                />
-              </Grid>
-
-              {/* Buttons */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                  <Button variant="outlined" component="label">
-                    Add Photo
-                    <input type="file" accept="image/*" capture="environment" hidden onChange={e => { /* handle photo upload here */ }} />
-                  </Button>
+              )}
+              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Button variant="outlined" component="label">
+                  Add Photo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    multiple
+                    hidden
+                    onChange={e => {
+                      const files = Array.from(e.target.files);
+                      setNewItemPhotos(prev => [...prev, ...files]);
+                    }}
+                  />
+                </Button>
+                {editingItemIndex !== null ? (
+                  <>
+                    <Button onClick={handleUpdateItem} variant="contained" color="primary">
+                      Update Item
+                    </Button>
+                    <Button onClick={handleCancelEdit} variant="outlined" color="error">
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
                   <Button onClick={handleAddItem} variant="contained">
                     Add Item
                   </Button>
-                </Box>
-              </Grid>
+                )}
+              </Box>
             </Grid>
-          </Paper>
+          </Grid>
+        </Paper>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          justifyContent: 'flex-end',
+          position: 'sticky',
+          bottom: 0,
+          backgroundColor: 'white',
+          p: 2,
+          borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+          zIndex: 1000
+        }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<SaveIcon />}
+            onClick={saveDraft}
+          >
+            Save
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<SaveAltIcon />}
+            onClick={handleSaveAndExit}
+          >
+            Save & Exit
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<ExitToAppIcon />}
+            onClick={handleExit}
+          >
+            Exit
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<SendIcon />}
+            onClick={handleSubmit}
+            disabled={submitting || items.length === 0}
+          >
+            Submit
+          </Button>
         </Box>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          sx={{ mt: 4 }} 
-          onClick={handleSubmit} 
-          disabled={submitting || items.length === 0}
-        >
-          Submit Final Report
-        </Button>
       </Paper>
     </Box>
   );

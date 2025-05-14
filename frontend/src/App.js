@@ -31,6 +31,7 @@ import WeldingReports from './components/welding/WeldingReports';
 import WeldingDraftReports from './components/welding/WeldingDraftReports';
 import CoatingMain from './components/coating/CoatingMain';
 import CoatingRoutes from './routes/coatingRoutes';
+import SWPPPDrafts from './components/SWPPPDrafts';
 
 const theme = createTheme({
   palette: {
@@ -388,6 +389,14 @@ function App() {
             element={
               <PrivateRoute>
                 <CoatingRoutes />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/swppp-drafts"
+            element={
+              <PrivateRoute>
+                <SWPPPDrafts />
               </PrivateRoute>
             }
           />
