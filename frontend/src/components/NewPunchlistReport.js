@@ -210,27 +210,34 @@ const NewPunchlistReport = ({ reportId }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table>
+      <TableContainer component={Paper} sx={{ mb: 3, overflowX: 'auto', width: '100%' }}>
+        <Table sx={{ minWidth: 900, borderCollapse: 'separate', borderSpacing: 0 }}>
           <TableHead>
             <TableRow>
-              <TableCell>Start Station</TableCell>
-              <TableCell>End Station</TableCell>
-              <TableCell>Feature</TableCell>
-              <TableCell>Issue</TableCell>
-              <TableCell>Recommendations</TableCell>
-              <TableCell>Photos</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Spread</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Inspector</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', whiteSpace: 'nowrap', borderBottom: '1px solid #e0e0e0' }}>Date</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Start Station</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>End Station</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Feature</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', borderBottom: '1px solid #e0e0e0' }}>Issue</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', borderBottom: '1px solid #e0e0e0' }}>Recommendations</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Photos</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {items.map((item, idx) => (
-              <TableRow key={idx}>
-                <TableCell>{item.startStation}</TableCell>
-                <TableCell>{item.endStation}</TableCell>
-                <TableCell>{item.feature}</TableCell>
-                <TableCell>{item.issue}</TableCell>
-                <TableCell>{item.recommendations}</TableCell>
-                <TableCell>
+              <TableRow key={idx} sx={{ borderBottom: '1px solid #e0e0e0' }}>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.spread || ''}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.inspectorName || ''}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', whiteSpace: 'nowrap' }}>{item.date || ''}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.startStation}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.endStation}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.feature}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.issue}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.recommendations}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
                   {item.photos && item.photos.length > 0 ? (
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                       {item.photos.map((photo, photoIdx) => (
@@ -266,6 +273,26 @@ const NewPunchlistReport = ({ reportId }) => {
                   ) : (
                     'No photos'
                   )}
+                </TableCell>
+                <TableCell align="center">
+                  <IconButton size="small" onClick={() => {
+                    setNewItem({
+                      startStation: item.startStation,
+                      endStation: item.endStation,
+                      feature: item.feature,
+                      issue: item.issue,
+                      recommendations: item.recommendations,
+                    });
+                    setNewItemPhotos(item.photos || []);
+                    setPhotoComments(item.photoComments || []);
+                    // Remove the item from the table for editing
+                    setItems(prev => prev.filter((_, i) => i !== idx));
+                  }}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton size="small" color="error" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}>
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
