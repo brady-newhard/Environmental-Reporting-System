@@ -15,6 +15,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { ProgressChartTable } from './ProgressChart';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const NewReport = () => {
   const navigate = useNavigate();
@@ -52,9 +53,26 @@ const NewReport = () => {
   return (
     <Container maxWidth="md">
       <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Create New Report
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Button
+            onClick={() => navigate('/environmental/reports')}
+            sx={{
+              minWidth: '40px',
+              width: '40px',
+              height: '40px',
+              backgroundColor: 'black',
+              color: 'white',
+              '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.8)' },
+              borderRadius: '50%',
+              p: 0,
+            }}
+          >
+            <ArrowBackIcon />
+          </Button>
+          <Typography variant="h4" gutterBottom>
+            Create New Report
+          </Typography>
+        </Box>
         <Paper sx={{ p: 3 }}>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
@@ -135,7 +153,7 @@ const NewReport = () => {
                   </Button>
                   <Button
                     variant="outlined"
-                    onClick={() => navigate('/reports-dashboard')}
+                    onClick={() => navigate('/environmental/reports')}
                   >
                     Cancel
                   </Button>

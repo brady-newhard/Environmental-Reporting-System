@@ -4,48 +4,43 @@ import {
   Button,
   TextField,
   Typography,
-  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
+  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  useTheme,
-  useMediaQuery,
-  IconButton,
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  AddPhotoAlternate as AddPhotoIcon,
-} from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, AddPhotoAlternate as AddPhotoIcon } from '@mui/icons-material';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-const PunchlistReport = ({ reportId }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+const NewPunchlistReport = ({ reportId }) => {
   const [items, setItems] = useState([]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState(null);
   const [newItem, setNewItem] = useState({
-    start_station: '',
-    end_station: '',
+    startStation: '',
+    endStation: '',
     feature: '',
     issue: '',
     recommendations: '',
-    photos: [],
-    photoComments: [],
   });
-  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState(null);
-  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
   const [newItemPhotos, setNewItemPhotos] = useState([]);
   const [photoComments, setPhotoComments] = useState([]);
+  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState(null);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [spread, setSpread] = useState('');
+  const [inspectorName, setInspectorName] = useState('');
+  const [inspectionDate, setInspectionDate] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchReport();
@@ -54,7 +49,7 @@ const PunchlistReport = ({ reportId }) => {
 
   const fetchReport = async () => {
     try {
-      const response = await axios.get(`/api/reports/${reportId}/`);
+      const response = await axios.get(`/api/reports/${reportId}`);
       setReport(response.data);
     } catch (error) {
       console.error('Error fetching report:', error);
@@ -63,7 +58,7 @@ const PunchlistReport = ({ reportId }) => {
 
   const fetchItems = async () => {
     try {
-      const response = await axios.get(`/api/reports/${reportId}/punchlist_items/`);
+      const response = await axios.get(`/api/reports/${reportId}/items`);
       setItems(response.data);
       setLoading(false);
     } catch (error) {
@@ -75,9 +70,9 @@ const PunchlistReport = ({ reportId }) => {
   const handleAddItem = async () => {
     try {
       // 1. Create the item without photos
-      const response = await axios.post(`/api/reports/${reportId}/punchlist_items/`, {
-        start_station: newItem.start_station,
-        end_station: newItem.end_station,
+      const response = await axios.post(`/api/reports/${reportId}/items`, {
+        startStation: newItem.startStation,
+        endStation: newItem.endStation,
         feature: newItem.feature,
         issue: newItem.issue,
         recommendations: newItem.recommendations,
@@ -90,7 +85,7 @@ const PunchlistReport = ({ reportId }) => {
         formData.append('image', newItemPhotos[i]);
         formData.append('description', photoComments[i] || '');
         await axios.post(
-          `/api/reports/${reportId}/punchlist_items/${createdItem.id}/upload_photo/`,
+          `/api/reports/${reportId}/items/${createdItem.id}/upload_photo/`,
           formData,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -99,8 +94,8 @@ const PunchlistReport = ({ reportId }) => {
       // 3. Refresh items
       fetchItems();
       setNewItem({
-        start_station: '',
-        end_station: '',
+        startStation: '',
+        endStation: '',
         feature: '',
         issue: '',
         recommendations: '',
@@ -117,9 +112,9 @@ const PunchlistReport = ({ reportId }) => {
   const handleEditItem = async () => {
     try {
       // 1. Update the item (without photos)
-      await axios.put(`/api/reports/${reportId}/punchlist_items/${editingItem.id}/`, {
-        start_station: editingItem.start_station,
-        end_station: editingItem.end_station,
+      await axios.put(`/api/reports/${reportId}/items/${editingItem.id}`, {
+        startStation: editingItem.startStation,
+        endStation: editingItem.endStation,
         feature: editingItem.feature,
         issue: editingItem.issue,
         recommendations: editingItem.recommendations,
@@ -133,7 +128,7 @@ const PunchlistReport = ({ reportId }) => {
           formData.append('image', newItemPhotos[i]);
           formData.append('description', photoComments[i] || '');
           await axios.post(
-            `/api/reports/${reportId}/punchlist_items/${editingItem.id}/upload_photo/`,
+            `/api/reports/${reportId}/items/${editingItem.id}/upload_photo/`,
             formData,
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
@@ -152,7 +147,7 @@ const PunchlistReport = ({ reportId }) => {
 
   const handleDeleteItem = async (itemId) => {
     try {
-      await axios.delete(`/api/reports/${reportId}/punchlist_items/${itemId}/`);
+      await axios.delete(`/api/reports/${reportId}/items/${itemId}`);
       setItems(items.filter(item => item.id !== itemId));
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -161,7 +156,7 @@ const PunchlistReport = ({ reportId }) => {
 
   const handleFinalize = async () => {
     try {
-      await axios.post(`/api/reports/${reportId}/finalize/`);
+      await axios.put(`/api/reports/${reportId}/finalize`);
       fetchReport();
     } catch (error) {
       console.error('Error finalizing report:', error);
@@ -174,32 +169,45 @@ const PunchlistReport = ({ reportId }) => {
     setPhotoComments(prev => [...prev, ...Array(files.length).fill('')]);
   };
 
+  const handleSave = async () => {
+    try {
+      await axios.put(`/api/reports/${reportId}/`, {
+        spread,
+        inspector_name: inspectorName,
+        date: inspectionDate,
+      });
+      alert('Report saved successfully.');
+    } catch (error) {
+      alert('Failed to save report.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+      try {
+        await axios.delete(`/api/reports/${reportId}/`);
+        alert('Report deleted.');
+        navigate('/reports');
+      } catch (error) {
+        alert('Failed to delete report.');
+      }
+    }
+  };
+
+  const handleExit = () => {
+    if (window.confirm('Are you sure you want to exit? Unsaved changes will be lost.')) {
+      navigate('/reports');
+    }
+  };
+
   if (loading) {
     return <Typography>Loading...</Typography>;
   }
 
   return (
-    <Box sx={{ 
-      p: isMobile ? 1 : 3,
-      width: '100%',
-      maxWidth: '100vw',
-      overflowX: 'hidden',
-      transform: isMobile ? 'scale(1)' : 'none',
-      transformOrigin: 'top left'
-    }}>
-      <Typography variant={isMobile ? "h5" : "h4"} gutterBottom>
-        Punchlist Report
-      </Typography>
-
-      <TableContainer 
-        component={Paper} 
-        sx={{ 
-          mb: 4,
-          width: '100%',
-          overflowX: 'auto'
-        }}
-      >
-        <Table size={isMobile ? "small" : "medium"}>
+    <Box sx={{ p: 3 }}>
+      <TableContainer component={Paper} sx={{ mb: 3 }}>
+        <Table>
           <TableHead>
             <TableRow>
               <TableCell>Start Station</TableCell>
@@ -214,8 +222,8 @@ const PunchlistReport = ({ reportId }) => {
           <TableBody>
             {items.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{item.start_station}</TableCell>
-                <TableCell>{item.end_station}</TableCell>
+                <TableCell>{item.startStation}</TableCell>
+                <TableCell>{item.endStation}</TableCell>
                 <TableCell>{item.feature}</TableCell>
                 <TableCell>{item.issue}</TableCell>
                 <TableCell>{item.recommendations}</TableCell>
@@ -257,21 +265,10 @@ const PunchlistReport = ({ reportId }) => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setEditingItem(item);
-                      setNewItemPhotos(item.photos || []);
-                      setPhotoComments(item.photoComments || []);
-                    }}
-                  >
+                  <IconButton onClick={() => setEditingItem(item)}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => handleDeleteItem(item.id)}
-                  >
+                  <IconButton onClick={() => handleDeleteItem(item.id)}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
@@ -281,55 +278,54 @@ const PunchlistReport = ({ reportId }) => {
         </Table>
       </TableContainer>
 
-      {!report?.is_finalized && (
-        <Paper sx={{ 
-          p: isMobile ? 1 : 3,
-          width: '100%',
-          maxWidth: '100vw',
-          overflowX: 'hidden'
-        }}>
-          <Typography variant={isMobile ? "subtitle1" : "h6"} gutterBottom>
+      {!report?.finalized && (
+        <Paper sx={{ mt: 3, p: 3, boxShadow: 3 }}>
+          <Typography variant="h6" gutterBottom>
             Add New Item
           </Typography>
-          
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Location Information
-            </Typography>
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: isMobile ? 'column' : 'row',
-              gap: 2, 
-              mb: 2 
-            }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+            <TextField
+              label="Spread"
+              value={spread}
+              onChange={e => setSpread(e.target.value)}
+            />
+            <TextField
+              label="Inspector Name"
+              value={inspectorName}
+              onChange={e => setInspectorName(e.target.value)}
+            />
+            <TextField
+              label="Date"
+              type="date"
+              value={inspectionDate}
+              onChange={e => setInspectionDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Box>
+          <Box sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
               <TextField
                 label="Start Station"
-                value={newItem.start_station}
-                onChange={(e) => setNewItem({ ...newItem, start_station: e.target.value })}
+                value={newItem.startStation}
+                onChange={(e) => setNewItem({ ...newItem, startStation: e.target.value })}
                 fullWidth
-                size={isMobile ? "small" : "medium"}
               />
               <TextField
                 label="End Station"
-                value={newItem.end_station}
-                onChange={(e) => setNewItem({ ...newItem, end_station: e.target.value })}
+                value={newItem.endStation}
+                onChange={(e) => setNewItem({ ...newItem, endStation: e.target.value })}
                 fullWidth
-                size={isMobile ? "small" : "medium"}
               />
               <TextField
                 label="Feature"
                 value={newItem.feature}
                 onChange={(e) => setNewItem({ ...newItem, feature: e.target.value })}
                 fullWidth
-                size={isMobile ? "small" : "medium"}
               />
             </Box>
           </Box>
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Issue Details
-            </Typography>
+          <Box sx={{ mb: 2 }}>
             <TextField
               label="Issue"
               value={newItem.issue}
@@ -337,15 +333,11 @@ const PunchlistReport = ({ reportId }) => {
               multiline
               rows={3}
               fullWidth
-              size={isMobile ? "small" : "medium"}
               sx={{ mb: 2 }}
             />
           </Box>
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Recommendations
-            </Typography>
+          <Box sx={{ mb: 2 }}>
             <TextField
               label="Recommendations"
               value={newItem.recommendations}
@@ -353,12 +345,11 @@ const PunchlistReport = ({ reportId }) => {
               multiline
               rows={3}
               fullWidth
-              size={isMobile ? "small" : "medium"}
               sx={{ mb: 2 }}
             />
           </Box>
 
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" gutterBottom>
               Photos
             </Typography>
@@ -426,67 +417,67 @@ const PunchlistReport = ({ reportId }) => {
             )}
           </Box>
 
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 2, 
-            justifyContent: 'flex-end',
-            flexDirection: isMobile ? 'column' : 'row'
-          }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleAddItem}
-              fullWidth={isMobile}
-            >
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button variant="contained" onClick={handleAddItem}>
               Add Item
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleFinalize}
-              fullWidth={isMobile}
-            >
-              Submit Final Report
             </Button>
           </Box>
         </Paper>
       )}
 
-      <Dialog 
-        open={Boolean(editingItem)} 
-        onClose={() => {
-          setEditingItem(null);
-          setNewItemPhotos([]);
-          setPhotoComments([]);
-        }}
-        fullWidth
-        maxWidth="sm"
-      >
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, width: '100%' }}>
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={handleDelete}
+        >
+          Delete
+        </Button>
+        <Button
+          variant="outlined"
+          color="success"
+          onClick={handleSave}
+        >
+          Save
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={handleExit}
+        >
+          Exit
+        </Button>
+        <Box sx={{ flex: 1 }} />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleFinalize}
+          sx={{ ml: 'auto' }}
+        >
+          Submit
+        </Button>
+      </Box>
+
+      <Dialog open={!!editingItem} onClose={() => setEditingItem(null)}>
         <DialogTitle>Edit Item</DialogTitle>
         <DialogContent>
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: 2, 
-            pt: 2 
-          }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
             <TextField
               label="Start Station"
-              value={editingItem?.start_station || ''}
-              onChange={(e) => setEditingItem({ ...editingItem, start_station: e.target.value })}
-              size={isMobile ? "small" : "medium"}
+              value={editingItem?.startStation || ''}
+              onChange={(e) => setEditingItem({ ...editingItem, startStation: e.target.value })}
+              fullWidth
             />
             <TextField
               label="End Station"
-              value={editingItem?.end_station || ''}
-              onChange={(e) => setEditingItem({ ...editingItem, end_station: e.target.value })}
-              size={isMobile ? "small" : "medium"}
+              value={editingItem?.endStation || ''}
+              onChange={(e) => setEditingItem({ ...editingItem, endStation: e.target.value })}
+              fullWidth
             />
             <TextField
               label="Feature"
               value={editingItem?.feature || ''}
               onChange={(e) => setEditingItem({ ...editingItem, feature: e.target.value })}
-              size={isMobile ? "small" : "medium"}
+              fullWidth
             />
             <TextField
               label="Issue"
@@ -494,7 +485,7 @@ const PunchlistReport = ({ reportId }) => {
               onChange={(e) => setEditingItem({ ...editingItem, issue: e.target.value })}
               multiline
               rows={3}
-              size={isMobile ? "small" : "medium"}
+              fullWidth
             />
             <TextField
               label="Recommendations"
@@ -502,7 +493,7 @@ const PunchlistReport = ({ reportId }) => {
               onChange={(e) => setEditingItem({ ...editingItem, recommendations: e.target.value })}
               multiline
               rows={3}
-              size={isMobile ? "small" : "medium"}
+              fullWidth
             />
             <Box>
               <Typography variant="subtitle1" gutterBottom>
@@ -574,15 +565,9 @@ const PunchlistReport = ({ reportId }) => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            setEditingItem(null);
-            setNewItemPhotos([]);
-            setPhotoComments([]);
-          }}>
-            Cancel
-          </Button>
-          <Button onClick={handleEditItem} color="primary">
-            Save
+          <Button onClick={() => setEditingItem(null)}>Cancel</Button>
+          <Button onClick={handleEditItem} variant="contained">
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>
@@ -625,4 +610,4 @@ const PunchlistReport = ({ reportId }) => {
   );
 };
 
-export default PunchlistReport; 
+export default NewPunchlistReport; 
