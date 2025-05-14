@@ -1,7 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, Paper } from '@mui/material';
-import PunchlistReport from './PunchlistReport';
+import { Box, IconButton, Typography, Paper } from '@mui/material';
+import NewPunchlistReport from './NewPunchlistReport';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const PunchlistReportPage = () => {
   const { id } = useParams();
@@ -9,14 +10,24 @@ const PunchlistReportPage = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Button variant="outlined" onClick={() => navigate('/reports-dashboard')} sx={{ mb: 2 }}>
-        Back to Dashboard
-      </Button>
-      <Paper sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <IconButton
+          onClick={() => navigate('/reports-dashboard')}
+          sx={{
+            bgcolor: 'black',
+            color: 'white',
+            mr: 2,
+            '&:hover': { bgcolor: '#333' },
+          }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
         <Typography variant="h4" gutterBottom>
-          Punchlist Report
+          Create New Punchlist
         </Typography>
-        <PunchlistReport reportId={id} />
+      </Box>
+      <Paper sx={{ p: 3 }}>
+        <NewPunchlistReport reportId={id} />
       </Paper>
     </Box>
   );

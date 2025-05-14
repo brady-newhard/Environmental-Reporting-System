@@ -32,6 +32,7 @@ import WeldingDraftReports from './components/welding/WeldingDraftReports';
 import CoatingMain from './components/coating/CoatingMain';
 import CoatingRoutes from './routes/coatingRoutes';
 import SWPPPDrafts from './components/SWPPPDrafts';
+import NewReport from './components/NewReport';
 
 const theme = createTheme({
   palette: {
@@ -292,7 +293,7 @@ function App() {
             path="/new-punchlist"
             element={
               <PrivateRoute>
-                <NewPunchlist />
+                <PunchlistReportPage />
               </PrivateRoute>
             }
           />

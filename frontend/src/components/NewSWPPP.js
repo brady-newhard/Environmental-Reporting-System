@@ -311,7 +311,7 @@ const NewSWPPP = () => {
     <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <Button
-          onClick={() => navigate('/reports')}
+          onClick={() => navigate('/environmental/reports')}
           sx={{ 
             minWidth: '40px',
             width: '40px',
