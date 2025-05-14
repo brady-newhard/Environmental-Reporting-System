@@ -289,23 +289,17 @@ const NewSWPPP = () => {
     setIsDraft(true);
   };
 
-  const handleSaveAndExit = () => {
-    saveDraft();
+  const handleExit = () => {
+    if (!isDraft) {
+      if (window.confirm('You have unsaved changes. Would you like to save before exiting?')) {
+        saveDraft();
+      }
+    }
     navigate('/reports');
   };
 
-  const handleExit = () => {
-    if (isDraft) {
-      if (window.confirm('You have unsaved changes. Are you sure you want to exit?')) {
-        navigate('/reports');
-      }
-    } else {
-      navigate('/reports');
-    }
-  };
-
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this report?')) {
+    if (window.confirm('Are you sure you want to delete?')) {
       if (draftId) {
         localStorage.removeItem(`swppp_draft_${draftId}`);
       }
@@ -591,136 +585,139 @@ const NewSWPPP = () => {
         <Divider sx={{ my: 3 }} />
         {/* Checklist Items Section */}
         <Typography variant="h6" gutterBottom sx={{ mb: 3 }}>Checklist Items</Typography>
-        <TableContainer component={Paper} sx={{ mb: 3 }}>
-          <Table sx={{ 
-            '& .MuiTableCell-root': {
-              borderRight: '1px solid rgba(224, 224, 224, 1)',
-              '&:last-child': {
-                borderRight: 'none'
+        {items.length > 0 && (
+          <TableContainer component={Paper} sx={{ mb: 3 }}>
+            <Table sx={{ 
+              '& .MuiTableCell-root': {
+                borderRight: '1px solid rgba(224, 224, 224, 1)',
+                '&:last-child': {
+                  borderRight: 'none'
+                }
               }
-            }
-          }}>
-            <TableHead>
-              <TableRow>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Station Start</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Station End</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Inspector ID</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Soil Disturbed?</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Inspection Date</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Inspection Time</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>ECD Functional?</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', whiteSpace: 'normal', maxWidth: '100px' }}>ECD Needs<br />Maintenance?</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', width: '25%' }}>Comments</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Photos</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell align="center">{item.location}</TableCell>
-                  <TableCell align="center">{item.ll_number}</TableCell>
-                  <TableCell align="center">{item.inspector_id}</TableCell>
-                  <TableCell align="center">{item.soil_presently_disturbed ? 'Yes' : 'No'}</TableCell>
-                  <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>{item.inspection_date}</TableCell>
-                  <TableCell align="center">{item.inspection_time}</TableCell>
-                  <TableCell align="center">{item.ecd_functional ? 'Yes' : 'No'}</TableCell>
-                  <TableCell align="center" sx={{ whiteSpace: 'normal', maxWidth: '100px' }}>{item.ecd_needs_maintenance ? 'Yes' : 'No'}</TableCell>
-                  <TableCell align="center" sx={{ width: '25%' }}>{item.comments}</TableCell>
-                  <TableCell align="center">
-                    {item.photos && item.photos.length > 0 ? (
-                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                        {item.photos.map((photo, photoIdx) => (
-                          <Box
-                            key={photoIdx}
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 1,
-                              overflow: 'hidden',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                opacity: 0.9
-                              }
-                            }}
-                            onClick={() => { setSelectedPhotoIdx(photoIdx); setPhotoDialogOpen(true); }}
-                          >
-                            <img
-                              src={photo instanceof File ? URL.createObjectURL(photo) : photo}
-                              alt={`Preview ${photoIdx + 1}`}
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
-                              }}
-                            />
-                          </Box>
-                        ))}
-                      </Box>
-                    ) : (
-                      'No photos'
-                    )}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleEditItem(idx)}
-                        size="small"
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDeleteItem(idx)}
-                        size="small"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
+            }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Station Start</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Station End</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Inspector ID</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Soil Disturbed?</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>Inspection Date</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Inspection Time</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>ECD Functional?</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', whiteSpace: 'normal', maxWidth: '100px' }}>ECD Needs<br />Maintenance?</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', width: '25%' }}>Comments</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Photos</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {items.map((item, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell align="center">{item.location}</TableCell>
+                    <TableCell align="center">{item.ll_number}</TableCell>
+                    <TableCell align="center">{item.inspector_id}</TableCell>
+                    <TableCell align="center">{item.soil_presently_disturbed ? 'Yes' : 'No'}</TableCell>
+                    <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>{item.inspection_date}</TableCell>
+                    <TableCell align="center">{item.inspection_time}</TableCell>
+                    <TableCell align="center">{item.ecd_functional ? 'Yes' : 'No'}</TableCell>
+                    <TableCell align="center" sx={{ whiteSpace: 'normal', maxWidth: '100px' }}>{item.ecd_needs_maintenance ? 'Yes' : 'No'}</TableCell>
+                    <TableCell align="center" sx={{ width: '25%' }}>{item.comments}</TableCell>
+                    <TableCell align="center">
+                      {item.photos && item.photos.length > 0 ? (
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                          {item.photos.map((photo, photoIdx) => (
+                            <Box
+                              key={photoIdx}
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 1,
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  opacity: 0.9
+                                }
+                              }}
+                              onClick={() => { setSelectedPhotoIdx(photoIdx); setPhotoDialogOpen(true); }}
+                            >
+                              <img
+                                src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+                                alt={`Preview ${photoIdx + 1}`}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                            </Box>
+                          ))}
+                        </Box>
+                      ) : (
+                        'No photos'
+                      )}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditItem(idx)}
+                          size="small"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDeleteItem(idx)}
+                          size="small"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
         {/* Add New Item Form */}
         <Paper sx={{ p: 3, bgcolor: '#f5f5f5', width: '100%' }}>
           <Typography variant="h6" gutterBottom>
             {editingItemIndex !== null ? 'Edit Item' : 'Add New Item'}
           </Typography>
           <Grid container spacing={2} sx={{ width: '100%' }}>
-            {/* Row 1: Inspector ID, Station Start, Station End - responsive, min width, fills 100% */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+            {/* Row 1: Inspector ID, Station Start, Station End - responsive */}
+            <Grid item xs={12} container spacing={2}>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   name="inspector_id"
                   value={newItem.inspector_id}
                   onChange={handleItemChange}
                   label="Inspector ID"
                   size="small"
-                  sx={{ flex: '1 1 180px', minWidth: 180 }}
                   fullWidth
                 />
+              </Grid>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   name="location"
                   value={newItem.location}
                   onChange={handleItemChange}
                   label="Station Start"
                   size="small"
-                  sx={{ flex: '1 1 180px', minWidth: 180 }}
                   fullWidth
                 />
+              </Grid>
+              <Grid item xs={12} sm={4}>
                 <TextField
                   name="ll_number"
                   value={newItem.ll_number}
                   onChange={handleItemChange}
                   label="Station End"
                   size="small"
-                  sx={{ flex: '1 1 180px', minWidth: 180 }}
                   fullWidth
                 />
-              </Box>
+              </Grid>
             </Grid>
             {/* Row 2: Five fields with adjusted widths */}
             <Grid item xs={12}>
@@ -951,8 +948,16 @@ const NewSWPPP = () => {
                   </Dialog>
                 </Box>
               )}
-              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                <Button variant="outlined" component="label">
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  gap: 2,
+                  mt: 2,
+                  width: '100%',
+                }}
+              >
+                <Button variant="outlined" component="label" fullWidth>
                   Add Photo
                   <input
                     type="file"
@@ -968,15 +973,15 @@ const NewSWPPP = () => {
                 </Button>
                 {editingItemIndex !== null ? (
                   <>
-                    <Button onClick={handleUpdateItem} variant="contained" color="primary">
+                    <Button onClick={handleUpdateItem} variant="contained" color="primary" fullWidth>
                       Update Item
                     </Button>
-                    <Button onClick={handleCancelEdit} variant="outlined" color="error">
+                    <Button onClick={handleCancelEdit} variant="outlined" color="error" fullWidth>
                       Cancel
                     </Button>
                   </>
                 ) : (
-                  <Button onClick={handleAddItem} variant="contained">
+                  <Button onClick={handleAddItem} variant="contained" fullWidth>
                     Add Item
                   </Button>
                 )}
@@ -984,55 +989,72 @@ const NewSWPPP = () => {
             </Grid>
           </Grid>
         </Paper>
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 2, 
-          justifyContent: 'flex-end',
-          position: 'sticky',
-          bottom: 0,
-          backgroundColor: 'white',
-          p: 2,
-          borderTop: '1px solid rgba(0, 0, 0, 0.12)',
-          zIndex: 1000
-        }}>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={handleDelete}
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            backgroundColor: 'white',
+            p: 2,
+            borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 2,
+              justifyContent: { xs: 'stretch', sm: 'flex-end' },
+              alignItems: 'center',
+              width: '100%',
+            }}
           >
-            Delete
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<SaveIcon />}
-            onClick={saveDraft}
-          >
-            Save
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<SaveAltIcon />}
-            onClick={handleSaveAndExit}
-          >
-            Save & Exit
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ExitToAppIcon />}
-            onClick={handleExit}
-          >
-            Exit
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<SendIcon />}
-            onClick={handleSubmit}
-            disabled={submitting || items.length === 0}
-          >
-            Submit
-          </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleDelete}
+              size="large"
+              fullWidth
+              sx={{ minHeight: 48, flex: 1, minWidth: 0 }}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={saveDraft}
+              size="large"
+              fullWidth
+              sx={{ minHeight: 48, flex: 1, minWidth: 0 }}
+            >
+              Save
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleExit}
+              size="large"
+              fullWidth
+              sx={{ minHeight: 48, flex: 1, minWidth: 0 }}
+            >
+              Exit
+            </Button>
+          </Box>
+          <Box sx={{ width: '100%' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting || items.length === 0}
+              fullWidth
+              sx={{ mt: 2 }}
+              size="large"
+            >
+              Submit
+            </Button>
+          </Box>
         </Box>
       </Paper>
     </Box>

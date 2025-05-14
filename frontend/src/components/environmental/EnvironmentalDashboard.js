@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -6,6 +6,7 @@ import {
   Typography,
   Button,
   IconButton,
+  Badge,
 } from '@mui/material';
 import {
   Assignment as ReportIcon,
@@ -18,7 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../common/PageHeader';
 
-const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
+const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount }) => {
   const navigate = useNavigate();
 
   return (
@@ -34,6 +35,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
         transform: 'translateY(-2px)',
         transition: 'all 0.3s ease',
       },
+      pb: 3,
     }}>
       <CardContent sx={{ 
         flex: 1,
@@ -69,6 +71,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
           sx={{ 
             color: '#666666',
             flex: 1,
+            mb: 0.5,
           }}
         >
           {description}
@@ -90,18 +93,39 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
             height: 40,
             fontSize: '0.875rem',
             textTransform: 'none',
+            mb: 0.1,
           }}
         >
           Create New Report
         </Button>
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => navigate('/swppp-drafts')}
-          sx={{ mb: 1 }}
-        >
-          View Draft Reports
-        </Button>
+        {draftPath && (
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'primary.main',
+              cursor: 'pointer',
+              textAlign: 'center',
+              mt: 0.5,
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+            onClick={() => navigate(draftPath)}
+          >
+            {draftCount > 0 ? (
+              <Badge badgeContent={draftCount} color="error">
+                <span style={{ fontWeight: 500 }}>View Draft Reports</span>
+              </Badge>
+            ) : (
+              <span style={{ fontWeight: 500 }}>View Draft Reports</span>
+            )}
+          </Typography>
+        )}
       </CardContent>
     </Card>
   );
@@ -109,35 +133,62 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
 
 const EnvironmentalReports = () => {
   const navigate = useNavigate();
+  const [swpppDraftCount, setSwpppDraftCount] = useState(0);
+  const [dailyDraftCount, setDailyDraftCount] = useState(0);
+  const [punchlistDraftCount, setPunchlistDraftCount] = useState(0);
+
+  useEffect(() => {
+    const swpppDrafts = Object.keys(localStorage)
+      .filter(key => key.startsWith('swppp_draft_'))
+      .length;
+    setSwpppDraftCount(swpppDrafts);
+
+    const dailyDrafts = Object.keys(localStorage)
+      .filter(key => key.startsWith('daily_draft_'))
+      .length;
+    setDailyDraftCount(dailyDrafts);
+
+    const punchlistDrafts = Object.keys(localStorage)
+      .filter(key => key.startsWith('punchlist_draft_'))
+      .length;
+    setPunchlistDraftCount(punchlistDrafts);
+  }, []);
+
   const reportTypes = [
     {
-      title: "Daily Environmental Report",
+      title: "Daily Report",
       icon: ReportIcon,
-      description: "Create a new daily environmental inspection report for site conditions and compliance.",
-      path: "/new-report"
+      description: "Activities and Compliance.",
+      path: "/new-report",
+      draftPath: "/daily-drafts",
+      draftCount: dailyDraftCount
     },
     {
-      title: "SWPPP Inspection",
+      title: "SWPPP Report",
       icon: SWPPPIcon,
-      description: "Conduct a new Storm Water Pollution Prevention Plan inspection.",
-      path: "/swppp/new"
+      description: "State SWPPP Inspection",
+      path: "/swppp/new",
+      draftPath: "/swppp-drafts",
+      draftCount: swpppDraftCount
     },
     {
       title: "Environmental Punchlist",
       icon: PunchlistIcon,
-      description: "Create a new punchlist for environmental compliance items.",
-      path: "/new-punchlist"
+      description: "Environmental Compliance Items",
+      path: "/new-punchlist",
+      draftPath: "/punchlist-drafts",
+      draftCount: punchlistDraftCount
     },
     {
       title: "Progress Report",
       icon: ProgressIcon,
-      description: "Document project progress, milestones, and environmental achievements.",
+      description: "Project Progress Chart",
       path: "/new-progress-report"
     },
     {
       title: "Variance Report",
       icon: VarianceIcon,
-      description: "Report and track environmental variances, deviations, and corrective actions.",
+      description: "Plan Deviations & Requests",
       path: "/variance/new"
     }
   ];
@@ -169,6 +220,8 @@ const EnvironmentalReports = () => {
             icon={type.icon}
             description={type.description}
             path={type.path}
+            draftPath={type.draftPath}
+            draftCount={type.draftCount}
           />
         ))}
       </Box>
