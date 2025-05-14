@@ -43,8 +43,10 @@ const NewPunchlistReport = ({ reportId }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchReport();
-    fetchItems();
+    if (reportId) {
+      fetchReport();
+    }
+    setLoading(false);
   }, [reportId]);
 
   const fetchReport = async () => {
@@ -56,57 +58,24 @@ const NewPunchlistReport = ({ reportId }) => {
     }
   };
 
-  const fetchItems = async () => {
-    try {
-      const response = await axios.get(`/api/reports/${reportId}/items`);
-      setItems(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching items:', error);
-      setLoading(false);
-    }
-  };
-
-  const handleAddItem = async () => {
-    try {
-      // 1. Create the item without photos
-      const response = await axios.post(`/api/reports/${reportId}/items`, {
-        startStation: newItem.startStation,
-        endStation: newItem.endStation,
-        feature: newItem.feature,
-        issue: newItem.issue,
-        recommendations: newItem.recommendations,
-      });
-      const createdItem = response.data;
-
-      // 2. Upload each photo
-      for (let i = 0; i < newItemPhotos.length; i++) {
-        const formData = new FormData();
-        formData.append('image', newItemPhotos[i]);
-        formData.append('description', photoComments[i] || '');
-        await axios.post(
-          `/api/reports/${reportId}/items/${createdItem.id}/upload_photo/`,
-          formData,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
+  const handleAddItem = () => {
+    setItems(prev => [
+      ...prev,
+      {
+        ...newItem,
+        photos: newItemPhotos,
+        photoComments: photoComments,
       }
-
-      // 3. Refresh items
-      fetchItems();
-      setNewItem({
-        startStation: '',
-        endStation: '',
-        feature: '',
-        issue: '',
-        recommendations: '',
-        photos: [],
-        photoComments: [],
-      });
-      setNewItemPhotos([]);
-      setPhotoComments([]);
-    } catch (error) {
-      console.error('Error adding item:', error);
-    }
+    ]);
+    setNewItem({
+      startStation: '',
+      endStation: '',
+      feature: '',
+      issue: '',
+      recommendations: '',
+    });
+    setNewItemPhotos([]);
+    setPhotoComments([]);
   };
 
   const handleEditItem = async () => {
@@ -136,7 +105,7 @@ const NewPunchlistReport = ({ reportId }) => {
       }
 
       // 3. Refresh items
-      fetchItems();
+      fetchReport();
       setEditingItem(null);
       setNewItemPhotos([]);
       setPhotoComments([]);
@@ -156,10 +125,45 @@ const NewPunchlistReport = ({ reportId }) => {
 
   const handleFinalize = async () => {
     try {
-      await axios.put(`/api/reports/${reportId}/finalize`);
-      fetchReport();
+      // 1. Create the report
+      const reportRes = await axios.post('/api/reports/', {
+        spread,
+        inspector_name: inspectorName,
+        date: inspectionDate,
+      });
+      const createdReport = reportRes.data;
+      const newReportId = createdReport.id;
+
+      // 2. For each item, create the item and upload its photos
+      for (const item of items) {
+        const itemRes = await axios.post(`/api/reports/${newReportId}/items`, {
+          startStation: item.startStation,
+          endStation: item.endStation,
+          feature: item.feature,
+          issue: item.issue,
+          recommendations: item.recommendations,
+        });
+        const createdItem = itemRes.data;
+        // Upload photos for this item
+        if (item.photos && item.photos.length > 0) {
+          for (let i = 0; i < item.photos.length; i++) {
+            const formData = new FormData();
+            formData.append('image', item.photos[i]);
+            formData.append('description', item.photoComments ? item.photoComments[i] || '' : '');
+            await axios.post(
+              `/api/reports/${newReportId}/items/${createdItem.id}/upload_photo/`,
+              formData,
+              { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
+          }
+        }
+      }
+
+      alert('Report and items submitted successfully!');
+      navigate('/reports');
     } catch (error) {
-      console.error('Error finalizing report:', error);
+      alert('Failed to submit report.');
+      console.error('Error submitting report:', error);
     }
   };
 
@@ -216,12 +220,11 @@ const NewPunchlistReport = ({ reportId }) => {
               <TableCell>Issue</TableCell>
               <TableCell>Recommendations</TableCell>
               <TableCell>Photos</TableCell>
-              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
+            {items.map((item, idx) => (
+              <TableRow key={idx}>
                 <TableCell>{item.startStation}</TableCell>
                 <TableCell>{item.endStation}</TableCell>
                 <TableCell>{item.feature}</TableCell>
@@ -263,14 +266,6 @@ const NewPunchlistReport = ({ reportId }) => {
                   ) : (
                     'No photos'
                   )}
-                </TableCell>
-                <TableCell>
-                  <IconButton onClick={() => setEditingItem(item)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDeleteItem(item.id)}>
-                    <DeleteIcon />
-                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
