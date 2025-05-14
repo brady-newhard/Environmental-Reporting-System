@@ -94,6 +94,14 @@ const ReportTypeCard = ({ title, icon: Icon, description, path }) => {
         >
           Create New Report
         </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => navigate('/swppp-drafts')}
+          sx={{ mb: 1 }}
+        >
+          View Draft Reports
+        </Button>
       </CardContent>
     </Card>
   );
