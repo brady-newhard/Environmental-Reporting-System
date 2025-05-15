@@ -224,8 +224,17 @@ const NewPunchlistReport = ({ reportId }) => {
 
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
-    setNewItemPhotos(prev => [...prev, ...files]);
-    setPhotoComments(prev => [...prev, ...Array(files.length).fill('')]);
+    Promise.all(files.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    })).then(dataUrls => {
+      setNewItemPhotos(prev => [...prev, ...dataUrls]);
+      setPhotoComments(prev => [...prev, ...Array(files.length).fill('')]);
+    });
   };
 
   if (loading) {
@@ -304,7 +313,7 @@ const NewPunchlistReport = ({ reportId }) => {
                                 }}
                               >
                                 <img
-                                  src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+                                  src={photo}
                                   alt={`Preview ${photoIdx + 1}`}
                                   style={{
                                     width: '100%',
@@ -456,42 +465,18 @@ const NewPunchlistReport = ({ reportId }) => {
                   {newItemPhotos.map((photo, idx) => (
                     <Box
                       key={idx}
-                      sx={{
-                        width: '100%',
-                        paddingTop: '100%',
-                        position: 'relative',
-                        borderRadius: 1,
-                        overflow: 'hidden',
-                      }}
+                      sx={{ width: '100%', paddingTop: '100%', position: 'relative', borderRadius: 1, overflow: 'hidden', cursor: 'pointer' }}
+                      onClick={() => { setSelectedPhotoIdx(idx); setPhotoDialogOpen(true); }}
                     >
                       <img
-                        src={URL.createObjectURL(photo)}
+                        src={photo}
                         alt={`Preview ${idx + 1}`}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                       <IconButton
                         size="small"
-                        sx={{
-                          position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          bgcolor: 'rgba(0, 0, 0, 0.5)',
-                          color: 'white',
-                          '&:hover': {
-                            bgcolor: 'rgba(0, 0, 0, 0.7)',
-                          },
-                        }}
-                        onClick={() => {
-                          setNewItemPhotos(prev => prev.filter((_, i) => i !== idx));
-                          setPhotoComments(prev => prev.filter((_, i) => i !== idx));
-                        }}
+                        sx={{ position: 'absolute', top: 4, right: 4, bgcolor: 'rgba(0, 0, 0, 0.5)', color: 'white', '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.7)' }, zIndex: 2 }}
+                        onClick={e => { e.stopPropagation(); setNewItemPhotos(prev => prev.filter((_, i) => i !== idx)); setPhotoComments(prev => prev.filter((_, i) => i !== idx)); }}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -602,7 +587,7 @@ const NewPunchlistReport = ({ reportId }) => {
                         }}
                       >
                         <img
-                          src={URL.createObjectURL(photo)}
+                          src={photo}
                           alt={`Preview ${idx + 1}`}
                           style={{
                             position: 'absolute',
@@ -655,30 +640,33 @@ const NewPunchlistReport = ({ reportId }) => {
             setPhotoDialogOpen(false);
             setSelectedPhotoIdx(null);
           }}
-          maxWidth="md"
+          maxWidth={isMobile ? 'xs' : 'xs'}
           fullWidth
-          fullScreen={isMobile}
+          fullScreen={false}
         >
-          <DialogContent>
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0 }}>
+            Photo Preview
+            <IconButton onClick={() => { setPhotoDialogOpen(false); setSelectedPhotoIdx(null); }}>
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
             {selectedPhotoIdx !== null && newItemPhotos[selectedPhotoIdx] && (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '80vh',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <img
-                  src={URL.createObjectURL(newItemPhotos[selectedPhotoIdx])}
-                  alt="Large Preview"
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '80vh',
-                    objectFit: 'contain',
+              <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>{`Photo ${selectedPhotoIdx + 1}`}</Typography>
+                <img src={newItemPhotos[selectedPhotoIdx]} alt="Large Preview" style={{ width: '100%', maxWidth: 400, maxHeight: '60vh', objectFit: 'contain' }} />
+                <TextField
+                  label="Comments"
+                  value={photoComments[selectedPhotoIdx] || ''}
+                  onChange={e => {
+                    const updated = [...photoComments];
+                    updated[selectedPhotoIdx] = e.target.value;
+                    setPhotoComments(updated);
                   }}
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  sx={{ mt: 2 }}
                 />
               </Box>
             )}
