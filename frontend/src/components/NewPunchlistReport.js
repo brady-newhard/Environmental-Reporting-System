@@ -222,96 +222,100 @@ const NewPunchlistReport = ({ reportId }) => {
 
   return (
     <Box sx={{ mt: 0.5 }}>
-      <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>Punchlist Items</Typography>
-      <TableContainer sx={{ mb: 3, border: '1px solid #000', borderRadius: 2, overflowX: 'auto' }}>
-        <Table sx={{ minWidth: 1200, tableLayout: 'fixed' }}>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Spread">Spread</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Inspector">Inspector</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Date">Date</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Start Station">Start Station</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="End Station">End Station</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 175, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Feature">Feature</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Issue">Issue</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Recommendations">Recommendations</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Photos">Photos</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.map((item, idx) => (
-              <TableRow key={idx} sx={{ borderBottom: '1px solid #e0e0e0' }}>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.spread || ''}>{item.spread || ''}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.inspectorName || ''}>{item.inspectorName || ''}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.date || ''}>{item.date || ''}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.startStation}>{item.startStation}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.endStation}>{item.endStation}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 240, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.feature}>{item.feature}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.issue}>{item.issue}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.recommendations}>{item.recommendations}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.photos && item.photos.length > 0 ? 'Photos' : 'No photos'}>
-                  {item.photos && item.photos.length > 0 ? (
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                      {item.photos.map((photo, photoIdx) => (
-                        <Box
-                          key={photoIdx}
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 1,
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              opacity: 0.9
-                            }
-                          }}
-                          onClick={() => {
-                            setSelectedPhotoIdx(photoIdx);
-                            setPhotoDialogOpen(true);
-                          }}
-                        >
-                          <img
-                            src={photo instanceof File ? URL.createObjectURL(photo) : photo}
-                            alt={`Preview ${photoIdx + 1}`}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover'
-                            }}
-                          />
+      {items.length > 0 && (
+        <>
+          <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>Punchlist Items</Typography>
+          <TableContainer sx={{ mb: 3, border: '1px solid #000', borderRadius: 2, overflowX: 'auto' }}>
+            <Table sx={{ minWidth: 1200, tableLayout: 'fixed' }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Spread">Spread</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Inspector">Inspector</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Date">Date</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Start Station">Start Station</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="End Station">End Station</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 175, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Feature">Feature</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Issue">Issue</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Recommendations">Recommendations</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Photos">Photos</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((item, idx) => (
+                  <TableRow key={idx} sx={{ borderBottom: '1px solid #e0e0e0' }}>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.spread || ''}>{item.spread || ''}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.inspectorName || ''}>{item.inspectorName || ''}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.date || ''}>{item.date || ''}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.startStation}>{item.startStation}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.endStation}>{item.endStation}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 240, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.feature}>{item.feature}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.issue}>{item.issue}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.recommendations}>{item.recommendations}</TableCell>
+                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.photos && item.photos.length > 0 ? 'Photos' : 'No photos'}>
+                      {item.photos && item.photos.length > 0 ? (
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                          {item.photos.map((photo, photoIdx) => (
+                            <Box
+                              key={photoIdx}
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 1,
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  opacity: 0.9
+                                }
+                              }}
+                              onClick={() => {
+                                setSelectedPhotoIdx(photoIdx);
+                                setPhotoDialogOpen(true);
+                              }}
+                            >
+                              <img
+                                src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+                                alt={`Preview ${photoIdx + 1}`}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                            </Box>
+                          ))}
                         </Box>
-                      ))}
-                    </Box>
-                  ) : (
-                    'No photos'
-                  )}
-                </TableCell>
-                <TableCell align="center" sx={{ width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">
-                  <IconButton size="small" onClick={() => {
-                    setNewItem({
-                      startStation: item.startStation,
-                      endStation: item.endStation,
-                      feature: item.feature,
-                      issue: item.issue,
-                      recommendations: item.recommendations,
-                    });
-                    setNewItemPhotos(item.photos || []);
-                    setPhotoComments(item.photoComments || []);
-                    setItems(prev => prev.filter((_, i) => i !== idx));
-                  }}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton size="small" color="error" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <Paper sx={{ p: 3, mb: 4 }}>
+                      ) : (
+                        'No photos'
+                      )}
+                    </TableCell>
+                    <TableCell align="center" sx={{ width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">
+                      <IconButton size="small" onClick={() => {
+                        setNewItem({
+                          startStation: item.startStation,
+                          endStation: item.endStation,
+                          feature: item.feature,
+                          issue: item.issue,
+                          recommendations: item.recommendations,
+                        });
+                        setNewItemPhotos(item.photos || []);
+                        setPhotoComments(item.photoComments || []);
+                        setItems(prev => prev.filter((_, i) => i !== idx));
+                      }}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
+      <Paper sx={{ p: 3, mb: 4, bgcolor: '#f5f5f5', '& .MuiInputBase-root': { bgcolor: 'white' } }}>
         {!report?.finalized && (
           <>
             <Typography variant="h6" gutterBottom>
