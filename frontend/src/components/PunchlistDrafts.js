@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Paper, Typography, Button, IconButton, Stack } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate } from 'react-router-dom';
 
 const PunchlistDrafts = () => {
@@ -56,6 +57,9 @@ const PunchlistDrafts = () => {
               <Box>
                 <IconButton color="primary" onClick={() => handleResume(draft.key)}>
                   <EditIcon />
+                </IconButton>
+                <IconButton color="info" onClick={() => navigate(`/punchlist-draft/${draft.key.replace('punchlist_draft_', '')}`)}>
+                  <VisibilityIcon />
                 </IconButton>
                 <IconButton color="error" onClick={() => handleDelete(draft.key)}>
                   <DeleteIcon />
