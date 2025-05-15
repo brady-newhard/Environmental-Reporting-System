@@ -34,6 +34,7 @@ import CoatingRoutes from './routes/coatingRoutes';
 import SWPPPDrafts from './components/SWPPPDrafts';
 import NewReport from './components/NewReport';
 import PunchlistDrafts from './components/PunchlistDrafts';
+import PunchlistDraftView from './components/PunchlistDraftView';
 
 const theme = createTheme({
   palette: {
@@ -407,6 +408,14 @@ function App() {
             element={
               <PrivateRoute>
                 <PunchlistDrafts />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/punchlist-draft/:draftId"
+            element={
+              <PrivateRoute>
+                <PunchlistDraftView />
               </PrivateRoute>
             }
           />
