@@ -7,7 +7,7 @@ import SignUp from './components/SignUp';
 import SuccessSignUp from './components/SuccessSignUp';
 import ContactList from './components/ContactList';
 import Navigation from './components/Navigation';
-import ProjectDocuments from './components/ReportsDashboard';
+import ProjectDocuments from './components/ProjectDocuments';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
@@ -276,7 +276,7 @@ function App() {
             }
           />
           <Route
-            path="/reports-dashboard"
+            path="/project-documents"
             element={
               <PrivateRoute>
                 <ProjectDocuments />

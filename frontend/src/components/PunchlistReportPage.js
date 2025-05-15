@@ -12,7 +12,7 @@ const PunchlistReportPage = () => {
     <Box sx={{ p: 4 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <IconButton
-          onClick={() => navigate('/reports-dashboard')}
+          onClick={() => navigate('/project-documents')}
           sx={{
             bgcolor: 'black',
             color: 'white',

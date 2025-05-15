@@ -43,7 +43,7 @@ const NewReport = () => {
         daily_activities: formData.description,
         weather_conditions: 'N/A',
       });
-      navigate(`/reports-dashboard`);
+      navigate(`/project-documents`);
     } catch (error) {
       console.error('Error creating report:', error);
       alert('Error creating report. Please try again.');

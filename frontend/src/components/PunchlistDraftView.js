@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button } from '@mui/material';
+import { Box, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const PunchlistDraftView = () => {
@@ -22,16 +22,37 @@ const PunchlistDraftView = () => {
 
   return (
     <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 } }}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/punchlist-drafts')} sx={{ mb: 2 }}>
-        Back to Drafts
-      </Button>
-      <Typography variant="h4" gutterBottom>Punchlist Draft View</Typography>
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="subtitle1" fontWeight={600}>
-          Spread: {draft.spread || '-'} | Inspector: {draft.inspectorName || '-'} | Date: {draft.inspectionDate || '-'}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <IconButton
+          onClick={() => navigate('/punchlist-drafts')}
+          sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            width: 44,
+            height: 44,
+            '&:hover': { bgcolor: '#333' },
+          }}
+        >
+          <ArrowBackIcon sx={{ fontSize: 28 }} />
+        </IconButton>
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+          Punchlist Draft View
         </Typography>
+      </Box>
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Spread: {draft.spread || '-'}
+          </Typography>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Inspector: {draft.inspectorName || '-'}
+          </Typography>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Date: {draft.inspectionDate || '-'}
+          </Typography>
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Last Modified: {draft.lastModified ? new Date(draft.lastModified).toLocaleString() : '-'}
+          Last Modified: {draft.lastModified ? new Date(draft.lastModified).toLocaleDateString() : '-'}
         </Typography>
         <TableContainer>
           <Table sx={{ minWidth: 1200, tableLayout: 'fixed' }}>

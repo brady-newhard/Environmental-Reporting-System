@@ -116,7 +116,7 @@ const ReportForm = () => {
         report_id: generateReportId(),
         status: 'draft'
       });
-      navigate('/reports-dashboard');
+      navigate('/project-documents');
     } catch (error) {
       console.error('Error saving draft report:', error);
       alert('Error saving draft report. Please try again.');
@@ -165,7 +165,7 @@ const ReportForm = () => {
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 2 } }}>
         <IconButton
-          onClick={() => navigate('/reports-dashboard')}
+          onClick={() => navigate('/project-documents')}
           sx={{
             mr: { xs: 1, sm: 2 },
             backgroundColor: '#000000',
@@ -632,7 +632,7 @@ const ReportForm = () => {
           <Button
             variant="contained"
             size="small"
-            onClick={() => navigate('/reports-dashboard')}
+            onClick={() => navigate('/project-documents')}
             sx={{
               backgroundColor: '#666666',
               '&:hover': { backgroundColor: '#444444' },
