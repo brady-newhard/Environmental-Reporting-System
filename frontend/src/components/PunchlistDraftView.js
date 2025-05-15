@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton } from '@mui/material';
+import { Box, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, Dialog, DialogTitle, DialogContent, TextField } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CloseIcon from '@mui/icons-material/Close';
 
 const PunchlistDraftView = () => {
   const { draftId } = useParams();
   const navigate = useNavigate();
   const [draft, setDraft] = useState(null);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState(null);
+  const [selectedPhotoArr, setSelectedPhotoArr] = useState([]);
+  const [selectedPhotoComments, setSelectedPhotoComments] = useState([]);
 
   useEffect(() => {
     const key = `punchlist_draft_${draftId}`;
@@ -87,10 +92,17 @@ const PunchlistDraftView = () => {
                                 borderRadius: 1,
                                 overflow: 'hidden',
                                 bgcolor: '#eee',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => {
+                                setSelectedPhotoArr(item.photos);
+                                setSelectedPhotoComments(item.photoComments || []);
+                                setSelectedPhotoIdx(photoIdx);
+                                setPhotoDialogOpen(true);
                               }}
                             >
                               <img
-                                src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+                                src={photo}
                                 alt={`Preview ${photoIdx + 1}`}
                                 style={{
                                   width: '100%',
@@ -116,6 +128,43 @@ const PunchlistDraftView = () => {
           </Table>
         </TableContainer>
       </Paper>
+      <Dialog
+        open={photoDialogOpen}
+        onClose={() => {
+          setPhotoDialogOpen(false);
+          setSelectedPhotoIdx(null);
+          setSelectedPhotoArr([]);
+          setSelectedPhotoComments([]);
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0 }}>
+          Photo Preview
+          <IconButton onClick={() => {
+            setPhotoDialogOpen(false);
+            setSelectedPhotoIdx(null);
+            setSelectedPhotoArr([]);
+            setSelectedPhotoComments([]);
+          }}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
+          {selectedPhotoIdx !== null && selectedPhotoArr[selectedPhotoIdx] && (
+            <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>{`Photo ${selectedPhotoIdx + 1}`}</Typography>
+              <img src={selectedPhotoArr[selectedPhotoIdx]} alt="Large Preview" style={{ width: '100%', maxWidth: 400, maxHeight: '60vh', objectFit: 'contain' }} />
+              {selectedPhotoComments[selectedPhotoIdx] && (
+                <Box sx={{ mt: 2, width: '100%' }}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Comments:</Typography>
+                  <Typography variant="body2">{selectedPhotoComments[selectedPhotoIdx]}</Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
