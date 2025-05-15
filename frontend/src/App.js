@@ -16,8 +16,9 @@ import ReviewReport from './components/ReviewReport';
 import PrivateRoute from './components/PrivateRoute';
 import Profile from './components/Profile';
 import ReportForm from './components/ReportForm';
-import NewPunchlist from './components/NewPunchlist';
-import PunchlistReportPage from './components/PunchlistReportPage';
+import NewPunchlistReport from './components/NewPunchlistReport';
+import PunchlistDrafts from './components/PunchlistDrafts';
+import PunchlistDraftView from './components/PunchlistDraftView';
 import NewSWPPP from './components/NewSWPPP';
 import SWPPPReport from './components/SWPPPReport';
 import SWPPPPhotoPage from './components/SWPPPPhotoPage';
@@ -33,8 +34,6 @@ import CoatingMain from './components/coating/CoatingMain';
 import CoatingRoutes from './routes/coatingRoutes';
 import SWPPPDrafts from './components/SWPPPDrafts';
 import NewReport from './components/NewReport';
-import PunchlistDrafts from './components/PunchlistDrafts';
-import PunchlistDraftView from './components/PunchlistDraftView';
 
 const theme = createTheme({
   palette: {
@@ -295,7 +294,7 @@ function App() {
             path="/new-punchlist"
             element={
               <PrivateRoute>
-                <PunchlistReportPage />
+                <NewPunchlistReport />
               </PrivateRoute>
             }
           />
@@ -343,7 +342,7 @@ function App() {
             path="/punchlist-report/:id"
             element={
               <PrivateRoute>
-                <PunchlistReportPage />
+                <NewPunchlistReport />
               </PrivateRoute>
             }
           />

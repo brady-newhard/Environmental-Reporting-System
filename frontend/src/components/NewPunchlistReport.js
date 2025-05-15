@@ -57,16 +57,30 @@ const NewPunchlistReport = ({ reportId }) => {
     if (reportId) {
       fetchReport();
     } else {
-      // For new reports, clear any existing draft data
+      // Check for a draft in localStorage
       const draftId = localStorage.getItem('punchlist_current_draftId');
       if (draftId) {
-        localStorage.removeItem(`punchlist_draft_${draftId}`);
-        localStorage.removeItem('punchlist_current_draftId');
+        const draftKey = `punchlist_draft_${draftId}`;
+        const draft = localStorage.getItem(draftKey);
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          setItems(parsed.items || []);
+          setSpread(parsed.spread || '');
+          setInspectorName(parsed.inspectorName || '');
+          setInspectionDate(parsed.inspectionDate || '');
+          console.log('Loaded draft items:', parsed.items);
+        } else {
+          setItems([]);
+          setSpread('');
+          setInspectorName('');
+          setInspectionDate('');
+        }
+      } else {
+        setItems([]);
+        setSpread('');
+        setInspectorName('');
+        setInspectionDate('');
       }
-      setItems([]);
-      setSpread('');
-      setInspectorName('');
-      setInspectionDate('');
     }
     setLoading(false);
   }, [reportId]);
@@ -219,11 +233,25 @@ const NewPunchlistReport = ({ reportId }) => {
   }
 
   return (
-    <Box sx={{ mt: 0.5 }}>
-      <Paper sx={{ p: 3, mb: 4, bgcolor: '#f5f5f5', '& .MuiInputBase-root': { bgcolor: 'white' } }}>
-        <Typography variant="h6" gutterBottom>
+    <Box sx={{ mt: 0.5, p: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <IconButton
+          onClick={() => navigate('/environmental/reports')}
+          sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            width: 44,
+            height: 44,
+            '&:hover': { bgcolor: '#333' },
+          }}
+        >
+          <ArrowBackIcon sx={{ fontSize: 28 }} />
+        </IconButton>
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
           New Punchlist Report
         </Typography>
+      </Box>
+      <Paper sx={{ p: 3, mb: 4, bgcolor: '#f5f5f5', '& .MuiInputBase-root': { bgcolor: 'white' } }}>
         {items.length > 0 && (
           <>
             <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>Punchlist Items</Typography>
@@ -318,7 +346,7 @@ const NewPunchlistReport = ({ reportId }) => {
           </>
         )}
         {!report?.finalized && (
-          <>
+          <Paper sx={{ p: 2, mt: 2, bgcolor: '#f8f8f8' }}>
             <Typography variant="h6" gutterBottom>
               Add New Item
             </Typography>
@@ -482,7 +510,7 @@ const NewPunchlistReport = ({ reportId }) => {
                 Add Item
               </Button>
             </Box>
-          </>
+          </Paper>
         )}
         <Dialog 
           open={!!editingItem} 
@@ -725,18 +753,6 @@ const NewPunchlistReport = ({ reportId }) => {
             </>
           )}
         </Stack>
-        <IconButton
-          onClick={() => navigate('/environmental/reports')}
-          sx={{
-            bgcolor: '#000',
-            color: '#fff',
-            width: 44,
-            height: 44,
-            '&:hover': { bgcolor: '#333' },
-          }}
-        >
-          <ArrowBackIcon sx={{ fontSize: 28 }} />
-        </IconButton>
       </Paper>
     </Box>
   );
