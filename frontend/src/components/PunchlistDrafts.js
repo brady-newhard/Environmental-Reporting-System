@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Paper, Typography, Button, IconButton, Stack } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  IconButton,
+  Stack,
+} from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { useNavigate } from 'react-router-dom';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const PunchlistDrafts = () => {
-  const [drafts, setDrafts] = useState([]);
   const navigate = useNavigate();
+  const [drafts, setDrafts] = useState([]);
 
   useEffect(() => {
     // Load all punchlist drafts from localStorage
@@ -39,7 +47,23 @@ const PunchlistDrafts = () => {
 
   return (
     <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 } }}>
-      <Typography variant="h4" gutterBottom>Punchlist Drafts</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <IconButton
+          onClick={() => navigate('/environmental/reports')}
+          sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            width: 44,
+            height: 44,
+            '&:hover': { bgcolor: '#333' },
+          }}
+        >
+          <ArrowBackIcon sx={{ fontSize: 28 }} />
+        </IconButton>
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+          Punchlist Drafts
+        </Typography>
+      </Box>
       {drafts.length === 0 ? (
         <Typography>No drafts found.</Typography>
       ) : (
@@ -48,10 +72,16 @@ const PunchlistDrafts = () => {
             <Paper key={draft.key} sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
                 <Typography variant="subtitle1" fontWeight={600}>
-                  Spread: {draft.spread || '-'} | Inspector: {draft.inspectorName || '-'}
+                  Spread: {draft.spread || '-'}
+                </Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Inspector: {draft.inspectorName || '-'}
+                </Typography>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Date: {draft.inspectionDate || '-'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Last Modified: {draft.lastModified ? new Date(draft.lastModified).toLocaleString() : '-'}
+                  Last Modified: {draft.lastModified ? new Date(draft.lastModified).toLocaleDateString() : '-'}
                 </Typography>
               </Box>
               <Box>

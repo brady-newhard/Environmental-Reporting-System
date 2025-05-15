@@ -243,7 +243,7 @@ const NewPunchlist = () => {
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
           <Button
             variant="outlined"
-            onClick={() => navigate('/reports-dashboard')}
+            onClick={() => navigate('/project-documents')}
             disabled={submitting}
           >
             Cancel

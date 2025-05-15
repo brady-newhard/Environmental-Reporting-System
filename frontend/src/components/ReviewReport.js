@@ -145,7 +145,7 @@ const ReviewReport = () => {
       }
       
       alert('Report submitted successfully!');
-      navigate('/reports-dashboard');
+      navigate('/project-documents');
     } catch (error) {
       console.error('Error submitting report:', error);
       console.error('Error details:', {
@@ -259,7 +259,7 @@ const ReviewReport = () => {
     }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 1, sm: 2 } }}>
           <IconButton
-          onClick={() => navigate('/reports-dashboard')}
+          onClick={() => navigate('/project-documents')}
           sx={{
             mr: { xs: 1, sm: 2 },
             backgroundColor: '#000000',
@@ -497,7 +497,7 @@ const ReviewReport = () => {
         <Button
           variant="contained"
           size="small"
-          onClick={() => navigate('/reports-dashboard')}
+          onClick={() => navigate('/project-documents')}
           sx={{
             backgroundColor: '#666666',
             '&:hover': { backgroundColor: '#444444' },

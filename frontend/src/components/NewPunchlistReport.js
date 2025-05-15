@@ -20,7 +20,7 @@ import {
   useMediaQuery,
   Stack,
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, AddPhotoAlternate as AddPhotoIcon } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, AddPhotoAlternate as AddPhotoIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import SaveIcon from '@mui/icons-material/Save';
@@ -56,18 +56,17 @@ const NewPunchlistReport = ({ reportId }) => {
   useEffect(() => {
     if (reportId) {
       fetchReport();
-    }
-    // Load draft if no reportId
-    if (!reportId) {
+    } else {
+      // For new reports, clear any existing draft data
       const draftId = localStorage.getItem('punchlist_current_draftId');
-      const draftKey = draftId ? `punchlist_draft_${draftId}` : null;
-      if (draftKey && localStorage.getItem(draftKey)) {
-        const draft = JSON.parse(localStorage.getItem(draftKey));
-        setItems(draft.items || []);
-        setSpread(draft.spread || '');
-        setInspectorName(draft.inspectorName || '');
-        setInspectionDate(draft.inspectionDate || '');
+      if (draftId) {
+        localStorage.removeItem(`punchlist_draft_${draftId}`);
+        localStorage.removeItem('punchlist_current_draftId');
       }
+      setItems([]);
+      setSpread('');
+      setInspectorName('');
+      setInspectionDate('');
     }
     setLoading(false);
   }, [reportId]);
@@ -171,7 +170,7 @@ const NewPunchlistReport = ({ reportId }) => {
       if (reportId) {
         axios.delete(`/api/reports/${reportId}/`).then(() => {
           alert('Report deleted.');
-          navigate('/reports');
+          navigate('/environmental/reports');
         }).catch(() => alert('Failed to delete report.'));
       } else {
         const draftId = getDraftId();
@@ -203,7 +202,7 @@ const NewPunchlistReport = ({ reportId }) => {
         localStorage.removeItem('punchlist_current_draftId');
       }
       alert('Report submitted for review!');
-      navigate('/reports');
+      navigate('/environmental/reports');
     } catch (error) {
       alert('Failed to submit report.');
     }
@@ -221,100 +220,103 @@ const NewPunchlistReport = ({ reportId }) => {
 
   return (
     <Box sx={{ mt: 0.5 }}>
-      {items.length > 0 && (
-        <>
-          <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>Punchlist Items</Typography>
-          <TableContainer sx={{ mb: 3, border: '1px solid #000', borderRadius: 2, overflowX: 'auto' }}>
-            <Table sx={{ minWidth: 1200, tableLayout: 'fixed' }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Spread">Spread</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Inspector">Inspector</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Date">Date</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Start Station">Start Station</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="End Station">End Station</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 175, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Feature">Feature</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Issue">Issue</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Recommendations">Recommendations</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Photos">Photos</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((item, idx) => (
-                  <TableRow key={idx} sx={{ borderBottom: '1px solid #e0e0e0' }}>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.spread || ''}>{item.spread || ''}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.inspectorName || ''}>{item.inspectorName || ''}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.date || ''}>{item.date || ''}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.startStation}>{item.startStation}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.endStation}>{item.endStation}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 240, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.feature}>{item.feature}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.issue}>{item.issue}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.recommendations}>{item.recommendations}</TableCell>
-                    <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.photos && item.photos.length > 0 ? 'Photos' : 'No photos'}>
-                      {item.photos && item.photos.length > 0 ? (
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                          {item.photos.map((photo, photoIdx) => (
-                            <Box
-                              key={photoIdx}
-                              sx={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 1,
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                '&:hover': {
-                                  opacity: 0.9
-                                }
-                              }}
-                              onClick={() => {
-                                setSelectedPhotoIdx(photoIdx);
-                                setPhotoDialogOpen(true);
-                              }}
-                            >
-                              <img
-                                src={photo instanceof File ? URL.createObjectURL(photo) : photo}
-                                alt={`Preview ${photoIdx + 1}`}
-                                style={{
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover'
-                                }}
-                              />
-                            </Box>
-                          ))}
-                        </Box>
-                      ) : (
-                        'No photos'
-                      )}
-                    </TableCell>
-                    <TableCell align="center" sx={{ width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">
-                      <IconButton size="small" onClick={() => {
-                        setNewItem({
-                          startStation: item.startStation,
-                          endStation: item.endStation,
-                          feature: item.feature,
-                          issue: item.issue,
-                          recommendations: item.recommendations,
-                        });
-                        setNewItemPhotos(item.photos || []);
-                        setPhotoComments(item.photoComments || []);
-                        setItems(prev => prev.filter((_, i) => i !== idx));
-                      }}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton size="small" color="error" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
-      )}
       <Paper sx={{ p: 3, mb: 4, bgcolor: '#f5f5f5', '& .MuiInputBase-root': { bgcolor: 'white' } }}>
+        <Typography variant="h6" gutterBottom>
+          New Punchlist Report
+        </Typography>
+        {items.length > 0 && (
+          <>
+            <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>Punchlist Items</Typography>
+            <TableContainer sx={{ mb: 3, border: '1px solid #000', borderRadius: 2, overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 1200, tableLayout: 'fixed' }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Spread">Spread</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Inspector">Inspector</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Date">Date</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Start Station">Start Station</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="End Station">End Station</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 175, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Feature">Feature</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Issue">Issue</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Recommendations">Recommendations</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Photos">Photos</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {items.map((item, idx) => (
+                    <TableRow key={idx} sx={{ borderBottom: '1px solid #e0e0e0' }}>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.spread || ''}>{item.spread || ''}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.inspectorName || ''}>{item.inspectorName || ''}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.date || ''}>{item.date || ''}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.startStation}>{item.startStation}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.endStation}>{item.endStation}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 240, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.feature}>{item.feature}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.issue}>{item.issue}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.recommendations}>{item.recommendations}</TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.photos && item.photos.length > 0 ? 'Photos' : 'No photos'}>
+                        {item.photos && item.photos.length > 0 ? (
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            {item.photos.map((photo, photoIdx) => (
+                              <Box
+                                key={photoIdx}
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: 1,
+                                  overflow: 'hidden',
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    opacity: 0.9
+                                  }
+                                }}
+                                onClick={() => {
+                                  setSelectedPhotoIdx(photoIdx);
+                                  setPhotoDialogOpen(true);
+                                }}
+                              >
+                                <img
+                                  src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+                                  alt={`Preview ${photoIdx + 1}`}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                  }}
+                                />
+                              </Box>
+                            ))}
+                          </Box>
+                        ) : (
+                          'No photos'
+                        )}
+                      </TableCell>
+                      <TableCell align="center" sx={{ width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">
+                        <IconButton size="small" onClick={() => {
+                          setNewItem({
+                            startStation: item.startStation,
+                            endStation: item.endStation,
+                            feature: item.feature,
+                            issue: item.issue,
+                            recommendations: item.recommendations,
+                          });
+                          setNewItemPhotos(item.photos || []);
+                          setPhotoComments(item.photoComments || []);
+                          setItems(prev => prev.filter((_, i) => i !== idx));
+                        }}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton size="small" color="error" onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </>
+        )}
         {!report?.finalized && (
           <>
             <Typography variant="h6" gutterBottom>
@@ -482,7 +484,6 @@ const NewPunchlistReport = ({ reportId }) => {
             </Box>
           </>
         )}
-
         <Dialog 
           open={!!editingItem} 
           onClose={() => setEditingItem(null)}
@@ -655,76 +656,88 @@ const NewPunchlistReport = ({ reportId }) => {
             )}
           </DialogContent>
         </Dialog>
+        <Stack 
+          direction={isMobile ? 'row' : { xs: 'column', sm: 'row' }} 
+          spacing={isMobile ? 3 : 1} 
+          justifyContent={isMobile ? 'space-between' : undefined}
+          sx={{ 
+            mt: 1, 
+            width: '100%',
+            m: 0,
+            '& .MuiButton-root': {
+              width: { xs: '100%', sm: 'auto' }
+            }
+          }}
+        >
+          {isMobile ? (
+            <>
+              <IconButton color="error" onClick={handleDelete} size="large" sx={{ flex: 1 }}>
+                <DeleteIcon sx={{ fontSize: 36 }} />
+              </IconButton>
+              <IconButton color="success" onClick={handleSave} size="large" sx={{ flex: 1 }}>
+                <SaveIcon sx={{ fontSize: 36 }} />
+              </IconButton>
+              <IconButton onClick={handleExit} size="large" sx={{ flex: 1 }}>
+                <CloseIcon sx={{ fontSize: 36 }} />
+              </IconButton>
+              <IconButton color="primary" onClick={handleFinalize} size="large" sx={{ flex: 1 }}>
+                <SendIcon sx={{ fontSize: 36 }} />
+              </IconButton>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleDelete}
+                size="small"
+                startIcon={<DeleteIcon />}
+              >
+                Delete
+              </Button>
+              <Button
+                variant="outlined"
+                color="success"
+                onClick={handleSave}
+                size="small"
+                startIcon={<SaveIcon />}
+              >
+                Save
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleExit}
+                size="small"
+                startIcon={<CloseIcon />}
+              >
+                Exit
+              </Button>
+              <Box sx={{ flex: 1 }} />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleFinalize}
+                size="small"
+                startIcon={<SendIcon />}
+              >
+                Submit
+              </Button>
+            </>
+          )}
+        </Stack>
+        <IconButton
+          onClick={() => navigate('/environmental/reports')}
+          sx={{
+            bgcolor: '#000',
+            color: '#fff',
+            width: 44,
+            height: 44,
+            '&:hover': { bgcolor: '#333' },
+          }}
+        >
+          <ArrowBackIcon sx={{ fontSize: 28 }} />
+        </IconButton>
       </Paper>
-      <Stack 
-        direction={isMobile ? 'row' : { xs: 'column', sm: 'row' }} 
-        spacing={isMobile ? 3 : 1} 
-        justifyContent={isMobile ? 'space-between' : undefined}
-        sx={{ 
-          mt: 1, 
-          width: '100%',
-          m: 0,
-          '& .MuiButton-root': {
-            width: { xs: '100%', sm: 'auto' }
-          }
-        }}
-      >
-        {isMobile ? (
-          <>
-            <IconButton color="error" onClick={handleDelete} size="large" sx={{ flex: 1 }}>
-              <DeleteIcon sx={{ fontSize: 36 }} />
-            </IconButton>
-            <IconButton color="success" onClick={handleSave} size="large" sx={{ flex: 1 }}>
-              <SaveIcon sx={{ fontSize: 36 }} />
-            </IconButton>
-            <IconButton onClick={handleExit} size="large" sx={{ flex: 1 }}>
-              <CloseIcon sx={{ fontSize: 36 }} />
-            </IconButton>
-            <IconButton color="primary" onClick={handleFinalize} size="large" sx={{ flex: 1 }}>
-              <SendIcon sx={{ fontSize: 36 }} />
-            </IconButton>
-          </>
-        ) : (
-          <>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleDelete}
-              size="small"
-              startIcon={<DeleteIcon />}
-            >
-              Delete
-            </Button>
-            <Button
-              variant="outlined"
-              color="success"
-              onClick={handleSave}
-              size="small"
-              startIcon={<SaveIcon />}
-            >
-              Save
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={handleExit}
-              size="small"
-              startIcon={<CloseIcon />}
-            >
-              Exit
-            </Button>
-            <Box sx={{ flex: 1 }} />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleFinalize}
-              size="small"
-              startIcon={<SendIcon />}
-            >
-              Submit
-            </Button>
-          </>
-        )}
-      </Stack>
     </Box>
   );
 };
