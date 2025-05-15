@@ -46,6 +46,9 @@ const NewPunchlistReport = ({ reportId }) => {
   const [spread, setSpread] = useState('');
   const [inspectorName, setInspectorName] = useState('');
   const [inspectionDate, setInspectionDate] = useState('');
+  const [previewPhotos, setPreviewPhotos] = useState([]);
+  const [previewPhotoComments, setPreviewPhotoComments] = useState([]);
+  const [previewItemIdx, setPreviewItemIdx] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -308,7 +311,10 @@ const NewPunchlistReport = ({ reportId }) => {
                                   }
                                 }}
                                 onClick={() => {
+                                  setPreviewPhotos(item.photos || []);
+                                  setPreviewPhotoComments(item.photoComments || []);
                                   setSelectedPhotoIdx(photoIdx);
+                                  setPreviewItemIdx(idx);
                                   setPhotoDialogOpen(true);
                                 }}
                               >
@@ -466,7 +472,13 @@ const NewPunchlistReport = ({ reportId }) => {
                     <Box
                       key={idx}
                       sx={{ width: '100%', paddingTop: '100%', position: 'relative', borderRadius: 1, overflow: 'hidden', cursor: 'pointer' }}
-                      onClick={() => { setSelectedPhotoIdx(idx); setPhotoDialogOpen(true); }}
+                      onClick={() => {
+                        setPreviewPhotos(newItemPhotos);
+                        setPreviewPhotoComments(photoComments);
+                        setSelectedPhotoIdx(idx);
+                        setPreviewItemIdx(null);
+                        setPhotoDialogOpen(true);
+                      }}
                     >
                       <img
                         src={photo}
@@ -639,6 +651,18 @@ const NewPunchlistReport = ({ reportId }) => {
           onClose={() => {
             setPhotoDialogOpen(false);
             setSelectedPhotoIdx(null);
+            if (previewItemIdx === null) {
+              setPhotoComments(previewPhotoComments);
+            } else {
+              setItems(prev => {
+                const updatedItems = [...prev];
+                updatedItems[previewItemIdx].photoComments = previewPhotoComments;
+                return updatedItems;
+              });
+            }
+            setPreviewPhotos([]);
+            setPreviewPhotoComments([]);
+            setPreviewItemIdx(null);
           }}
           maxWidth={isMobile ? 'xs' : 'xs'}
           fullWidth
@@ -646,28 +670,52 @@ const NewPunchlistReport = ({ reportId }) => {
         >
           <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 0 }}>
             Photo Preview
-            <IconButton onClick={() => { setPhotoDialogOpen(false); setSelectedPhotoIdx(null); }}>
+            <IconButton onClick={() => {
+              setPhotoDialogOpen(false);
+              setSelectedPhotoIdx(null);
+              if (previewItemIdx === null) {
+                setPhotoComments(previewPhotoComments);
+              } else {
+                setItems(prev => {
+                  const updatedItems = [...prev];
+                  updatedItems[previewItemIdx].photoComments = previewPhotoComments;
+                  return updatedItems;
+                });
+              }
+              setPreviewPhotos([]);
+              setPreviewPhotoComments([]);
+              setPreviewItemIdx(null);
+            }}>
               <CloseIcon />
             </IconButton>
           </DialogTitle>
           <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
-            {selectedPhotoIdx !== null && newItemPhotos[selectedPhotoIdx] && (
+            {selectedPhotoIdx !== null && previewPhotos[selectedPhotoIdx] && (
               <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>{`Photo ${selectedPhotoIdx + 1}`}</Typography>
-                <img src={newItemPhotos[selectedPhotoIdx]} alt="Large Preview" style={{ width: '100%', maxWidth: 400, maxHeight: '60vh', objectFit: 'contain' }} />
-                <TextField
-                  label="Comments"
-                  value={photoComments[selectedPhotoIdx] || ''}
-                  onChange={e => {
-                    const updated = [...photoComments];
-                    updated[selectedPhotoIdx] = e.target.value;
-                    setPhotoComments(updated);
-                  }}
-                  fullWidth
-                  multiline
-                  minRows={2}
-                  sx={{ mt: 2 }}
-                />
+                <img src={previewPhotos[selectedPhotoIdx]} alt="Large Preview" style={{ width: '100%', maxWidth: 400, maxHeight: '60vh', objectFit: 'contain' }} />
+                {previewItemIdx === null ? (
+                  <TextField
+                    label="Comments"
+                    value={previewPhotoComments[selectedPhotoIdx] || ''}
+                    onChange={e => {
+                      const updated = [...previewPhotoComments];
+                      updated[selectedPhotoIdx] = e.target.value;
+                      setPreviewPhotoComments(updated);
+                    }}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    sx={{ mt: 2 }}
+                  />
+                ) : (
+                  previewPhotoComments[selectedPhotoIdx] && (
+                    <Box sx={{ mt: 2, width: '100%' }}>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>Comments:</Typography>
+                      <Typography variant="body2">{previewPhotoComments[selectedPhotoIdx]}</Typography>
+                    </Box>
+                  )
+                )}
               </Box>
             )}
           </DialogContent>
