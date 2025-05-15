@@ -165,23 +165,6 @@ const NewPunchlistReport = ({ reportId }) => {
     }
   };
 
-  const handleSave = () => {
-    const draftId = getDraftId();
-    localStorage.setItem('punchlist_current_draftId', draftId);
-    const draftKey = `punchlist_draft_${draftId}`;
-    localStorage.setItem(
-      draftKey,
-      JSON.stringify({
-        items,
-        spread,
-        inspectorName,
-        inspectionDate,
-        lastModified: Date.now(),
-      })
-    );
-    alert('Draft saved locally.');
-  };
-
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
       if (reportId) {
@@ -200,6 +183,41 @@ const NewPunchlistReport = ({ reportId }) => {
         alert('Draft deleted.');
         navigate('/punchlist-drafts');
       }
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      if (reportId) {
+        // Save to server for live version
+        await axios.put(`/api/reports/${reportId}`, {
+          items,
+          spread,
+          inspectorName,
+          inspectionDate,
+          lastModified: Date.now(),
+        });
+        alert('Report saved successfully.');
+      } else {
+        // Save to localStorage for draft version
+        const draftId = getDraftId();
+        localStorage.setItem('punchlist_current_draftId', draftId);
+        const draftKey = `punchlist_draft_${draftId}`;
+        localStorage.setItem(
+          draftKey,
+          JSON.stringify({
+            items,
+            spread,
+            inspectorName,
+            inspectionDate,
+            lastModified: Date.now(),
+          })
+        );
+        alert('Draft saved locally.');
+      }
+    } catch (error) {
+      console.error('Error saving report:', error);
+      alert('Failed to save report. Please try again.');
     }
   };
 
