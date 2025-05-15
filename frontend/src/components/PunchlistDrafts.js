@@ -1,0 +1,72 @@
+import React, { useState, useEffect } from 'react';
+import { Box, Paper, Typography, Button, IconButton, Stack } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import { useNavigate } from 'react-router-dom';
+
+const PunchlistDrafts = () => {
+  const [drafts, setDrafts] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Load all punchlist drafts from localStorage
+    const keys = Object.keys(localStorage).filter(key => key.startsWith('punchlist_draft_'));
+    const loadedDrafts = keys.map(key => {
+      const data = JSON.parse(localStorage.getItem(key));
+      return {
+        key,
+        ...data,
+      };
+    });
+    // Sort by lastModified desc
+    loadedDrafts.sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
+    setDrafts(loadedDrafts);
+  }, []);
+
+  const handleResume = (key) => {
+    // Set current draft id and navigate to new punchlist
+    localStorage.setItem('punchlist_current_draftId', key.replace('punchlist_draft_', ''));
+    navigate('/new-punchlist');
+  };
+
+  const handleDelete = (key) => {
+    if (window.confirm('Delete this draft?')) {
+      localStorage.removeItem(key);
+      setDrafts(drafts.filter(d => d.key !== key));
+    }
+  };
+
+  return (
+    <Box sx={{ mt: 4, px: { xs: 2, sm: 4, md: 6 } }}>
+      <Typography variant="h4" gutterBottom>Punchlist Drafts</Typography>
+      {drafts.length === 0 ? (
+        <Typography>No drafts found.</Typography>
+      ) : (
+        <Stack spacing={2}>
+          {drafts.map(draft => (
+            <Paper key={draft.key} sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box>
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Spread: {draft.spread || '-'} | Inspector: {draft.inspectorName || '-'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Last Modified: {draft.lastModified ? new Date(draft.lastModified).toLocaleString() : '-'}
+                </Typography>
+              </Box>
+              <Box>
+                <IconButton color="primary" onClick={() => handleResume(draft.key)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton color="error" onClick={() => handleDelete(draft.key)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            </Paper>
+          ))}
+        </Stack>
+      )}
+    </Box>
+  );
+};
+
+export default PunchlistDrafts; 
