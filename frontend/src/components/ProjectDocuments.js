@@ -32,7 +32,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import PageHeader from './common/PageHeader';
-import PunchlistReport from './PunchlistReport';
 import { ProgressChartTable } from './ProgressChart';
 
 const DocumentItem = ({ document, onDelete, onSelect, isSelected }) => {

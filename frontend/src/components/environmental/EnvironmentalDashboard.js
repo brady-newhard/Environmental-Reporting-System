@@ -19,7 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../common/PageHeader';
 
-const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount }) => {
+const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount, onCreate }) => {
   const navigate = useNavigate();
 
   return (
@@ -80,7 +80,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draft
         <Button
           variant="contained"
           fullWidth
-          onClick={() => navigate(path)}
+          onClick={onCreate ? onCreate : () => navigate(path)}
           sx={{
             backgroundColor: '#000000',
             '&:hover': { 
@@ -154,6 +154,11 @@ const EnvironmentalReports = () => {
     setPunchlistDraftCount(punchlistDrafts);
   }, []);
 
+  const handleCreateNewPunchlist = () => {
+    localStorage.removeItem('punchlist_current_draftId');
+    navigate('/new-punchlist');
+  };
+
   const reportTypes = [
     {
       title: "Daily Report",
@@ -177,7 +182,8 @@ const EnvironmentalReports = () => {
       description: "Environmental Compliance Items",
       path: "/new-punchlist",
       draftPath: "/punchlist-drafts",
-      draftCount: punchlistDraftCount
+      draftCount: punchlistDraftCount,
+      onCreate: handleCreateNewPunchlist
     },
     {
       title: "Progress Report",
@@ -222,6 +228,7 @@ const EnvironmentalReports = () => {
             path={type.path}
             draftPath={type.draftPath}
             draftCount={type.draftCount}
+            onCreate={type.onCreate}
           />
         ))}
       </Box>
