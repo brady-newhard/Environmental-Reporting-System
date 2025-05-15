@@ -16,10 +16,16 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  useTheme,
+  useMediaQuery,
+  Stack,
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon, AddPhotoAlternate as AddPhotoIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
+import SendIcon from '@mui/icons-material/Send';
 
 const NewPunchlistReport = ({ reportId }) => {
   const [items, setItems] = useState([]);
@@ -41,6 +47,9 @@ const NewPunchlistReport = ({ reportId }) => {
   const [inspectorName, setInspectorName] = useState('');
   const [inspectionDate, setInspectionDate] = useState('');
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     if (reportId) {
@@ -63,6 +72,9 @@ const NewPunchlistReport = ({ reportId }) => {
       ...prev,
       {
         ...newItem,
+        spread,
+        inspectorName,
+        date: inspectionDate,
         photos: newItemPhotos,
         photoComments: photoComments,
       }
@@ -209,35 +221,36 @@ const NewPunchlistReport = ({ reportId }) => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <TableContainer component={Paper} sx={{ mb: 3, overflowX: 'auto', width: '100%' }}>
-        <Table sx={{ minWidth: 900, borderCollapse: 'separate', borderSpacing: 0 }}>
+    <Box sx={{ mt: 0.5 }}>
+      <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>Punchlist Items</Typography>
+      <TableContainer sx={{ mb: 3, border: '1px solid #000', borderRadius: 2, overflowX: 'auto' }}>
+        <Table sx={{ minWidth: 1200, tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Spread</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Inspector</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', whiteSpace: 'nowrap', borderBottom: '1px solid #e0e0e0' }}>Date</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Start Station</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>End Station</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Feature</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', borderBottom: '1px solid #e0e0e0' }}>Issue</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', borderBottom: '1px solid #e0e0e0' }}>Recommendations</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0' }}>Photos</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0' }}>Actions</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Spread">Spread</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Inspector">Inspector</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Date">Date</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Start Station">Start Station</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="End Station">End Station</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 175, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Feature">Feature</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Issue">Issue</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: '1px solid #e0e0e0' }} title="Recommendations">Recommendations</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderRight: '1px solid #e0e0e0', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Photos">Photos</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', borderBottom: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {items.map((item, idx) => (
               <TableRow key={idx} sx={{ borderBottom: '1px solid #e0e0e0' }}>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.spread || ''}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.inspectorName || ''}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', whiteSpace: 'nowrap' }}>{item.date || ''}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.startStation}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.endStation}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>{item.feature}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.issue}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', maxWidth: 720, whiteSpace: 'normal', wordBreak: 'break-word' }}>{item.recommendations}</TableCell>
-                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0' }}>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.spread || ''}>{item.spread || ''}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.inspectorName || ''}>{item.inspectorName || ''}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.date || ''}>{item.date || ''}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.startStation}>{item.startStation}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.endStation}>{item.endStation}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 240, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.feature}>{item.feature}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.issue}>{item.issue}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 360, maxWidth: 360, whiteSpace: 'normal', wordBreak: 'break-word' }} title={item.recommendations}>{item.recommendations}</TableCell>
+                <TableCell align="center" sx={{ borderRight: '1px solid #e0e0e0', width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={item.photos && item.photos.length > 0 ? 'Photos' : 'No photos'}>
                   {item.photos && item.photos.length > 0 ? (
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                       {item.photos.map((photo, photoIdx) => (
@@ -274,7 +287,7 @@ const NewPunchlistReport = ({ reportId }) => {
                     'No photos'
                   )}
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" sx={{ width: 120, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title="Actions">
                   <IconButton size="small" onClick={() => {
                     setNewItem({
                       startStation: item.startStation,
@@ -285,7 +298,6 @@ const NewPunchlistReport = ({ reportId }) => {
                     });
                     setNewItemPhotos(item.photos || []);
                     setPhotoComments(item.photoComments || []);
-                    // Remove the item from the table for editing
                     setItems(prev => prev.filter((_, i) => i !== idx));
                   }}>
                     <EditIcon />
@@ -299,233 +311,93 @@ const NewPunchlistReport = ({ reportId }) => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {!report?.finalized && (
-        <Paper sx={{ mt: 3, p: 3, boxShadow: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Add New Item
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-            <TextField
-              label="Spread"
-              value={spread}
-              onChange={e => setSpread(e.target.value)}
-            />
-            <TextField
-              label="Inspector Name"
-              value={inspectorName}
-              onChange={e => setInspectorName(e.target.value)}
-            />
-            <TextField
-              label="Date"
-              type="date"
-              value={inspectionDate}
-              onChange={e => setInspectionDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      <Paper sx={{ p: 3, mb: 4 }}>
+        {!report?.finalized && (
+          <>
+            <Typography variant="h6" gutterBottom>
+              Add New Item
+            </Typography>
+            <Stack spacing={1} direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 1 }}>
+              <TextField
+                label="Spread"
+                value={spread}
+                onChange={e => setSpread(e.target.value)}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="Inspector Name"
+                value={inspectorName}
+                onChange={e => setInspectorName(e.target.value)}
+                fullWidth
+                size="small"
+              />
+              <TextField
+                label="Date"
+                type="date"
+                value={inspectionDate}
+                onChange={e => setInspectionDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                size="small"
+              />
+            </Stack>
+            <Stack spacing={1} direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 1 }}>
               <TextField
                 label="Start Station"
                 value={newItem.startStation}
                 onChange={(e) => setNewItem({ ...newItem, startStation: e.target.value })}
                 fullWidth
+                size="small"
               />
               <TextField
                 label="End Station"
                 value={newItem.endStation}
                 onChange={(e) => setNewItem({ ...newItem, endStation: e.target.value })}
                 fullWidth
+                size="small"
               />
               <TextField
                 label="Feature"
                 value={newItem.feature}
                 onChange={(e) => setNewItem({ ...newItem, feature: e.target.value })}
                 fullWidth
+                size="small"
+              />
+            </Stack>
+            <Box sx={{ mb: 1 }}>
+              <TextField
+                label="Issue"
+                value={newItem.issue}
+                onChange={(e) => setNewItem({ ...newItem, issue: e.target.value })}
+                multiline
+                rows={3}
+                fullWidth
+                size="small"
               />
             </Box>
-          </Box>
-
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Issue"
-              value={newItem.issue}
-              onChange={(e) => setNewItem({ ...newItem, issue: e.target.value })}
-              multiline
-              rows={3}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-          </Box>
-
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              label="Recommendations"
-              value={newItem.recommendations}
-              onChange={(e) => setNewItem({ ...newItem, recommendations: e.target.value })}
-              multiline
-              rows={3}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-          </Box>
-
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Photos
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-              <Button
-                variant="outlined"
-                component="label"
-                startIcon={<AddPhotoIcon />}
-              >
-                Add Photos
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  multiple
-                  hidden
-                  onChange={handlePhotoUpload}
-                />
-              </Button>
+            <Box sx={{ mb: 1 }}>
+              <TextField
+                label="Recommendations"
+                value={newItem.recommendations}
+                onChange={(e) => setNewItem({ ...newItem, recommendations: e.target.value })}
+                multiline
+                rows={3}
+                fullWidth
+                size="small"
+              />
             </Box>
-            {newItemPhotos.length > 0 && (
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {newItemPhotos.map((photo, idx) => (
-                  <Box
-                    key={idx}
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: 1,
-                      overflow: 'hidden',
-                      position: 'relative',
-                    }}
-                  >
-                    <img
-                      src={URL.createObjectURL(photo)}
-                      alt={`Preview ${idx + 1}`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      sx={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        bgcolor: 'rgba(0, 0, 0, 0.5)',
-                        color: 'white',
-                        '&:hover': {
-                          bgcolor: 'rgba(0, 0, 0, 0.7)',
-                        },
-                      }}
-                      onClick={() => {
-                        setNewItemPhotos(prev => prev.filter((_, i) => i !== idx));
-                        setPhotoComments(prev => prev.filter((_, i) => i !== idx));
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button variant="contained" onClick={handleAddItem}>
-              Add Item
-            </Button>
-          </Box>
-        </Paper>
-      )}
-
-      <Box sx={{ display: 'flex', gap: 2, mt: 3, width: '100%' }}>
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={handleDelete}
-        >
-          Delete
-        </Button>
-        <Button
-          variant="outlined"
-          color="success"
-          onClick={handleSave}
-        >
-          Save
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={handleExit}
-        >
-          Exit
-        </Button>
-        <Box sx={{ flex: 1 }} />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleFinalize}
-          sx={{ ml: 'auto' }}
-        >
-          Submit
-        </Button>
-      </Box>
-
-      <Dialog open={!!editingItem} onClose={() => setEditingItem(null)}>
-        <DialogTitle>Edit Item</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
-            <TextField
-              label="Start Station"
-              value={editingItem?.startStation || ''}
-              onChange={(e) => setEditingItem({ ...editingItem, startStation: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="End Station"
-              value={editingItem?.endStation || ''}
-              onChange={(e) => setEditingItem({ ...editingItem, endStation: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Feature"
-              value={editingItem?.feature || ''}
-              onChange={(e) => setEditingItem({ ...editingItem, feature: e.target.value })}
-              fullWidth
-            />
-            <TextField
-              label="Issue"
-              value={editingItem?.issue || ''}
-              onChange={(e) => setEditingItem({ ...editingItem, issue: e.target.value })}
-              multiline
-              rows={3}
-              fullWidth
-            />
-            <TextField
-              label="Recommendations"
-              value={editingItem?.recommendations || ''}
-              onChange={(e) => setEditingItem({ ...editingItem, recommendations: e.target.value })}
-              multiline
-              rows={3}
-              fullWidth
-            />
-            <Box>
+            <Box sx={{ mb: 1 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Photos
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 <Button
                   variant="outlined"
                   component="label"
                   startIcon={<AddPhotoIcon />}
+                  fullWidth={isMobile}
+                  size="small"
                 >
                   Add Photos
                   <input
@@ -539,22 +411,33 @@ const NewPunchlistReport = ({ reportId }) => {
                 </Button>
               </Box>
               {newItemPhotos.length > 0 && (
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: {
+                    xs: 'repeat(2, 1fr)',
+                    sm: 'repeat(3, 1fr)',
+                    md: 'repeat(4, 1fr)'
+                  },
+                  gap: 1
+                }}>
                   {newItemPhotos.map((photo, idx) => (
                     <Box
                       key={idx}
                       sx={{
-                        width: 120,
-                        height: 120,
+                        width: '100%',
+                        paddingTop: '100%',
+                        position: 'relative',
                         borderRadius: 1,
                         overflow: 'hidden',
-                        position: 'relative',
                       }}
                     >
                       <img
                         src={URL.createObjectURL(photo)}
                         alt={`Preview ${idx + 1}`}
                         style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
@@ -584,50 +467,261 @@ const NewPunchlistReport = ({ reportId }) => {
                 </Box>
               )}
             </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditingItem(null)}>Cancel</Button>
-          <Button onClick={handleEditItem} variant="contained">
-            Save Changes
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={photoDialogOpen}
-        onClose={() => {
-          setPhotoDialogOpen(false);
-          setSelectedPhotoIdx(null);
-        }}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogContent>
-          {selectedPhotoIdx !== null && newItemPhotos[selectedPhotoIdx] && (
-            <Box
-              sx={{
-                width: '100%',
-                height: 'auto',
-                maxHeight: '80vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <img
-                src={URL.createObjectURL(newItemPhotos[selectedPhotoIdx])}
-                alt="Large Preview"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '80vh',
-                  objectFit: 'contain',
-                }}
-              />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                variant="contained" 
+                onClick={handleAddItem} 
+                fullWidth={isMobile}
+                size="small"
+              >
+                Add Item
+              </Button>
             </Box>
-          )}
-        </DialogContent>
-      </Dialog>
+          </>
+        )}
+
+        <Dialog 
+          open={!!editingItem} 
+          onClose={() => setEditingItem(null)}
+          fullScreen={isMobile}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Edit Item</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ pt: 2 }}>
+              <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }}>
+                <TextField
+                  label="Start Station"
+                  value={editingItem?.startStation || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, startStation: e.target.value })}
+                  fullWidth
+                />
+                <TextField
+                  label="End Station"
+                  value={editingItem?.endStation || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, endStation: e.target.value })}
+                  fullWidth
+                />
+                <TextField
+                  label="Feature"
+                  value={editingItem?.feature || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, feature: e.target.value })}
+                  fullWidth
+                />
+              </Stack>
+              <TextField
+                label="Issue"
+                value={editingItem?.issue || ''}
+                onChange={(e) => setEditingItem({ ...editingItem, issue: e.target.value })}
+                multiline
+                rows={3}
+                fullWidth
+              />
+              <TextField
+                label="Recommendations"
+                value={editingItem?.recommendations || ''}
+                onChange={(e) => setEditingItem({ ...editingItem, recommendations: e.target.value })}
+                multiline
+                rows={3}
+                fullWidth
+              />
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>
+                  Photos
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<AddPhotoIcon />}
+                    fullWidth={isMobile}
+                  >
+                    Add Photos
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      multiple
+                      hidden
+                      onChange={handlePhotoUpload}
+                    />
+                  </Button>
+                </Box>
+                {newItemPhotos.length > 0 && (
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: {
+                      xs: 'repeat(2, 1fr)',
+                      sm: 'repeat(3, 1fr)',
+                      md: 'repeat(4, 1fr)'
+                    },
+                    gap: 2
+                  }}>
+                    {newItemPhotos.map((photo, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          width: '100%',
+                          paddingTop: '100%',
+                          position: 'relative',
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <img
+                          src={URL.createObjectURL(photo)}
+                          alt={`Preview ${idx + 1}`}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                        <IconButton
+                          size="small"
+                          sx={{
+                            position: 'absolute',
+                            top: 4,
+                            right: 4,
+                            bgcolor: 'rgba(0, 0, 0, 0.5)',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'rgba(0, 0, 0, 0.7)',
+                            },
+                          }}
+                          onClick={() => {
+                            setNewItemPhotos(prev => prev.filter((_, i) => i !== idx));
+                            setPhotoComments(prev => prev.filter((_, i) => i !== idx));
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditingItem(null)} fullWidth={isMobile}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditItem} variant="contained" fullWidth={isMobile}>
+              Save Changes
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={photoDialogOpen}
+          onClose={() => {
+            setPhotoDialogOpen(false);
+            setSelectedPhotoIdx(null);
+          }}
+          maxWidth="md"
+          fullWidth
+          fullScreen={isMobile}
+        >
+          <DialogContent>
+            {selectedPhotoIdx !== null && newItemPhotos[selectedPhotoIdx] && (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: '80vh',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src={URL.createObjectURL(newItemPhotos[selectedPhotoIdx])}
+                  alt="Large Preview"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '80vh',
+                    objectFit: 'contain',
+                  }}
+                />
+              </Box>
+            )}
+          </DialogContent>
+        </Dialog>
+      </Paper>
+      <Stack 
+        direction={isMobile ? 'row' : { xs: 'column', sm: 'row' }} 
+        spacing={isMobile ? 3 : 1} 
+        justifyContent={isMobile ? 'space-between' : undefined}
+        sx={{ 
+          mt: 1, 
+          width: '100%',
+          m: 0,
+          '& .MuiButton-root': {
+            width: { xs: '100%', sm: 'auto' }
+          }
+        }}
+      >
+        {isMobile ? (
+          <>
+            <IconButton color="error" onClick={handleDelete} size="large" sx={{ flex: 1 }}>
+              <DeleteIcon sx={{ fontSize: 36 }} />
+            </IconButton>
+            <IconButton color="success" onClick={handleSave} size="large" sx={{ flex: 1 }}>
+              <SaveIcon sx={{ fontSize: 36 }} />
+            </IconButton>
+            <IconButton onClick={handleExit} size="large" sx={{ flex: 1 }}>
+              <CloseIcon sx={{ fontSize: 36 }} />
+            </IconButton>
+            <IconButton color="primary" onClick={handleFinalize} size="large" sx={{ flex: 1 }}>
+              <SendIcon sx={{ fontSize: 36 }} />
+            </IconButton>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleDelete}
+              size="small"
+              startIcon={<DeleteIcon />}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="outlined"
+              color="success"
+              onClick={handleSave}
+              size="small"
+              startIcon={<SaveIcon />}
+            >
+              Save
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleExit}
+              size="small"
+              startIcon={<CloseIcon />}
+            >
+              Exit
+            </Button>
+            <Box sx={{ flex: 1 }} />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleFinalize}
+              size="small"
+              startIcon={<SendIcon />}
+            >
+              Submit
+            </Button>
+          </>
+        )}
+      </Stack>
     </Box>
   );
 };
