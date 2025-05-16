@@ -43,6 +43,10 @@ import WeldingDraftReports from './components/disciplines/welding/daily/WeldingD
 import CoatingMain from './components/disciplines/coating/main/CoatingMain';
 import CoatingRoutes from './routes/coatingRoutes';
 
+// Utility Components
+import UtilityDashboard from './components/disciplines/utility/main/UtilityDashboard';
+import DailyUtilityReport from './components/disciplines/utility/daily/DailyUtilityReport';
+
 const theme = createTheme({
   palette: {
     primary: {
@@ -426,6 +430,8 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/utility" element={<UtilityDashboard />} />
+          <Route path="/utility/reports/daily/new" element={<DailyUtilityReport />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
