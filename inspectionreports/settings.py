@@ -157,6 +157,8 @@ else:
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
+        # Add your custom frontend domain here if you have one
     ]
     CORS_ALLOW_CREDENTIALS = True
 
@@ -181,6 +183,12 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'cache-control',
     'pragma',
+]
+
+# CSRF trusted origins for production
+CSRF_TRUSTED_ORIGINS = [
+    "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
+    # Add your custom frontend domain here if you have one
 ]
 
 # REST Framework settings
