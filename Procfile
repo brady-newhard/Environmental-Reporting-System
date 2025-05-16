@@ -1,1 +1,1 @@
-web: gunicorn environmentalreport.wsgi --log-file - 
+web: gunicorn inspectionreports.wsgi --log-file - 
