@@ -1,39 +1,47 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import HomePage from './components/HomePage';
-import SearchReports from './components/SearchReports';
-import SignIn from './components/SignIn';
-import SignUp from './components/SignUp';
-import SuccessSignUp from './components/SuccessSignUp';
-import ContactList from './components/ContactList';
-import Navigation from './components/Navigation';
-import ProjectDocuments from './components/ProjectDocuments';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
-import PhotosPage from './components/PhotosPage';
-import ReviewReport from './components/ReviewReport';
-import PrivateRoute from './components/PrivateRoute';
-import Profile from './components/Profile';
-import ReportForm from './components/ReportForm';
-import NewPunchlistReport from './components/NewPunchlistReport';
-import PunchlistDrafts from './components/PunchlistDrafts';
-import PunchlistDraftView from './components/PunchlistDraftView';
-import NewSWPPP from './components/NewSWPPP';
-import SWPPPReport from './components/SWPPPReport';
-import SWPPPPhotoPage from './components/SWPPPPhotoPage';
-import NewProgressReport from './components/NewProgressReport';
-import EnvironmentalMain from './components/environmental/EnvironmentalMain';
-import EnvironmentalReports from './components/environmental/EnvironmentalDashboard';
-import NewVarianceReport from './components/environmental/NewVarianceReport';
-import WeldingMain from './components/welding/WeldingMain';
-import DailyWeldingReportForm from './components/welding/DailyWeldingReportForm';
-import WeldingReports from './components/welding/WeldingReports';
-import WeldingDraftReports from './components/welding/WeldingDraftReports';
-import CoatingMain from './components/coating/CoatingMain';
+
+// Common Components
+import HomePage from './components/common/HomePage';
+import SearchReports from './components/common/SearchReports';
+import SignIn from './components/common/SignIn';
+import SignUp from './components/common/SignUp';
+import SuccessSignUp from './components/common/SuccessSignUp';
+import ContactList from './components/common/ContactList';
+import Navigation from './components/common/Navigation';
+import ProjectDocuments from './components/common/ProjectDocuments';
+import PhotosPage from './components/common/PhotosPage';
+import ReviewReport from './components/common/ReviewReport';
+import PrivateRoute from './components/common/PrivateRoute';
+import Profile from './components/common/Profile';
+import ReportForm from './components/disciplines/environmental/daily/ReportForm';
+import NewReport from './components/common/NewReport';
+
+// Environmental Components
+import EnvironmentalMain from './components/disciplines/environmental/main/EnvironmentalMain';
+import EnvironmentalReports from './components/disciplines/environmental/main/EnvironmentalDashboard';
+import NewPunchlistReport from './components/disciplines/environmental/punchlist/NewPunchlistReport';
+import PunchlistDrafts from './components/disciplines/environmental/punchlist/PunchlistDrafts';
+import PunchlistDraftView from './components/disciplines/environmental/punchlist/PunchlistDraftView';
+import NewSWPPP from './components/disciplines/environmental/swppp/NewSWPPP';
+import SWPPPReport from './components/disciplines/environmental/swppp/SWPPPReport';
+import SWPPPPhotoPage from './components/disciplines/environmental/swppp/SWPPPPhotoPage';
+import SWPPPDrafts from './components/disciplines/environmental/swppp/SWPPPDrafts';
+import NewProgressReport from './components/disciplines/environmental/progress/NewProgressReport';
+import NewVarianceReport from './components/disciplines/environmental/variance/NewVarianceReport';
+
+// Welding Components
+import WeldingMain from './components/disciplines/welding/main/WeldingMain';
+import DailyWeldingReportForm from './components/disciplines/welding/daily/DailyWeldingReportForm';
+import WeldingReports from './components/disciplines/welding/daily/WeldingReports';
+import WeldingDraftReports from './components/disciplines/welding/daily/WeldingDraftReports';
+
+// Coating Components
+import CoatingMain from './components/disciplines/coating/main/CoatingMain';
 import CoatingRoutes from './routes/coatingRoutes';
-import SWPPPDrafts from './components/SWPPPDrafts';
-import NewReport from './components/NewReport';
 
 const theme = createTheme({
   palette: {
@@ -227,6 +235,14 @@ function App() {
             }
           />
           <Route
+            path="/environmental/reports/daily/new"
+            element={
+              <PrivateRoute>
+                <ReportForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/welding"
             element={
               <PrivateRoute>
@@ -271,14 +287,6 @@ function App() {
             element={
               <PrivateRoute>
                 <NewVarianceReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/project-documents"
-            element={
-              <PrivateRoute>
-                <ProjectDocuments />
               </PrivateRoute>
             }
           />
