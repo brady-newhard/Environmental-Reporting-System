@@ -51,7 +51,7 @@ export const searchReports = async (filters) => {
       location: filters.location || undefined,
     };
 
-    const response = await api.get('/reports/', { params });
+    const response = await api.get('/core/reports/', { params });
     return response.data;
   } catch (error) {
     console.error('Error searching reports:', error);
@@ -61,7 +61,7 @@ export const searchReports = async (filters) => {
 
 export const getContacts = async () => {
   try {
-    const response = await api.get('/contacts/');
+    const response = await api.get('/users/contacts/');
     return response.data;
   } catch (error) {
     console.error('Error fetching contacts:', error);
@@ -81,7 +81,7 @@ export const getUsers = async () => {
 
 export const getProgressChart = async () => {
   try {
-    const response = await api.get('/progress-chart/');
+    const response = await api.get('/environmental/progress-charts/');
     return response.data;
   } catch (error) {
     console.error('Error fetching progress chart:', error);
