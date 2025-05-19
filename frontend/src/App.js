@@ -46,6 +46,7 @@ import CoatingRoutes from './routes/coatingRoutes';
 // Utility Components
 import UtilityDashboard from './components/disciplines/utility/main/UtilityDashboard';
 import DailyUtilityReport from './components/disciplines/utility/daily/DailyUtilityReport';
+import DailyUtilityReportReview from './components/disciplines/utility/daily/DailyUtilityReportReview';
 
 const theme = createTheme({
   palette: {
@@ -432,6 +433,7 @@ function App() {
           />
           <Route path="/utility" element={<UtilityDashboard />} />
           <Route path="/utility/reports/daily/new" element={<DailyUtilityReport />} />
+          <Route path="/utility/reports/daily/review" element={<PrivateRoute><DailyUtilityReportReview /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

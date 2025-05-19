@@ -1,0 +1,121 @@
+import React from 'react';
+import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper, Divider } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+const DailyUtilityReportReview = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const data = location.state?.formData;
+
+  if (!data) return <div>No report data provided.</div>;
+
+  // Only show items with any user input
+  const filledItems = (data.items || []).filter(item => (
+    item.startSta || item.endSta || item.dailyQty || item.comments || item.unitQty
+  ));
+
+  return (
+    <Paper sx={{ p: { xs: 1, sm: 3 }, maxWidth: 1000, margin: '32px auto', bgcolor: '#fff' }}>
+      <Typography variant="h4" align="center" sx={{ mb: 2, fontWeight: 'bold' }}>Daily Utility Report</Typography>
+      <Divider sx={{ mb: 2 }} />
+      {/* Project Info */}
+      <TableContainer sx={{ mb: 3 }}>
+        <Table size="small">
+          <TableBody>
+            <TableRow>
+              <TableCell><b>Project</b></TableCell>
+              <TableCell>{data.header?.project}</TableCell>
+              <TableCell><b>Spread</b></TableCell>
+              <TableCell>{data.header?.spread}</TableCell>
+              <TableCell><b>Date</b></TableCell>
+              <TableCell>{data.header?.date ? new Date(data.header.date).toLocaleDateString() : ''}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><b>Inspector</b></TableCell>
+              <TableCell>{data.header?.inspector}</TableCell>
+              <TableCell><b>Contractor</b></TableCell>
+              <TableCell>{data.header?.contractor}</TableCell>
+              <TableCell colSpan={2}></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+      {/* Items Table */}
+      {filledItems.length > 0 && (
+        <>
+          <Typography variant="h6" sx={{ mb: 1 }}>Items</Typography>
+          <TableContainer sx={{ mb: 3 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell><b>Item #</b></TableCell>
+                  <TableCell><b>Description</b></TableCell>
+                  <TableCell><b>Unit</b></TableCell>
+                  <TableCell><b>Unit Qty</b></TableCell>
+                  <TableCell><b>Start Sta.</b></TableCell>
+                  <TableCell><b>End Sta.</b></TableCell>
+                  <TableCell><b>Daily Qty</b></TableCell>
+                  <TableCell><b>Comments</b></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filledItems.map((row, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{row.item}</TableCell>
+                    <TableCell>{row.description}</TableCell>
+                    <TableCell>{row.unit}</TableCell>
+                    <TableCell>{row.unitQty}</TableCell>
+                    <TableCell>{row.startSta}</TableCell>
+                    <TableCell>{row.endSta}</TableCell>
+                    <TableCell>{row.dailyQty}</TableCell>
+                    <TableCell>{row.comments}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
+      )}
+      {/* Comments */}
+      {data.comments && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>Comments</Typography>
+          <Paper variant="outlined" sx={{ p: 2, bgcolor: '#fafafa' }}>{data.comments}</Paper>
+        </Box>
+      )}
+      {/* Signatures */}
+      <Box sx={{ display: 'flex', gap: 4, mb: 4, flexWrap: 'wrap' }}>
+        {/* Inspector */}
+        <Box sx={{ flex: 1, minWidth: 260 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Inspector</Typography>
+          <Typography>Name: {data.signatures?.inspector}</Typography>
+          {data.inspectorSig && (
+            <Box sx={{ border: '1px solid #222', borderRadius: 1, mt: 1, mb: 1, p: 1, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#fff', overflow: 'hidden' }}>
+              <img src={data.inspectorSig} alt="Inspector Signature" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            </Box>
+          )}
+          <Typography>Date: {data.signatures?.inspectorDate ? new Date(data.signatures.inspectorDate).toLocaleDateString() : ''}</Typography>
+        </Box>
+        {/* Foreman */}
+        <Box sx={{ flex: 1, minWidth: 260 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>Foreman</Typography>
+          <Typography>Name: {data.signatures?.contractor}</Typography>
+          {data.foremanSig && (
+            <Box sx={{ border: '1px solid #222', borderRadius: 1, mt: 1, mb: 1, p: 1, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#fff', overflow: 'hidden' }}>
+              <img src={data.foremanSig} alt="Foreman Signature" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            </Box>
+          )}
+          <Typography>Date: {data.signatures?.contractorDate ? new Date(data.signatures.contractorDate).toLocaleDateString() : ''}</Typography>
+        </Box>
+      </Box>
+      {/* Action Buttons */}
+      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 4, print: { display: 'none' } }}>
+        <Button variant="outlined" onClick={() => navigate(-1)}>Edit</Button>
+        <Button variant="outlined" onClick={() => window.print()}>Print Copy</Button>
+        <Button variant="contained" color="primary" onClick={() => {/* TODO: submit to database */}}>Submit</Button>
+      </Box>
+    </Paper>
+  );
+};
+
+export default DailyUtilityReportReview; 
