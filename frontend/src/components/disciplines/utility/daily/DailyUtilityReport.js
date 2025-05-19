@@ -23,6 +23,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import PageHeader from '../../../../components/common/PageHeader';
 import styles from './DailyUtilityReport.module.css';
 import SignaturePad from 'react-signature-canvas';
+import { useNavigate } from 'react-router-dom';
 
 const defaultItems = [
   // Items 1-24
@@ -128,6 +129,7 @@ const DailyUtilityReport = () => {
   const foremanPadRef = React.useRef();
   const [inspectorSigning, setInspectorSigning] = useState(false);
   const [foremanSigning, setForemanSigning] = useState(false);
+  const navigate = useNavigate();
 
   const handleHeaderChange = (e) => {
     const { name, value } = e.target;
@@ -227,10 +229,20 @@ const DailyUtilityReport = () => {
     setItems(prev => prev.filter((_, i) => i !== absIdx));
   };
 
-  const handleSubmit = (e) => {
+  const handleReview = (e) => {
     e.preventDefault();
-    // Submit logic here
-    alert('Report submitted!');
+    navigate('/utility/reports/daily/review', {
+      state: {
+        formData: {
+          header,
+          items,
+          comments,
+          signatures,
+          inspectorSig,
+          foremanSig,
+        },
+      },
+    });
   };
 
   const handleItemExpand = (itemId) => {
@@ -428,7 +440,7 @@ const DailyUtilityReport = () => {
               <TextField label="Contractor" name="contractor" value={header.contractor} onChange={handleHeaderChange} fullWidth required size="small" className={styles['header-field']} />
             </div>
           </Box>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleReview}>
             {/* Group 1: Base Lay Progress Payment */}
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
@@ -608,8 +620,8 @@ const DailyUtilityReport = () => {
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
-              <Button type="submit" variant="contained" fullWidth={true} sx={{ maxWidth: { xs: '100%', sm: 300 } }}>
-                Submit Report
+              <Button onClick={handleReview} variant="contained" fullWidth={true} sx={{ maxWidth: { xs: '100%', sm: 300 } }}>
+                Review
               </Button>
             </Box>
           </form>
