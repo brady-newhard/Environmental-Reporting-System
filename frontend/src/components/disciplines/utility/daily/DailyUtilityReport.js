@@ -13,13 +13,16 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Stack
+  Stack,
+  Collapse
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import PageHeader from '../../../../components/common/PageHeader';
+import styles from './DailyUtilityReport.module.css';
+import SignaturePad from 'react-signature-canvas';
 
 const defaultItems = [
   // Items 1-24
@@ -113,10 +116,18 @@ const DailyUtilityReport = () => {
     date: new Date(),
     inspector: '',
     contractor: '',
+    spread: '',
   });
-  const [items, setItems] = useState(defaultItems.map(row => ({ ...row, startSta: '', endSta: '', dailyQty: '', isCustom: false, comments: '' })));
+  const [items, setItems] = useState(defaultItems.map(row => ({ ...row, startSta: '', endSta: '', dailyQty: '', isCustom: false, comments: '', unitQty: '' })));
   const [comments, setComments] = useState('');
   const [signatures, setSignatures] = useState({ inspector: '', contractor: '', inspectorDate: '', contractorDate: '' });
+  const [expandedItems, setExpandedItems] = useState({});
+  const [inspectorSig, setInspectorSig] = useState(null);
+  const [foremanSig, setForemanSig] = useState(null);
+  const inspectorPadRef = React.useRef();
+  const foremanPadRef = React.useRef();
+  const [inspectorSigning, setInspectorSigning] = useState(false);
+  const [foremanSigning, setForemanSigning] = useState(false);
 
   const handleHeaderChange = (e) => {
     const { name, value } = e.target;
@@ -128,10 +139,70 @@ const DailyUtilityReport = () => {
     setItems(prev => prev.map((row, i) => i === idx ? { ...row, [field]: value } : row));
   };
 
+  const getNextItemNumber = (originalItem) => {
+    // Find all items that start with the same number
+    const relatedItems = items.filter(item => {
+      const itemStr = item.item.toString();
+      return itemStr.startsWith(originalItem.toString());
+    });
+
+    if (relatedItems.length === 0) return originalItem;
+
+    // Get the last letter used (if any)
+    const lastItem = relatedItems[relatedItems.length - 1];
+    const lastItemStr = lastItem.item.toString();
+    
+    if (!lastItemStr.includes('.')) {
+      // If no letter suffix exists yet, add 'a'
+      return `${originalItem}.a`;
+    }
+
+    // Get the last letter and increment it
+    const lastLetter = lastItemStr.split('.')[1];
+    const nextLetter = String.fromCharCode(lastLetter.charCodeAt(0) + 1);
+    return `${originalItem}.${nextLetter}`;
+  };
+
+  const handleDuplicateRow = (absIdx) => {
+    const originalItem = items[absIdx];
+    const originalItemNumber = parseInt(originalItem.item.toString().split('.')[0]);
+    const nextItemNumber = getNextItemNumber(originalItemNumber);
+
+    const newItem = {
+      ...originalItem,
+      item: nextItemNumber,
+      startSta: '',
+      endSta: '',
+      dailyQty: '',
+      comments: ''
+    };
+
+    setItems(prev => [
+      ...prev.slice(0, absIdx + 1),
+      newItem,
+      ...prev.slice(absIdx + 1)
+    ]);
+  };
+
   const handleAddItem = () => {
+    // This function is no longer needed since we're using handleDuplicateRow
+    // But keeping it for backward compatibility
+    const lastItem = items[items.length - 1];
+    const originalItemNumber = parseInt(lastItem.item.toString().split('.')[0]);
+    const nextItemNumber = getNextItemNumber(originalItemNumber);
+
     setItems(prev => ([
       ...prev,
-      { item: prev.length + 1, description: '', unit: '', startSta: '', endSta: '', dailyQty: '', isCustom: true, comments: '' }
+      {
+        item: nextItemNumber,
+        description: lastItem.description,
+        unit: lastItem.unit,
+        startSta: '',
+        endSta: '',
+        dailyQty: '',
+        isCustom: true,
+        comments: ''
+      }
     ]));
   };
 
@@ -152,23 +223,6 @@ const DailyUtilityReport = () => {
     return idx;
   };
 
-  const handleDuplicateRow = (absIdx) => {
-    const newItem = {
-      ...items[absIdx],
-      item: items.length + 1,
-      isCustom: true,
-      startSta: '',
-      endSta: '',
-      dailyQty: '',
-      comments: ''
-    };
-    setItems(prev => [
-      ...prev.slice(0, absIdx + 1),
-      newItem,
-      ...prev.slice(absIdx + 1)
-    ]);
-  };
-
   const handleDeleteItem = (absIdx) => {
     setItems(prev => prev.filter((_, i) => i !== absIdx));
   };
@@ -179,12 +233,176 @@ const DailyUtilityReport = () => {
     alert('Report submitted!');
   };
 
+  const handleItemExpand = (itemId) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [itemId]: !prev[itemId]
+    }));
+  };
+
+  const isItemEmpty = (item) => {
+    return !item.startSta && !item.endSta && !item.dailyQty && !item.comments;
+  };
+
+  const renderItemCard = (row, absIdx) => {
+    const isExpanded = expandedItems[row.item] || !isItemEmpty(row);
+    
+    return (
+      <Paper 
+        key={`${row.item}-${absIdx}`} 
+        sx={{ 
+          p: 1, 
+          mb: 1, 
+          boxShadow: 2,
+          backgroundColor: '#f5f5f5'
+        }}
+      >
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mb: 1,
+            cursor: 'pointer',
+            '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
+            p: 1,
+            borderRadius: 1
+          }}
+          onClick={() => handleItemExpand(row.item)}
+        >
+          <Typography sx={{ fontWeight: 'bold', mr: 1 }}>{row.item}.</Typography>
+          <Typography sx={{ fontWeight: 500, flex: 1 }}>{row.description}</Typography>
+          <IconButton size="small">
+            {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        </Box>
+        <Collapse in={isExpanded}>
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <TextField 
+                label={row.unit}
+                value={row.unitQty}
+                onChange={e => handleItemChange(absIdx, 'unitQty', e.target.value)}
+                fullWidth 
+                size="small"
+                sx={{ 
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#ffffff'
+                  }
+                }}
+              />
+              <TextField 
+                label="Start Sta." 
+                value={row.startSta} 
+                onChange={e => handleItemChange(absIdx, 'startSta', e.target.value)} 
+                fullWidth 
+                size="small"
+                sx={{ 
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#ffffff'
+                  }
+                }}
+              />
+              <TextField 
+                label="End Sta." 
+                value={row.endSta} 
+                onChange={e => handleItemChange(absIdx, 'endSta', e.target.value)} 
+                fullWidth 
+                size="small"
+                sx={{ 
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#ffffff'
+                  }
+                }}
+              />
+              <TextField 
+                label="Daily Quantity" 
+                value={row.dailyQty} 
+                onChange={e => handleItemChange(absIdx, 'dailyQty', e.target.value)} 
+                fullWidth 
+                size="small"
+                sx={{ 
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#ffffff'
+                  }
+                }}
+              />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+              <TextField
+                label="Comments"
+                value={row.comments}
+                onChange={e => handleItemChange(absIdx, 'comments', e.target.value)}
+                fullWidth
+                size="small"
+                multiline
+                minRows={4}
+                maxRows={8}
+                sx={{ 
+                  height: '100%',
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#ffffff',
+                    height: '100%'
+                  }
+                }}
+                InputProps={{
+                  sx: { height: '100%', alignItems: 'stretch', display: 'flex', flex: 1 }
+                }}
+              />
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+            <IconButton aria-label="duplicate" color="primary" onClick={(e) => { e.stopPropagation(); handleDuplicateRow(absIdx); }} size="small">
+              <AddIcon />
+            </IconButton>
+            {row.isCustom && (
+              <IconButton aria-label="delete" color="error" onClick={(e) => { e.stopPropagation(); handleDeleteItem(absIdx); }} size="small">
+                <DeleteIcon />
+              </IconButton>
+            )}
+          </Box>
+        </Collapse>
+      </Paper>
+    );
+  };
+
   const tableCellSx = {
     px: { xs: 0.5, sm: 1 },
     py: { xs: 0.5, sm: 1 },
     fontSize: { xs: '0.85rem', sm: '1rem' },
     wordBreak: 'break-word',
     maxWidth: { xs: 120, sm: 300 },
+  };
+
+  const handleClearInspectorSig = () => {
+    if (inspectorPadRef.current) {
+      inspectorPadRef.current.clear();
+    }
+    setInspectorSig(null);
+    setInspectorSigning(false);
+  };
+  const handleClearForemanSig = () => {
+    if (foremanPadRef.current) {
+      foremanPadRef.current.clear();
+    }
+    setForemanSig(null);
+    setForemanSigning(false);
+  };
+
+  const handleEndInspectorSig = () => {
+    setInspectorSig(inspectorPadRef.current.getTrimmedCanvas().toDataURL('image/png'));
+    setInspectorSigning(false);
+  };
+  const handleEndForemanSig = () => {
+    setForemanSig(foremanPadRef.current.getTrimmedCanvas().toDataURL('image/png'));
+    setForemanSigning(false);
+  };
+
+  // Ensure date values are always Date objects or null
+  const getDateValue = (val) => {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
   };
 
   return (
@@ -197,24 +415,20 @@ const DailyUtilityReport = () => {
           sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}
         />
         <Paper sx={{ p: { xs: 1, sm: 3 }, mt: { xs: 1, sm: 3 } }}>
+          <Box className={styles['header-fields-container']}>
+            <div className={`${styles['header-row']} ${styles['top']}`}>
+              <TextField label="Project" name="project" value={header.project} onChange={handleHeaderChange} fullWidth required size="small" className={styles['header-field']} />
+              <TextField label="Spread" name="spread" value={header.spread || ''} onChange={handleHeaderChange} fullWidth size="small" className={styles['header-field']} />
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker label="Date" value={header.date} onChange={handleDateChange} slotProps={{ textField: { fullWidth: true, required: true, size: 'small', className: styles['header-field'] } }} />
+              </LocalizationProvider>
+            </div>
+            <div className={`${styles['header-row']} ${styles['bottom']}`}>
+              <TextField label="Inspector" name="inspector" value={header.inspector} onChange={handleHeaderChange} fullWidth required size="small" className={styles['header-field']} />
+              <TextField label="Contractor" name="contractor" value={header.contractor} onChange={handleHeaderChange} fullWidth required size="small" className={styles['header-field']} />
+            </div>
+          </Box>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={2} mb={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField label="Project" name="project" value={header.project} onChange={handleHeaderChange} fullWidth required size="small" />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker label="Date" value={header.date} onChange={handleDateChange} slotProps={{ textField: { fullWidth: true, required: true, size: 'small' } }} />
-                </LocalizationProvider>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField label="Inspector" name="inspector" value={header.inspector} onChange={handleHeaderChange} fullWidth required size="small" />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField label="Contractor" name="contractor" value={header.contractor} onChange={handleHeaderChange} fullWidth required size="small" />
-              </Grid>
-            </Grid>
-
             {/* Group 1: Base Lay Progress Payment */}
             <Box sx={{ mb: 4 }}>
               <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
@@ -223,51 +437,7 @@ const DailyUtilityReport = () => {
               <Stack spacing={2}>
                 {items.slice(0, 11).map((row, idx) => {
                   const absIdx = getAbsoluteIndex(1, idx);
-                  return (
-                    <Paper key={`${row.item}-${idx}`} sx={{ p: 1, mb: 1, boxShadow: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <Typography sx={{ fontWeight: 'bold', mr: 1 }}>{row.item}.</Typography>
-                        <Typography sx={{ fontWeight: 500 }}>{row.description}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-                        {/* Left: stacked fields */}
-                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <TextField label="Unit" value={row.unit} onChange={e => handleItemChange(absIdx, 'unit', e.target.value)} fullWidth size="small" />
-                          <TextField label="Start Sta." value={row.startSta} onChange={e => handleItemChange(absIdx, 'startSta', e.target.value)} fullWidth size="small" />
-                          <TextField label="End Sta." value={row.endSta} onChange={e => handleItemChange(absIdx, 'endSta', e.target.value)} fullWidth size="small" />
-                          <TextField label="Daily Quantity" value={row.dailyQty} onChange={e => handleItemChange(absIdx, 'dailyQty', e.target.value)} fullWidth size="small" />
-                        </Box>
-                        {/* Right: comments fills height */}
-                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                          <TextField
-                            label="Comments"
-                            value={row.comments}
-                            onChange={e => handleItemChange(absIdx, 'comments', e.target.value)}
-                            fullWidth
-                            size="small"
-                            multiline
-                            minRows={4}
-                            maxRows={8}
-                            sx={{ height: '100%' }}
-                            InputProps={{
-                              sx: { height: '100%', alignItems: 'stretch', display: 'flex', flex: 1 }
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                      {/* Actions row, full width */}
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                        <IconButton aria-label="duplicate" color="primary" onClick={() => handleDuplicateRow(absIdx)} size="small">
-                          <AddIcon />
-                        </IconButton>
-                        {row.isCustom && (
-                          <IconButton aria-label="delete" color="error" onClick={() => handleDeleteItem(absIdx)} size="small">
-                            <DeleteIcon />
-                          </IconButton>
-                        )}
-                      </Box>
-                    </Paper>
-                  );
+                  return renderItemCard(row, absIdx);
                 })}
               </Stack>
             </Box>
@@ -280,48 +450,7 @@ const DailyUtilityReport = () => {
               <Stack spacing={2}>
                 {items.slice(11, 17).map((row, idx) => {
                   const absIdx = getAbsoluteIndex(2, idx);
-                  return (
-                    <Paper key={`${row.item}-${idx}`} sx={{ p: 1, mb: 1, boxShadow: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <Typography sx={{ fontWeight: 'bold', mr: 1 }}>{row.item}.</Typography>
-                        <Typography sx={{ fontWeight: 500 }}>{row.description}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <TextField label="Unit" value={row.unit} onChange={e => handleItemChange(absIdx, 'unit', e.target.value)} fullWidth size="small" />
-                          <TextField label="Start Sta." value={row.startSta} onChange={e => handleItemChange(absIdx, 'startSta', e.target.value)} fullWidth size="small" />
-                          <TextField label="End Sta." value={row.endSta} onChange={e => handleItemChange(absIdx, 'endSta', e.target.value)} fullWidth size="small" />
-                          <TextField label="Daily Quantity" value={row.dailyQty} onChange={e => handleItemChange(absIdx, 'dailyQty', e.target.value)} fullWidth size="small" />
-                        </Box>
-                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                          <TextField
-                            label="Comments"
-                            value={row.comments}
-                            onChange={e => handleItemChange(absIdx, 'comments', e.target.value)}
-                            fullWidth
-                            size="small"
-                            multiline
-                            minRows={4}
-                            maxRows={8}
-                            sx={{ height: '100%' }}
-                            InputProps={{
-                              sx: { height: '100%', alignItems: 'stretch', display: 'flex', flex: 1 }
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                        <IconButton aria-label="duplicate" color="primary" onClick={() => handleDuplicateRow(absIdx)} size="small">
-                          <AddIcon />
-                        </IconButton>
-                        {row.isCustom && (
-                          <IconButton aria-label="delete" color="error" onClick={() => handleDeleteItem(absIdx)} size="small">
-                            <DeleteIcon />
-                          </IconButton>
-                        )}
-                      </Box>
-                    </Paper>
-                  );
+                  return renderItemCard(row, absIdx);
                 })}
               </Stack>
             </Box>
@@ -334,48 +463,7 @@ const DailyUtilityReport = () => {
               <Stack spacing={2}>
                 {items.slice(17).map((row, idx) => {
                   const absIdx = getAbsoluteIndex(3, idx);
-                  return (
-                    <Paper key={`${row.item}-${idx}`} sx={{ p: 1, mb: 1, boxShadow: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <Typography sx={{ fontWeight: 'bold', mr: 1 }}>{row.item}.</Typography>
-                        <Typography sx={{ fontWeight: 500 }}>{row.description}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
-                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <TextField label="Unit" value={row.unit} onChange={e => handleItemChange(absIdx, 'unit', e.target.value)} fullWidth size="small" />
-                          <TextField label="Start Sta." value={row.startSta} onChange={e => handleItemChange(absIdx, 'startSta', e.target.value)} fullWidth size="small" />
-                          <TextField label="End Sta." value={row.endSta} onChange={e => handleItemChange(absIdx, 'endSta', e.target.value)} fullWidth size="small" />
-                          <TextField label="Daily Quantity" value={row.dailyQty} onChange={e => handleItemChange(absIdx, 'dailyQty', e.target.value)} fullWidth size="small" />
-                        </Box>
-                        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                          <TextField
-                            label="Comments"
-                            value={row.comments}
-                            onChange={e => handleItemChange(absIdx, 'comments', e.target.value)}
-                            fullWidth
-                            size="small"
-                            multiline
-                            minRows={4}
-                            maxRows={8}
-                            sx={{ height: '100%' }}
-                            InputProps={{
-                              sx: { height: '100%', alignItems: 'stretch', display: 'flex', flex: 1 }
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                        <IconButton aria-label="duplicate" color="primary" onClick={() => handleDuplicateRow(absIdx)} size="small">
-                          <AddIcon />
-                        </IconButton>
-                        {row.isCustom && (
-                          <IconButton aria-label="delete" color="error" onClick={() => handleDeleteItem(absIdx)} size="small">
-                            <DeleteIcon />
-                          </IconButton>
-                        )}
-                      </Box>
-                    </Paper>
-                  );
+                  return renderItemCard(row, absIdx);
                 })}
               </Stack>
             </Box>
@@ -397,24 +485,127 @@ const DailyUtilityReport = () => {
               size="small"
             />
 
-            <Grid container spacing={2} alignItems="center" mb={2}>
-              <Grid item xs={12} sm={3}>
-                <TextField label="Inspector Signature" name="inspector" value={signatures.inspector} onChange={handleSignatureChange} fullWidth size="small" />
-              </Grid>
-              <Grid item xs={12} sm={3}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker label="Date" value={signatures.inspectorDate} onChange={date => handleSignatureDateChange('inspectorDate', date)} slotProps={{ textField: { fullWidth: true, size: 'small' } }} />
-                </LocalizationProvider>
-              </Grid>
-              <Grid item xs={12} sm={3}>
-                <TextField label="Contractor Signature" name="contractor" value={signatures.contractor} onChange={handleSignatureChange} fullWidth size="small" />
-              </Grid>
-              <Grid item xs={12} sm={3}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <DatePicker label="Date" value={signatures.contractorDate} onChange={date => handleSignatureDateChange('contractorDate', date)} slotProps={{ textField: { fullWidth: true, size: 'small' } }} />
-                </LocalizationProvider>
-              </Grid>
-            </Grid>
+            <Box className={styles['header-fields-container']}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Signatures
+              </Typography>
+              <div className={`${styles['header-row']} ${styles['bottom']}`}>
+                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField label="Inspector Name" name="inspector" value={signatures.inspector} onChange={handleSignatureChange} fullWidth size="small" className={styles['header-field']} />
+                  <Box sx={{ mt: 1, mb: 1, background: '#fff', border: '1px solid #222', borderRadius: 1, p: 1, height: { xs: 180, sm: 120 }, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {!inspectorSigning && inspectorSig ? (
+                      <>
+                        <img
+                          src={inspectorSig}
+                          alt="Inspector Signature"
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff', display: 'block' }}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => { setInspectorSigning(true); handleClearInspectorSig(); }}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Sign Again
+                        </Button>
+                      </>
+                    ) : inspectorSigning ? (
+                      <>
+                        <SignaturePad
+                          ref={inspectorPadRef}
+                          canvasProps={{ width: 300, height: 100, className: styles['signature-canvas'] }}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            if (inspectorPadRef.current && !inspectorPadRef.current.isEmpty()) {
+                              setInspectorSig(inspectorPadRef.current.getTrimmedCanvas().toDataURL('image/png'));
+                              setInspectorSigning(false);
+                            }
+                          }}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Done
+                        </Button>
+                        <Button
+                          size="small"
+                          onClick={handleClearInspectorSig}
+                          sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Clear
+                        </Button>
+                      </>
+                    ) : (
+                      <Box
+                        sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
+                        onClick={() => setInspectorSigning(true)}
+                      >
+                        <Typography sx={{ color: '#bbb', fontSize: 18, userSelect: 'none', pointerEvents: 'none' }}>Tap to Sign</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker label="Date" value={getDateValue(signatures.inspectorDate)} onChange={date => handleSignatureDateChange('inspectorDate', date)} slotProps={{ textField: { fullWidth: true, size: 'small', className: styles['header-field'] } }} />
+                  </LocalizationProvider>
+                </Box>
+                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField label="Foreman Name" name="contractor" value={signatures.contractor} onChange={handleSignatureChange} fullWidth size="small" className={styles['header-field']} />
+                  <Box sx={{ mt: 1, mb: 1, background: '#fff', border: '1px solid #222', borderRadius: 1, p: 1, height: { xs: 180, sm: 120 }, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {!foremanSigning && foremanSig ? (
+                      <>
+                        <img
+                          src={foremanSig}
+                          alt="Foreman Signature"
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff', display: 'block' }}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => { setForemanSigning(true); handleClearForemanSig(); }}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Sign Again
+                        </Button>
+                      </>
+                    ) : foremanSigning ? (
+                      <>
+                        <SignaturePad
+                          ref={foremanPadRef}
+                          canvasProps={{ width: 300, height: 100, className: styles['signature-canvas'] }}
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            if (foremanPadRef.current && !foremanPadRef.current.isEmpty()) {
+                              setForemanSig(foremanPadRef.current.getTrimmedCanvas().toDataURL('image/png'));
+                              setForemanSigning(false);
+                            }
+                          }}
+                          sx={{ position: 'absolute', top: 4, right: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Done
+                        </Button>
+                        <Button
+                          size="small"
+                          onClick={handleClearForemanSig}
+                          sx={{ position: 'absolute', top: 4, left: 4, minWidth: 'auto', p: 0.5, zIndex: 2 }}
+                        >
+                          Clear
+                        </Button>
+                      </>
+                    ) : (
+                      <Box
+                        sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative' }}
+                        onClick={() => setForemanSigning(true)}
+                      >
+                        <Typography sx={{ color: '#bbb', fontSize: 18, userSelect: 'none', pointerEvents: 'none' }}>Tap to Sign</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker label="Date" value={getDateValue(signatures.contractorDate)} onChange={date => handleSignatureDateChange('contractorDate', date)} slotProps={{ textField: { fullWidth: true, size: 'small', className: styles['header-field'] } }} />
+                  </LocalizationProvider>
+                </Box>
+              </div>
+            </Box>
 
             <Box sx={{ display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' } }}>
               <Button type="submit" variant="contained" fullWidth={true} sx={{ maxWidth: { xs: '100%', sm: 300 } }}>
