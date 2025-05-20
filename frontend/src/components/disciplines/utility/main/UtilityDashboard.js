@@ -71,7 +71,7 @@ const UtilityDashboard = () => {
                       fontSize: '1.25rem',
                     }}
                   >
-                    New Utility Report
+                    New Payload Report
                   </Typography>
                 </Box>
                 
@@ -104,6 +104,73 @@ const UtilityDashboard = () => {
                   }}
                 >
                   Create New Report
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <Card sx={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              bgcolor: '#fff',
+              borderRadius: '8px',
+              '&:hover': {
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                transform: 'translateY(-2px)',
+                transition: 'all 0.3s ease',
+              },
+            }}>
+              <CardContent sx={{
+                flex: 1,
+                p: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                '&:last-child': { pb: 2 }
+              }}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                }}>
+                  <AddIcon sx={{
+                    color: '#000000',
+                    fontSize: '2rem',
+                  }} />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: '#000000',
+                      fontWeight: 600,
+                      fontSize: '1.25rem',
+                    }}
+                  >
+                    New I3 Daily Utility Report
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ color: '#666666', flex: 1 }}>
+                  Create a new I3 daily utility report for detailed construction and environmental tracking.
+                </Typography>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => navigate('/utility/reports/daily/i3')}
+                  sx={{
+                    backgroundColor: '#000000',
+                    '&:hover': {
+                      backgroundColor: '#333333',
+                      transform: 'scale(1.02)',
+                      transition: 'all 0.2s ease',
+                    },
+                    color: '#ffffff',
+                    fontWeight: 500,
+                    height: 40,
+                    fontSize: '0.875rem',
+                    textTransform: 'none',
+                  }}
+                >
+                  Create I3 Report
                 </Button>
               </CardContent>
             </Card>
