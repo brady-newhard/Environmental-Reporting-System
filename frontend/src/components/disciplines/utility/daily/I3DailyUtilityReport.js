@@ -90,6 +90,7 @@ const I3DailyUtilityReport = () => {
   const [photos, setPhotos] = useState([]);
   const navigate = useNavigate();
   const [showSigDatePicker, setShowSigDatePicker] = useState(false);
+  const [equipmentRows, setEquipmentRows] = useState([{ equipment: '', qty: '', hoursUsed: '' }]);
 
   // Add usePrevious hook
   const prevSigning = usePrevious(signing);
@@ -152,19 +153,19 @@ const I3DailyUtilityReport = () => {
               <CardContent>
                 <Typography variant="h6" sx={{ mb: 2 }}>Project Information</Typography>
                 {/* First row: 4 text fields */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                   <TextField label="Project" name="project" value={header.project} onChange={handleHeaderChange} fullWidth sx={{ flex: 1, bgcolor: '#fff' }} />
                   <TextField label="Spread" name="spread" value={header.spread} onChange={handleHeaderChange} fullWidth sx={{ flex: 1, bgcolor: '#fff' }} />
                   <TextField label="Inspector" name="inspector" value={header.inspector} onChange={handleHeaderChange} fullWidth sx={{ flex: 1, bgcolor: '#fff' }} />
                   <TextField label="AFE Number" name="afe" value={header.afe} onChange={handleHeaderChange} fullWidth sx={{ flex: 1, bgcolor: '#fff' }} />
                 </Box>
                 {/* Second row: Contractor Name and Subcontractors */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2, alignItems: 'flex-start' }}>
                   <TextField label="Contractor" name="contractor" value={header.contractor} onChange={handleHeaderChange} fullWidth sx={{ flex: 1, bgcolor: '#fff' }} />
-                  <Box sx={{ display: 'flex', flexDirection: 'row', flex: 2, gap: 2, alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flex: 2, gap: 2, alignItems: 'center' }}>
                     {[1,2,3].map(i => (
                       header[`sub${i}`] !== undefined ? (
-                        <Box key={`sub${i}`} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box key={`sub${i}`} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', gap: 1 }}>
                           <TextField
                             label={`Subcontractor ${i}`}
                             name={`sub${i}`}
@@ -202,7 +203,7 @@ const I3DailyUtilityReport = () => {
                   </Box>
                 </Box>
                 {/* Third row: Report Number, Date, Weekday, Total Footage */}
-                <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                   <TextField label="Report No." name="reportNo" value={header.reportNo} fullWidth sx={{ flex: 1, bgcolor: '#fff' }} InputProps={{ readOnly: true }} />
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                     <DatePicker
@@ -273,7 +274,7 @@ const I3DailyUtilityReport = () => {
                   {rows.map((row, idx) => (
                     <Paper key={idx} sx={{ p: 2, pb: 6, position: 'relative', width: '100%', bgcolor: '#f3f3f3' }}>
                       {/* First row */}
-                      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                         <Box sx={{ flex: 1 }}>
                           <TextField
                             select
@@ -307,7 +308,7 @@ const I3DailyUtilityReport = () => {
                         </Box>
                       </Box>
                       {/* Second row */}
-                      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                         <Box sx={{ flex: 1 }}>
                           <TextField label="Daily Footage" value={row.dailyFootage} onChange={e => handleRowChange(idx, 'dailyFootage', e.target.value)} fullWidth sx={{ bgcolor: '#fff' }} />
                         </Box>
@@ -319,7 +320,7 @@ const I3DailyUtilityReport = () => {
                         </Box>
                       </Box>
                       {/* Third row */}
-                      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                         <Box sx={{ flex: 1 }}>
                           <TextField label="Contractor Name" value={row.contractor} onChange={e => handleRowChange(idx, 'contractor', e.target.value)} fullWidth sx={{ bgcolor: '#fff' }} />
                         </Box>
@@ -328,18 +329,6 @@ const I3DailyUtilityReport = () => {
                         </Box>
                         <Box sx={{ flex: 1 }}>
                           <TextField label="Total Hours" value={row.hours} onChange={e => handleRowChange(idx, 'hours', e.target.value)} fullWidth sx={{ bgcolor: '#fff' }} />
-                        </Box>
-                      </Box>
-                      {/* Fourth row */}
-                      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                        <Box sx={{ flex: 1 }}>
-                          <TextField label="Equipment" value={row.equipment} onChange={e => handleRowChange(idx, 'equipment', e.target.value)} fullWidth sx={{ bgcolor: '#fff' }} />
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <TextField label="Qty of Each" value={row.qty} onChange={e => handleRowChange(idx, 'qty', e.target.value)} fullWidth sx={{ bgcolor: '#fff' }} />
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <TextField label="Hours Used" value={row.hoursUsed} onChange={e => handleRowChange(idx, 'hoursUsed', e.target.value)} fullWidth sx={{ bgcolor: '#fff' }} />
                         </Box>
                       </Box>
                       {/* Delete button in bottom right */}
@@ -352,6 +341,48 @@ const I3DailyUtilityReport = () => {
                     </Paper>
                   ))}
                   <Button startIcon={<AddIcon />} onClick={handleAddRow}>Add Row</Button>
+                </Stack>
+              </CardContent>
+            </Card>
+            {/* Equipment Section */}
+            <Card className={styles.card} sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ mb: 2 }}>Equipment</Typography>
+                <Stack spacing={2}>
+                  {equipmentRows.map((row, idx) => (
+                    <Box key={idx} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', position: 'relative', pb: 2 }}>
+                      <TextField
+                        label="Equipment"
+                        value={row.equipment}
+                        onChange={e => setEquipmentRows(equipmentRows.map((r, i) => i === idx ? { ...r, equipment: e.target.value } : r))}
+                        fullWidth
+                        sx={{ bgcolor: '#fff' }}
+                      />
+                      <TextField
+                        label="Qty of Each"
+                        value={row.qty}
+                        onChange={e => setEquipmentRows(equipmentRows.map((r, i) => i === idx ? { ...r, qty: e.target.value } : r))}
+                        fullWidth
+                        sx={{ bgcolor: '#fff' }}
+                      />
+                      <TextField
+                        label="Hours Used"
+                        value={row.hoursUsed}
+                        onChange={e => setEquipmentRows(equipmentRows.map((r, i) => i === idx ? { ...r, hoursUsed: e.target.value } : r))}
+                        fullWidth
+                        sx={{ bgcolor: '#fff' }}
+                      />
+                      <IconButton
+                        onClick={() => setEquipmentRows(equipmentRows.length > 1 ? equipmentRows.filter((_, i) => i !== idx) : equipmentRows)}
+                        sx={{ position: 'absolute', bottom: 8, right: -8 }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  ))}
+                  <Button startIcon={<AddIcon />} onClick={() => setEquipmentRows([...equipmentRows, { equipment: '', qty: '', hoursUsed: '' }])}>
+                    Add Equipment
+                  </Button>
                 </Stack>
               </CardContent>
             </Card>

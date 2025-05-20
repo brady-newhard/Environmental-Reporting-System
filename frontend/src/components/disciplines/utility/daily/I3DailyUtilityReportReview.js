@@ -7,88 +7,126 @@ const I3DailyUtilityReportReview = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   if (!state) return <Typography>No data to review.</Typography>;
-  const { header, weather, am, pm, rows, generalSummary, landSummary, envSummary, safety, visitors, preparedBy, signature, sigDate } = state;
+  const { header, weather, am, pm, rows, generalSummary, landSummary, envSummary, safety, preparedBy, signature, sigDate, photos } = state;
 
   return (
-    <Box className={styles.root}>
-      <Paper className={styles.paper}>
-        <Typography variant="h5" sx={{ mb: 2 }}>I3 Daily Utility Report - Review</Typography>
-        <Box className={styles.headerSection}>
-          <Typography><b>PROJECT:</b> {header.project}</Typography>
-          <Box className={styles.headerGrid}>
-            <Typography>Inspector: {header.inspector}</Typography>
-            <Typography>AFE Number: {header.afe}</Typography>
-            <Typography>Contractor: {header.contractor}</Typography>
-            <Typography>Subcontractor: {header.sub1}</Typography>
-            <Typography>Subcontractor: {header.sub2}</Typography>
-            <Typography>Subcontractor: {header.sub3}</Typography>
-            <Typography>Date: {header.date}</Typography>
-            <Typography>Report No.: {header.reportNo}</Typography>
-            <Typography>Weekday: {header.weekday}</Typography>
-            <Typography>Total Footage: {header.totalFootage}</Typography>
-          </Box>
-          <Box className={styles.weatherSection}>
-            <Typography variant="subtitle2">WEATHER</Typography>
-            <Typography>Clear: {weather.clear ? 'Yes' : 'No'}</Typography>
-            <Typography>Cloudy: {weather.cloudy ? 'Yes' : 'No'}</Typography>
-            <Typography>Rain: {weather.rain ? 'Yes' : 'No'}</Typography>
-            <Typography>Snow: {weather.snow ? 'Yes' : 'No'}</Typography>
-            <Typography>Temp: {weather.temp}</Typography>
-            <Typography>AM: {am ? 'Yes' : 'No'} | PM: {pm ? 'Yes' : 'No'}</Typography>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+      <Paper sx={{ p: 3, bgcolor: '#fff' }}>
+        <Typography variant="h4" gutterBottom>I3 Daily Utility Report</Typography>
+        {/* Project Info */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>Project Information</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+            <Box><b>Project:</b> {header.project}</Box>
+            <Box><b>Spread:</b> {header.spread}</Box>
+            <Box><b>Inspector:</b> {header.inspector}</Box>
+            <Box><b>AFE Number:</b> {header.afe}</Box>
+            <Box><b>Contractor:</b> {header.contractor}</Box>
+            {[1,2,3].map(i => header[`sub${i}`] && (
+              <Box key={i}><b>Subcontractor {i}:</b> {header[`sub${i}`]}</Box>
+            ))}
+            <Box><b>Date:</b> {header.date ? new Date(header.date).toLocaleDateString() : ''}</Box>
+            <Box><b>Report No.:</b> {header.reportNo}</Box>
+            <Box><b>Weekday:</b> {header.weekday}</Box>
+            <Box><b>Total Footage:</b> {header.totalFootage}</Box>
           </Box>
         </Box>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>CONSTRUCTION PHASE</TableCell>
-                <TableCell>START STA.</TableCell>
-                <TableCell>END STA.</TableCell>
-                <TableCell>DAILY FOOTAGE</TableCell>
-                <TableCell>CUMULATIVE FOOTAGE</TableCell>
-                <TableCell>% Complete</TableCell>
-                <TableCell>CONTRACTOR NAME</TableCell>
-                <TableCell>NUMBER IN CREW</TableCell>
-                <TableCell>TOTAL HOURS</TableCell>
-                <TableCell>EQUIPMENT</TableCell>
-                <TableCell>QTY OF EACH</TableCell>
-                <TableCell>HOURS USED</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{row.phase}</TableCell>
-                  <TableCell>{row.startSta}</TableCell>
-                  <TableCell>{row.endSta}</TableCell>
-                  <TableCell>{row.dailyFootage}</TableCell>
-                  <TableCell>{row.cumulativeFootage}</TableCell>
-                  <TableCell>{row.percentComplete}</TableCell>
-                  <TableCell>{row.contractor}</TableCell>
-                  <TableCell>{row.crew}</TableCell>
-                  <TableCell>{row.hours}</TableCell>
-                  <TableCell>{row.equipment}</TableCell>
-                  <TableCell>{row.qty}</TableCell>
-                  <TableCell>{row.hoursUsed}</TableCell>
+        {/* Weather */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>Weather</Typography>
+          <Box sx={{ display: 'flex', gap: 4 }}>
+            {['am', 'pm'].map(period => (
+              <Box key={period}>
+                <Typography variant="subtitle2">{period.toUpperCase()} Weather</Typography>
+                <div>Sky Cover: {weather[period]?.sky}</div>
+                <div>Precipitation: {weather[period]?.precip}</div>
+                <div>Temp: {weather[period]?.temp}°F</div>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+        {/* Construction Phases Table */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>Construction Phases</Typography>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Construction Phase</TableCell>
+                  <TableCell>Start Sta.</TableCell>
+                  <TableCell>End Sta.</TableCell>
+                  <TableCell>Daily Footage</TableCell>
+                  <TableCell>Cumulative Footage</TableCell>
+                  <TableCell>% Complete</TableCell>
+                  <TableCell>Contractor Name</TableCell>
+                  <TableCell>Number in Crew</TableCell>
+                  <TableCell>Total Hours</TableCell>
+                  <TableCell>Equipment</TableCell>
+                  <TableCell>Qty of Each</TableCell>
+                  <TableCell>Hours Used</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box className={styles.summarySection}>
-          <Typography><b>GENERAL SUMMARY:</b> {generalSummary}</Typography>
-          <Typography><b>LAND SUMMARY:</b> {landSummary}</Typography>
-          <Typography><b>ENVIRONMENTAL SUMMARY:</b> {envSummary}</Typography>
+              </TableHead>
+              <TableBody>
+                {rows.map((row, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{row.phase === 'Other' ? row.customPhase : row.phase}</TableCell>
+                    <TableCell>{row.startSta}</TableCell>
+                    <TableCell>{row.endSta}</TableCell>
+                    <TableCell>{row.dailyFootage}</TableCell>
+                    <TableCell>{row.cumulativeFootage}</TableCell>
+                    <TableCell>{row.percentComplete}</TableCell>
+                    <TableCell>{row.contractor}</TableCell>
+                    <TableCell>{row.crew}</TableCell>
+                    <TableCell>{row.hours}</TableCell>
+                    <TableCell>{row.equipment}</TableCell>
+                    <TableCell>{row.qty}</TableCell>
+                    <TableCell>{row.hoursUsed}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
-        <Typography className={styles.photoNote} sx={{ color: 'red', fontWeight: 'bold', mt: 2, mb: 2 }}>
-          EMAIL PHOTOGRAPHS IN ORIGINAL FORMAT, AS ATTACHMENTS, ALONG WITH DAILY REPORT TO JOE AND CONNIE. ALL PHOTOS MUST BE LABELED WITH LOCATION, DATE, AND DESCRIPTION.
-        </Typography>
-        <Box className={styles.footerSection}>
-          <Typography><b>SAFETY CONCERNS / VISITORS / EVENTS:</b> {safety}</Typography>
-          <Typography><b>Inspector/Report Prepared by:</b> {preparedBy}</Typography>
-          <Typography><b>Inspector's Signature:</b> {signature}</Typography>
+        {/* Summaries */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>Summaries</Typography>
+          <Typography><b>General:</b> {generalSummary}</Typography>
+          <Typography><b>Land:</b> {landSummary}</Typography>
+          <Typography><b>Environmental:</b> {envSummary}</Typography>
+        </Box>
+        {/* Safety/Visitors/Events */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>Safety / Visitors / Events</Typography>
+          <Typography>{safety}</Typography>
+        </Box>
+        {/* Signature */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>Inspector Signature</Typography>
+          <Typography><b>Prepared by:</b> {preparedBy}</Typography>
+          {signature && (
+            <Box sx={{ my: 1 }}>
+              <img src={signature} alt="Signature" style={{ maxWidth: 300, border: '1px solid #ccc' }} />
+            </Box>
+          )}
           <Typography><b>Date:</b> {sigDate}</Typography>
         </Box>
+        {/* Photos */}
+        {photos && photos.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="h6" gutterBottom>Photos</Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              {photos.map((file, idx) => (
+                <img
+                  key={idx}
+                  src={typeof file === 'string' ? file : URL.createObjectURL(file)}
+                  alt={`Photo ${idx + 1}`}
+                  style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 4, border: '1px solid #ccc' }}
+                />
+              ))}
+            </Box>
+          </Box>
+        )}
+        {/* Action Buttons */}
         <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
           <Button variant="outlined" onClick={() => navigate(-1)}>Back</Button>
           <Button variant="contained" color="primary">Submit</Button>
