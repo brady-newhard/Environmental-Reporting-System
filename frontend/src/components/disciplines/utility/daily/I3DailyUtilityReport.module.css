@@ -1,0 +1,68 @@
+.root {
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding: 16px;
+}
+.paper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.headerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.headerGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.weatherSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.summarySection {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.summaryField {
+  background: #f9f9f9;
+}
+.photoNote {
+  font-size: 1rem;
+  text-align: center;
+}
+.footerSection {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.footerField {
+  flex: 1 1 100%;
+}
+.projectField {
+  margin-bottom: 8px;
+}
+.weatherSubBox {
+  border: 1px solid #222;
+  border-radius: 8px;
+  background: #fafbfc;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  flex: 1 1 320px;
+} 
