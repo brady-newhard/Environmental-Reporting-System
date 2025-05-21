@@ -17,7 +17,6 @@ import PhotosPage from './components/common/PhotosPage';
 import ReviewReport from './components/common/ReviewReport';
 import PrivateRoute from './components/common/PrivateRoute';
 import Profile from './components/common/Profile';
-import ReportForm from './components/disciplines/environmental/daily/ReportForm';
 import NewReport from './components/common/NewReport';
 
 // Environmental Components
@@ -32,6 +31,9 @@ import SWPPPPhotoPage from './components/disciplines/environmental/swppp/SWPPPPh
 import SWPPPDrafts from './components/disciplines/environmental/swppp/SWPPPDrafts';
 import NewProgressReport from './components/disciplines/environmental/progress/NewProgressReport';
 import NewVarianceReport from './components/disciplines/environmental/variance/NewVarianceReport';
+import EnvironmentalDailyReport from './components/disciplines/environmental/daily/EnvironmentalDailyReport';
+import EnvironmentalDailyReportReview from './components/disciplines/environmental/daily/EnvironmentalDailyReportReview';
+import EnvironmentalDailyReportDrafts from './components/disciplines/environmental/daily/EnvironmentalDailyReportDrafts';
 
 // Welding Components
 import WeldingMain from './components/disciplines/welding/main/WeldingMain';
@@ -253,7 +255,7 @@ function App() {
             path="/environmental/reports/daily/new"
             element={
               <PrivateRoute>
-                <ReportForm />
+                <EnvironmentalDailyReport />
               </PrivateRoute>
             }
           />
@@ -341,7 +343,7 @@ function App() {
             path="/new-report/*"
             element={
               <PrivateRoute>
-                <ReportForm />
+                <NewReport />
               </PrivateRoute>
             }
           />
@@ -482,6 +484,22 @@ function App() {
           <Route path="/utility/reports/daily/i3" element={<I3DailyUtilityReport />} />
           <Route path="/utility/reports/daily/i3/review/:draftId" element={<I3DailyUtilityReportReview />} />
           <Route path="/utility/reports/daily/i3/drafts" element={<PrivateRoute><I3DailyUtilityReportDrafts /></PrivateRoute>} />
+          <Route
+            path="/environmental/reports/daily/review/:draftId"
+            element={
+              <PrivateRoute>
+                <EnvironmentalDailyReportReview />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/reports/daily/drafts"
+            element={
+              <PrivateRoute>
+                <EnvironmentalDailyReportDrafts />
+              </PrivateRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
