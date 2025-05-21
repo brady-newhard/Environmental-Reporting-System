@@ -45,10 +45,14 @@ import CoatingRoutes from './routes/coatingRoutes';
 
 // Utility Components
 import UtilityDashboard from './components/disciplines/utility/main/UtilityDashboard';
+import UtilityReports from './components/disciplines/utility/main/UtilityReports';
 import DailyUtilityReport from './components/disciplines/utility/daily/DailyUtilityReport';
 import DailyUtilityReportReview from './components/disciplines/utility/daily/DailyUtilityReportReview';
+import DailyUtilityReportDrafts from './components/disciplines/utility/daily/DailyUtilityReportDrafts';
+import DailyUtilityReportDraftView from './components/disciplines/utility/daily/DailyUtilityReportDraftView';
 import I3DailyUtilityReport from './components/disciplines/utility/daily/I3DailyUtilityReport';
 import I3DailyUtilityReportReview from './components/disciplines/utility/daily/I3DailyUtilityReportReview';
+import I3DailyUtilityReportDrafts from './components/disciplines/utility/daily/I3DailyUtilityReportDrafts';
 
 const theme = createTheme({
   palette: {
@@ -434,10 +438,14 @@ function App() {
             }
           />
           <Route path="/utility" element={<UtilityDashboard />} />
+          <Route path="/utility/reports" element={<UtilityReports />} />
           <Route path="/utility/reports/daily/new" element={<DailyUtilityReport />} />
           <Route path="/utility/reports/daily/review" element={<PrivateRoute><DailyUtilityReportReview /></PrivateRoute>} />
+          <Route path="/utility/reports/daily/drafts" element={<PrivateRoute><DailyUtilityReportDrafts /></PrivateRoute>} />
+          <Route path="/utility/reports/daily/draft/:draftId" element={<PrivateRoute><DailyUtilityReportDraftView /></PrivateRoute>} />
           <Route path="/utility/reports/daily/i3" element={<I3DailyUtilityReport />} />
-          <Route path="/utility/reports/daily/i3/review" element={<I3DailyUtilityReportReview />} />
+          <Route path="/utility/reports/daily/i3/review/:draftId" element={<I3DailyUtilityReportReview />} />
+          <Route path="/utility/reports/daily/i3/drafts" element={<PrivateRoute><I3DailyUtilityReportDrafts /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
