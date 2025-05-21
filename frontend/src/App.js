@@ -37,7 +37,11 @@ import NewVarianceReport from './components/disciplines/environmental/variance/N
 import WeldingMain from './components/disciplines/welding/main/WeldingMain';
 import DailyWeldingReportForm from './components/disciplines/welding/daily/DailyWeldingReportForm';
 import WeldingReports from './components/disciplines/welding/daily/WeldingReports';
-import WeldingDraftReports from './components/disciplines/welding/daily/WeldingDraftReports';
+import DailyWeldingReportDrafts from './components/disciplines/welding/daily/DailyWeldingReportDrafts';
+import DailyWeldingReportStationDrafts from './components/disciplines/welding/daily/DailyWeldingReportStationDrafts';
+import DailyWeldingReportReview from './components/disciplines/welding/daily/DailyWeldingReportReview';
+import DailyWeldingReportStationReview from './components/disciplines/welding/daily/DailyWeldingReportStationReview';
+import DailyWeldingReportStationForm from './components/disciplines/welding/daily/DailyWeldingReportStationForm';
 
 // Coating Components
 import CoatingMain from './components/disciplines/coating/main/CoatingMain';
@@ -281,7 +285,39 @@ function App() {
             path="/welding/reports/drafts"
             element={
               <PrivateRoute>
-                <WeldingDraftReports />
+                <DailyWeldingReportDrafts />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding/reports/station-drafts"
+            element={
+              <PrivateRoute>
+                <DailyWeldingReportStationDrafts />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding/reports/daily-station"
+            element={
+              <PrivateRoute>
+                <DailyWeldingReportStationForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding/reports/daily/review/:draftId"
+            element={
+              <PrivateRoute>
+                <DailyWeldingReportReview />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/welding/reports/daily-station/review/:draftId"
+            element={
+              <PrivateRoute>
+                <DailyWeldingReportStationReview />
               </PrivateRoute>
             }
           />
