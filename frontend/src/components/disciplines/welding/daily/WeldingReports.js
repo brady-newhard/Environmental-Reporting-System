@@ -1,20 +1,23 @@
 import React from 'react';
 import { Box, Card, CardContent, Typography, Button, Link } from '@mui/material';
-import { Assignment as DailyReportIcon, Drafts as DraftsIcon } from '@mui/icons-material';
+import { Assignment as DailyReportIcon, Drafts as DraftsIcon, Build as StationReportIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../common/PageHeader';
 import Badge from '@mui/material/Badge';
 
-const ReportCard = ({ title, icon: Icon, description, path, secondaryAction }) => {
+const ReportCard = ({ title, icon: Icon, description, path, secondaryAction, draftsKey }) => {
   const navigate = useNavigate();
   const [draftCount, setDraftCount] = React.useState(0);
 
   React.useEffect(() => {
     if (secondaryAction) {
-      const drafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
-      setDraftCount(drafts.length);
+      const prefix = draftsKey === 'dailyWeldingStationReportDrafts' 
+        ? 'daily_welding_station_draft_'
+        : 'daily_welding_draft_';
+      const draftKeys = Object.keys(localStorage).filter(key => key.startsWith(prefix));
+      setDraftCount(draftKeys.length);
     }
-  }, [secondaryAction]);
+  }, [secondaryAction, draftsKey]);
 
   const handleFillOut = () => {
     // Clear any existing draft ID from URL
@@ -123,6 +126,17 @@ const WeldingReports = () => {
               text: "View Draft Reports",
               path: "/welding/reports/drafts"
             }}
+          />
+          <ReportCard
+            title="Daily Weld Station Report"
+            icon={StationReportIcon}
+            description="Complete the daily weld station report."
+            path="/welding/reports/daily-station"
+            secondaryAction={{
+              text: "View Draft Reports",
+              path: "/welding/reports/station-drafts"
+            }}
+            draftsKey="dailyWeldingStationReportDrafts"
           />
         </Box>
       </Box>

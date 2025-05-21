@@ -51,11 +51,6 @@ const initialState = {
     tieIn: { repaired: '', rejected: '', total: '' },
     test: { repaired: '', rejected: '', total: '' },
   },
-  pipeInstalled: { size: '', footage: '', from: '', to: '' },
-  roadXing: { size: '', footage: '', from: '', to: '', bore: '' },
-  streamXings: { size: '', footage: '', from: '', to: '' },
-  tapsInstalled: { size: '', no: '' },
-  blockGates: { size: '', no: '' },
   cutOut2: { size: '', defect: '' },
   cutOut1: { size: '', defect: '' },
   weldingInspectorName: '',
@@ -139,7 +134,7 @@ const useSignaturePadLock = () => {
   return [isSigning, setIsSigning];
 };
 
-const DailyWeldingReportForm = () => {
+const DailyWeldingReportStationForm = () => {
   const [form, setForm] = useState(initialState);
   const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
@@ -159,7 +154,7 @@ const DailyWeldingReportForm = () => {
         weather: locationState.draft.weather || { skyCover: '', temperature: '', precipitationType: '' }
       });
     } else if (draftId) {
-      const data = localStorage.getItem(`daily_welding_draft_${draftId}`);
+      const data = localStorage.getItem(`daily_welding_station_draft_${draftId}`);
       if (data) {
         const draft = JSON.parse(data);
         setForm({
@@ -266,7 +261,7 @@ const DailyWeldingReportForm = () => {
   const handleSave = () => {
     const draftId = getCurrentDraftId() || `${Date.now()}`;
     const draftData = { ...form, savedAt: new Date().toISOString(), draftId };
-    localStorage.setItem(`daily_welding_draft_${draftId}`, JSON.stringify(draftData));
+    localStorage.setItem(`daily_welding_station_draft_${draftId}`, JSON.stringify(draftData));
     setForm(prev => ({ ...prev, draftId }));
     alert('Form saved as draft!');
   };
@@ -278,7 +273,7 @@ const DailyWeldingReportForm = () => {
   const handleDeleteConfirm = () => {
     const draftId = new URLSearchParams(window.location.search).get('draftId') || form.draftId;
     if (draftId) {
-      localStorage.removeItem(`daily_welding_draft_${draftId}`);
+      localStorage.removeItem(`daily_welding_station_draft_${draftId}`);
     }
     setDeletePromptOpen(false);
     navigate('/welding/reports');
@@ -559,7 +554,7 @@ const DailyWeldingReportForm = () => {
 
   return (
     <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', p: { xs: 2, sm: 3 }, maxWidth: '100vw', overflowX: 'hidden' }}>
-      <PageHeader title="Daily Weld Report" backPath="/welding/reports" />
+      <PageHeader title="Daily Weld Report - Station" backPath="/welding/reports" />
       <Box sx={{ bgcolor: '#fff', border: '2px solid #000', borderRadius: 2, boxShadow: 2, p: { xs: 2, sm: 3 }, width: '100%' }}>
         <form onSubmit={handleSubmit} style={{ width: '100%' }}>
           {/* Project Information Section - Always two columns, never stacking */}
@@ -832,138 +827,9 @@ const DailyWeldingReportForm = () => {
             />
           </Box>
 
-          {/* Installations Section */}
+          {/* Cut Out Defects in Pipe */}
           <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" sx={{ mb: 2 }}>Installations</Typography>
-          {/* Pipe Installed - responsive */}
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr 1fr',
-              sm: '0.8fr 1.4fr 1.4fr 1.4fr 1.4fr',
-            },
-            gap: 2,
-            width: '100%',
-            mb: 2,
-          }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: 500,
-              wordBreak: 'break-word',
-              whiteSpace: 'normal',
-              gridColumn: { xs: '1 / -1', sm: 'auto' },
-            }}>
-              Pipe Installed
-            </Box>
-            <TextField label="Size" value={form.pipeInstalled.size} onChange={e => handleSectionChange('pipeInstalled', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
-            <TextField label="Footage" value={form.pipeInstalled.footage} onChange={e => handleSectionChange('pipeInstalled', 'footage', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
-            <TextField label="From" value={form.pipeInstalled.from} onChange={e => handleSectionChange('pipeInstalled', 'from', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
-            <TextField label="To" value={form.pipeInstalled.to} onChange={e => handleSectionChange('pipeInstalled', 'to', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
-          </Box>
-          {/* Road Xing - responsive */}
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr 1fr',
-              sm: '0.8fr 1.4fr 1.4fr 2.4fr',
-            },
-            gap: 2,
-            width: '100%',
-            mb: 2,
-          }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: 500,
-              wordBreak: 'break-word',
-              whiteSpace: 'normal',
-              gridColumn: { xs: '1 / -1', sm: 'auto' },
-            }}>
-              Road Xing
-            </Box>
-            <TextField label="Size" value={form.roadXing.size} onChange={e => handleSectionChange('roadXing', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
-            <TextField label="Footage" value={form.roadXing.footage} onChange={e => handleSectionChange('roadXing', 'footage', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
-            <TextField select label="Bore / Open Cut / Conduit" value={form.roadXing.bore} onChange={e => handleSectionChange('roadXing', 'bore', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
-              <MenuItem value="">Select...</MenuItem>
-              <MenuItem value="Yes">Yes</MenuItem>
-              <MenuItem value="No">No</MenuItem>
-            </TextField>
-          </Box>
-          {/* Stream Xings - responsive */}
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr 1fr',
-              sm: '0.8fr 1.4fr 1.4fr 1.4fr 1.4fr',
-            },
-            gap: 2,
-            width: '100%',
-            mb: 2,
-          }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: 500,
-              wordBreak: 'break-word',
-              whiteSpace: 'normal',
-              gridColumn: { xs: '1 / -1', sm: 'auto' },
-            }}>
-              Stream Xings
-            </Box>
-            <TextField label="Size" value={form.streamXings.size} onChange={e => handleSectionChange('streamXings', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
-            <TextField label="Footage" value={form.streamXings.footage} onChange={e => handleSectionChange('streamXings', 'footage', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
-            <TextField label="From" value={form.streamXings.from} onChange={e => handleSectionChange('streamXings', 'from', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
-            <TextField label="To" value={form.streamXings.to} onChange={e => handleSectionChange('streamXings', 'to', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
-          </Box>
-          {/* Taps Installed - responsive */}
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr 1fr',
-              sm: '0.8fr 2.1fr 2.1fr',
-            },
-            gap: 2,
-            width: '100%',
-            mb: 2,
-          }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: 500,
-              wordBreak: 'break-word',
-              whiteSpace: 'normal',
-              gridColumn: { xs: '1 / -1', sm: 'auto' },
-            }}>
-              Taps Installed
-            </Box>
-            <TextField label="Size" value={form.tapsInstalled.size} onChange={e => handleSectionChange('tapsInstalled', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
-            <TextField label="No." value={form.tapsInstalled.no} onChange={e => handleSectionChange('tapsInstalled', 'no', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
-          </Box>
-          {/* Block Gates Installed - responsive */}
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr 1fr',
-              sm: '0.8fr 2.1fr 2.1fr',
-            },
-            gap: 2,
-            width: '100%',
-            mb: 2,
-          }}>
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: 500,
-              wordBreak: 'break-word',
-              whiteSpace: 'normal',
-              gridColumn: { xs: '1 / -1', sm: 'auto' },
-            }}>
-              Block Gates Installed
-            </Box>
-            <TextField label="Size" value={form.blockGates.size} onChange={e => handleSectionChange('blockGates', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
-            <TextField label="No." value={form.blockGates.no} onChange={e => handleSectionChange('blockGates', 'no', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
-          </Box>
+          <Typography variant="h6" sx={{ mb: 2 }}>Cut Out Defects in Pipe</Typography>
           {/* Cut Out Defects in Pipe - 2 cuts - responsive */}
           <Box sx={{
             display: 'grid',
@@ -1057,26 +923,10 @@ const DailyWeldingReportForm = () => {
               Save
             </Button>
             <Button
-              onClick={handleExit}
-              variant="outlined"
-              size="small"
-              sx={{
-                flex: { xs: '1 1 25%', sm: '0 1 auto' },
-                minWidth: { xs: '80px', sm: '100px' },
-                py: { xs: 0.5, sm: 1 },
-                px: { xs: 0.5, sm: 2 },
-                borderColor: '#000',
-                color: '#000',
-                ml: 1
-              }}
-            >
-              Exit
-            </Button>
-            <Button 
               onClick={() => {
                 const draftId = getCurrentDraftId();
                 if (draftId) {
-                  navigate(`/welding/reports/daily/review/${draftId}`);
+                  navigate(`/welding/reports/daily-station/review/${draftId}`);
                 } else {
                   alert('Please save the draft first to review.');
                 }
@@ -1092,6 +942,22 @@ const DailyWeldingReportForm = () => {
               }}
             >
               Review
+            </Button>
+            <Button
+              onClick={handleExit}
+              variant="outlined"
+              size="small"
+              sx={{
+                flex: { xs: '1 1 25%', sm: '0 1 auto' },
+                minWidth: { xs: '80px', sm: '100px' },
+                py: { xs: 0.5, sm: 1 },
+                px: { xs: 0.5, sm: 2 },
+                borderColor: '#000',
+                color: '#000',
+                ml: 1
+              }}
+            >
+              Exit
             </Button>
             <Button 
               type="submit" 
@@ -1136,4 +1002,4 @@ const DailyWeldingReportForm = () => {
   );
 };
 
-export default DailyWeldingReportForm; 
+export default DailyWeldingReportStationForm; 
