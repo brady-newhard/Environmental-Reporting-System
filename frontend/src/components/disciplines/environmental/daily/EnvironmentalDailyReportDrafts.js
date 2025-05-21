@@ -4,6 +4,9 @@ import ReportTemplateDrafts from '../../../templates/ReportTemplateDrafts';
 const config = {
   title: 'Daily Environmental Report',
   reportType: 'environmental',
+  storageKey: 'environmental_draft_',
+  reviewPath: '/environmental/reports/daily/review',
+  editPath: '/environmental/reports/daily/new',
   headerFields: [
     { name: 'date', label: 'Date', required: true },
     { name: 'author', label: 'Author', required: true },

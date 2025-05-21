@@ -32,7 +32,8 @@ const config = {
     { name: 'notes', label: 'Notes', multiline: true }
   ],
   requiresSignature: true,
-  requiresPhotos: true
+  requiresPhotos: true,
+  editPath: '/environmental/reports/daily/new'
 };
 
 const EnvironmentalDailyReportReview = () => {

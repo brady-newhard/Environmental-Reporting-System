@@ -99,10 +99,9 @@ const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draft
           Create New Report
         </Button>
         {draftPath && (
-          <Typography
-            variant="body2"
+          <Box
+            onClick={() => navigate(draftPath)}
             sx={{
-              color: 'primary.main',
               cursor: 'pointer',
               textAlign: 'center',
               mt: 0.5,
@@ -110,21 +109,44 @@ const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draft
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
             }}
-            onClick={() => navigate(draftPath)}
           >
-            {draftCount > 0 ? (
-              <Badge badgeContent={draftCount} color="error">
-                <span style={{ fontWeight: 500 }}>View Draft Reports</span>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'primary.main',
+                  fontWeight: 500,
+                }}
+              >
+                View Draft Reports
+              </Typography>
+              <Badge
+                badgeContent={draftCount}
+                color="error"
+                overlap="circular"
+                sx={{
+                  '& .MuiBadge-badge': {
+                    right: 0,
+                    top: 0,
+                    minWidth: 20,
+                    height: 20,
+                    fontSize: '0.75rem',
+                  }
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    bgcolor: 'transparent',
+                    display: 'inline-block',
+                  }}
+                />
               </Badge>
-            ) : (
-              <span style={{ fontWeight: 500 }}>View Draft Reports</span>
-            )}
-          </Typography>
+            </Box>
+          </Box>
         )}
       </CardContent>
     </Card>
@@ -144,7 +166,7 @@ const EnvironmentalReports = () => {
     setSwpppDraftCount(swpppDrafts);
 
     const dailyDrafts = Object.keys(localStorage)
-      .filter(key => key.startsWith('daily_draft_'))
+      .filter(key => key.startsWith('environmental_draft_'))
       .length;
     setDailyDraftCount(dailyDrafts);
 
@@ -165,7 +187,7 @@ const EnvironmentalReports = () => {
       icon: ReportIcon,
       description: "Activities and Compliance.",
       path: "/environmental/reports/daily/new",
-      draftPath: "/daily-drafts",
+      draftPath: "/environmental/reports/daily/drafts",
       draftCount: dailyDraftCount
     },
     {

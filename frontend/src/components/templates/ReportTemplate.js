@@ -16,10 +16,14 @@ import {
   Card,
   CardContent,
   Grid,
-  Tooltip
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, PhotoCamera, Save as SaveIcon, Visibility as VisibilityIcon, ExitToApp as ExitToAppIcon } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SignaturePad from 'react-signature-canvas';
 import PageHeader from '../common/PageHeader';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -27,7 +31,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import Snackbar from '@mui/material/Snackbar';
+import { useSnackbar } from 'notistack';
 
 // Template configuration
 const defaultConfig = {
@@ -57,6 +61,8 @@ const defaultConfig = {
 
 const ReportTemplate = ({ config = defaultConfig }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { enqueueSnackbar } = useSnackbar();
   const sigPadRef = useRef();
   
   // State management
@@ -77,10 +83,50 @@ const ReportTemplate = ({ config = defaultConfig }) => {
   const [sigDate, setSigDate] = useState('');
   const [signing, setSigning] = useState(false);
   const [photos, setPhotos] = useState([]);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [draftId, setDraftId] = useState(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    // Check for draftId in URL
+    const params = new URLSearchParams(location.search);
+    const urlDraftId = params.get('draftId');
+    
+    // Check for draft data in location state
+    const stateDraft = location.state?.formData;
+
+    if (urlDraftId) {
+      // Load draft from localStorage
+      const draft = localStorage.getItem(`${config.reportType}_draft_${urlDraftId}`);
+      if (draft) {
+        const parsedDraft = JSON.parse(draft);
+        setFormData(parsedDraft);
+        setDraftId(urlDraftId);
+        // Initialize form fields with draft data
+        setHeader(parsedDraft.header || {});
+        setSections(parsedDraft.sections || []);
+        setSummaries(parsedDraft.summaries || {});
+        setPreparedBy(parsedDraft.preparedBy || '');
+        setSignature(parsedDraft.signature || '');
+        setSigDate(parsedDraft.sigDate || '');
+        setPhotos(parsedDraft.photos || []);
+      }
+    } else if (stateDraft) {
+      // Use draft from navigation state
+      setFormData(stateDraft);
+      setDraftId(stateDraft.id?.replace(`${config.reportType}_draft_`, ''));
+      // Initialize form fields with draft data
+      setHeader(stateDraft.header || {});
+      setSections(stateDraft.sections || []);
+      setSummaries(stateDraft.summaries || {});
+      setPreparedBy(stateDraft.preparedBy || '');
+      setSignature(stateDraft.signature || '');
+      setSigDate(stateDraft.sigDate || '');
+      setPhotos(stateDraft.photos || []);
+    }
+  }, [location, config.reportType]);
 
   // Handlers
   const handleHeaderChange = e => setHeader({ ...header, [e.target.name]: e.target.value });
@@ -128,7 +174,7 @@ const ReportTemplate = ({ config = defaultConfig }) => {
     setSignature('');
   };
   const handleSaveDraft = () => {
-    const draftId = `${config.reportType}_draft_${Date.now()}`;
+    const id = draftId || Date.now().toString();
     const draftData = {
       header,
       sections,
@@ -139,8 +185,9 @@ const ReportTemplate = ({ config = defaultConfig }) => {
       photos,
       savedAt: new Date().toISOString()
     };
-    localStorage.setItem(draftId, JSON.stringify(draftData));
-    setSnackbarOpen(true);
+    localStorage.setItem(`${config.reportType}_draft_${id}`, JSON.stringify(draftData));
+    setDraftId(id);
+    enqueueSnackbar('Draft saved successfully', { variant: 'success' });
   };
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -151,6 +198,52 @@ const ReportTemplate = ({ config = defaultConfig }) => {
   // Filter header fields for project and weather
   const projectFields = config.headerFields.filter(f => !['weather_description','temperature','precipitation_type','precipitation_inches'].includes(f.name));
   const weatherFields = config.headerFields.filter(f => ['weather_description','temperature','precipitation_type','precipitation_inches'].includes(f.name));
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleDelete = () => {
+    if (draftId) {
+      const shouldDelete = window.confirm('Are you sure you want to delete this draft? This action cannot be undone.');
+      if (shouldDelete) {
+        localStorage.removeItem(`${config.reportType}_draft_${draftId}`);
+        setDraftId(null);
+        setFormData({});
+        enqueueSnackbar('Draft deleted successfully', { variant: 'success' });
+        navigate(`/${config.reportType}/reports`);
+      }
+    }
+  };
+
+  const handleReview = () => {
+    if (draftId) {
+      const reviewData = {
+        header,
+        sections,
+        summaries,
+        preparedBy,
+        signature,
+        sigDate,
+        photos,
+        id: `${config.reportType}_draft_${draftId}`,
+      };
+      navigate(`${config.reviewPath}/${draftId}`, {
+        state: { formData: reviewData }
+      });
+    }
+  };
+
+  const handleExit = () => {
+    const shouldSave = window.confirm('Do you want to save your changes before exiting? Click OK to save, or Cancel to exit without saving.');
+    if (shouldSave) {
+      handleSaveDraft();
+    }
+    navigate(-1);
+  };
 
   return (
     <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', overflow: 'auto' }}>
@@ -186,8 +279,11 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                       <TextField
                         label={field.label}
                         name={field.name}
-                        value={header[field.name]}
-                        onChange={handleHeaderChange}
+                        value={formData[field.name] || header[field.name]}
+                        onChange={(e) => {
+                          handleChange(field.name, e.target.value);
+                          handleHeaderChange(e);
+                        }}
                         required={field.required}
                         fullWidth
                         sx={{ bgcolor: '#fff' }}
@@ -205,8 +301,11 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
                         label="Date"
-                        value={header.date}
-                        onChange={date => setHeader(h => ({ ...h, date }))}
+                        value={formData.date || header.date || null}
+                        onChange={(date) => {
+                          handleChange('date', date);
+                          handleHeaderChange({ target: { name: 'date', value: date } });
+                        }}
                         slotProps={{ textField: { fullWidth: true, sx: { bgcolor: '#fff' } } }}
                       />
                     </LocalizationProvider>
@@ -238,8 +337,11 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                       <TextField
                         label={field.label}
                         name={field.name}
-                        value={header[field.name]}
-                        onChange={handleHeaderChange}
+                        value={formData[field.name] || header[field.name]}
+                        onChange={(e) => {
+                          handleChange(field.name, e.target.value);
+                          handleHeaderChange(e);
+                        }}
                         required={field.required}
                         fullWidth
                         sx={{ bgcolor: '#fff' }}
@@ -251,41 +353,65 @@ const ReportTemplate = ({ config = defaultConfig }) => {
             </Card>
 
             {/* Dynamic Sections */}
-            {sections.map(section => (
-              <Card key={section.name} sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
-                  <Stack spacing={2}>
-                    {section.rows.map((row, rowIndex) => (
-                      <Paper key={rowIndex} sx={{ p: 2, position: 'relative' }}>
-                        <Grid container spacing={2}>
-                          {Object.keys(row).map(field => (
-                            <Grid item xs={12} sm={6} md={4} key={field}>
-                              <TextField
-                                label={field}
-                                value={row[field]}
-                                onChange={e => handleSectionChange(section.name, rowIndex, field, e.target.value)}
-                                fullWidth
-                                sx={{ bgcolor: '#fff' }}
-                              />
+            {sections.map(section => {
+              // Find the section config for field definitions and dropdown options
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              return (
+                <Card key={section.name} sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
+                    <Stack spacing={2}>
+                      {section.rows.map((row, rowIndex) => (
+                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative' }}>
+                          <Grid container spacing={2} alignItems="center">
+                            {sectionConfig.fields.map(fieldConfig => (
+                              <Grid item xs={12} sm={4} key={fieldConfig.name} sx={{ display: 'flex', alignItems: 'center' }}>
+                                {fieldConfig.type === 'dropdown' ? (
+                                  <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
+                                    <InputLabel>{fieldConfig.label}</InputLabel>
+                                    <Select
+                                      label={fieldConfig.label}
+                                      value={row[fieldConfig.name] || ''}
+                                      onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                    >
+                                      <MenuItem value="" disabled>
+                                        <em>Select {fieldConfig.label}</em>
+                                      </MenuItem>
+                                      {sectionConfig.dropdownOptions && sectionConfig.dropdownOptions.map(option => (
+                                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                ) : (
+                                  <TextField
+                                    label={fieldConfig.label}
+                                    value={row[fieldConfig.name] || ''}
+                                    onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                    fullWidth
+                                    sx={{ bgcolor: '#fff' }}
+                                  />
+                                )}
+                              </Grid>
+                            ))}
+                            <Grid item xs={12} sm={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                              <IconButton
+                                onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                sx={{ zIndex: 2, bgcolor: '#fff' }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
                             </Grid>
-                          ))}
-                        </Grid>
-                        <IconButton
-                          onClick={() => handleRemoveRow(section.name, rowIndex)}
-                          sx={{ position: 'absolute', bottom: 8, right: 8 }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Paper>
-                    ))}
-                    <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
-                      Add Row
-                    </Button>
-                  </Stack>
-                </CardContent>
-              </Card>
-            ))}
+                          </Grid>
+                        </Paper>
+                      ))}
+                      <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
+                        Add Row
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              );
+            })}
 
             {/* Summary Section */}
             <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
@@ -296,8 +422,8 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                     <TextField
                       key={field.name}
                       label={field.label}
-                      value={summaries[field.name]}
-                      onChange={e => handleSummaryChange(field.name, e.target.value)}
+                      value={summaries[field.name] || formData[field.name]}
+                      onChange={(e) => handleSummaryChange(field.name, e.target.value)}
                       multiline={field.multiline}
                       rows={field.multiline ? 2 : 1}
                       fullWidth
@@ -316,8 +442,8 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                   <Stack spacing={2}>
                     <TextField
                       label="Inspector/Report Prepared by"
-                      value={preparedBy}
-                      onChange={e => setPreparedBy(e.target.value)}
+                      value={preparedBy || formData.preparedBy}
+                      onChange={(e) => setPreparedBy(e.target.value)}
                       fullWidth
                       sx={{ bgcolor: '#fff' }}
                     />
@@ -348,8 +474,11 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
                           label="Signature Date"
-                          value={sigDate}
-                          onChange={setSigDate}
+                          value={sigDate || formData.sigDate || null}
+                          onChange={(date) => {
+                            setSigDate(date);
+                            handleChange('sigDate', date);
+                          }}
                           slotProps={{ textField: { fullWidth: true, sx: { bgcolor: '#fff' } } }}
                         />
                       </LocalizationProvider>
@@ -436,66 +565,45 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                   </Button>
                 </span>
               </Tooltip>
-              <Tooltip title="Delete">
-                <span>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this draft?')) {
-                        const draftKeys = Object.keys(localStorage).filter(key => key.startsWith(`${config.reportType}_draft_`));
-                        draftKeys.forEach(key => localStorage.removeItem(key));
-                        navigate(`/${config.reportType}/reports/drafts`);
-                      }
-                    }}
-                    sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
-                    aria-label="Delete"
-                  >
-                    {!isMobile && 'Delete'}
-                  </Button>
-                </span>
-              </Tooltip>
-              <Tooltip title="Review">
-                <span>
-                  <Button
-                    variant="contained"
-                    color="info"
-                    startIcon={<VisibilityIcon />}
-                    onClick={() => {
-                      // Find the most recent draftId if it exists
-                      const draftKeys = Object.keys(localStorage)
-                        .filter(key => key.startsWith(`${config.reportType}_draft_`))
-                        .sort((a, b) => parseInt(b.split('_draft_')[1]) - parseInt(a.split('_draft_')[1]));
-                      const latestDraftId = draftKeys.length > 0 ? draftKeys[0].replace(`${config.reportType}_draft_`, '') : 'temp';
-                      navigate(`/${config.reportType}/reports/review/${latestDraftId}`, {
-                        state: { formData: {
-                          header,
-                          sections,
-                          summaries,
-                          preparedBy,
-                          signature,
-                          sigDate,
-                          photos
-                        } }
-                      });
-                    }}
-                    sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
-                    aria-label="Review"
-                  >
-                    {!isMobile && 'Review'}
-                  </Button>
-                </span>
-              </Tooltip>
+              {draftId && (
+                <>
+                  <Tooltip title="Delete Draft">
+                    <span>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={handleDelete}
+                        sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
+                        aria-label="Delete"
+                      >
+                        {!isMobile && 'Delete'}
+                      </Button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Review Draft">
+                    <span>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<VisibilityIcon />}
+                        onClick={handleReview}
+                        sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
+                        aria-label="Review"
+                      >
+                        {!isMobile && 'Review'}
+                      </Button>
+                    </span>
+                  </Tooltip>
+                </>
+              )}
               <Tooltip title="Exit">
                 <span>
                   <Button
                     variant="contained"
                     color="secondary"
                     startIcon={<ExitToAppIcon />}
-                    onClick={() => {
-                      navigate(-1);
-                    }}
+                    onClick={handleExit}
                     sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
                     aria-label="Exit"
                   >
@@ -507,13 +615,6 @@ const ReportTemplate = ({ config = defaultConfig }) => {
           </form>
         </Paper>
       </Box>
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={2000}
-        onClose={() => setSnackbarOpen(false)}
-        message="Draft saved!"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
     </Box>
   );
 };

@@ -8,12 +8,15 @@ import {
 import { ProgressChartTable } from './ProgressChart';
 
 const ACTIVITY_TITLES = [
+  'Access Roads',
   'Felling',
   'Clearing',
   'Grading',
   'Ditch',
   'Stringing',
+  'Bending',
   'Welding',
+  'Coating',
   'Lowering-in',
   'Backfill',
   'Clean up',

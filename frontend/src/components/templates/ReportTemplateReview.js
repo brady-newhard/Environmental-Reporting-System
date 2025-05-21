@@ -49,7 +49,12 @@ const ReportTemplateReview = ({ config }) => {
   };
 
   const handleEdit = () => {
-    navigate(`/${config.reportType}/reports/new`, { state: { formData: data } });
+    const editPath = config.editPath || `/${config.reportType}/reports/new`;
+    let path = editPath;
+    if (draftId) {
+      path += `?draftId=${draftId}`;
+    }
+    navigate(path, { state: { formData: data } });
   };
 
   return (

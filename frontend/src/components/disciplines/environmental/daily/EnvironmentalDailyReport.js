@@ -27,12 +27,43 @@ const config = {
     { name: 'activity_type', label: 'Activity Type', required: false },
     { name: 'compliance_level', label: 'Compliance Level', required: false }
   ],
-  dynamicSections: [],
+  dynamicSections: [
+    {
+      name: 'Daily Progress',
+      dropdownLabel: 'Progress Item',
+      dropdownName: 'Phase',
+      dropdownOptions: [
+        'No Progress to Report',
+        'Access Roads',
+        'Felling',
+        'Clearing',
+        'Grading',
+        'Ditch',
+        'Stringing',
+        'Bending',
+        'Welding',
+        'Coating',
+        'Lowering-in',
+        'Backfill',
+        'Tie-Ins',
+        'Cleanup',
+        'Stabilization',
+        'Re-Vegetation',
+      ],
+      fields: [
+        { name: 'Phase', label: 'Progress Item', type: 'dropdown' },
+        { name: 'Start Station', label: 'Start Station', type: 'text' },
+        { name: 'End Station', label: 'End Station', type: 'text' }
+      ],
+      defaultRow: () => ({ progress_item: '', start_station: '', end_station: '' })
+    }
+  ],
   summaryFields: [
     { name: 'notes', label: 'Notes', multiline: true }
   ],
   requiresSignature: true,
-  requiresPhotos: true
+  requiresPhotos: true,
+  reviewPath: '/environmental/reports/daily/review'
 };
 
 const EnvironmentalDailyReport = () => {
