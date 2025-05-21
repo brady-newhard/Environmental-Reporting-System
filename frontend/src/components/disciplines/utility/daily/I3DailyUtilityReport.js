@@ -129,7 +129,7 @@ const I3DailyUtilityReport = () => {
   // Submit
   const handleSubmit = e => {
     e.preventDefault();
-    navigate('/utility/reports/daily/i3/review', { state: { header, weather, am, pm, rows, generalSummary, landSummary, envSummary, safety, preparedBy, signature, sigDate, photos } });
+    navigate('/utility/reports/daily/i3/review', { state: { header, weather, am, pm, rows, equipmentRows, generalSummary, landSummary, envSummary, safety, preparedBy, signature, sigDate, photos } });
   };
 
   useEffect(() => {
@@ -138,12 +138,38 @@ const I3DailyUtilityReport = () => {
     }
   }, [signing, prevSigning]);
 
+  useEffect(() => {
+    // Pre-fill form if editing a draft
+    const draftId = localStorage.getItem('i3_daily_utility_current_draftId');
+    if (draftId) {
+      const draftData = localStorage.getItem(`i3_daily_utility_draft_${draftId}`);
+      if (draftData) {
+        const draft = JSON.parse(draftData);
+        if (draft.header) setHeader(draft.header);
+        if (draft.weather) setWeather(draft.weather);
+        if (typeof draft.am !== 'undefined') setAm(draft.am);
+        if (typeof draft.pm !== 'undefined') setPm(draft.pm);
+        if (draft.rows) setRows(draft.rows);
+        if (draft.equipmentRows) setEquipmentRows(draft.equipmentRows);
+        if (typeof draft.generalSummary !== 'undefined') setGeneralSummary(draft.generalSummary);
+        if (typeof draft.landSummary !== 'undefined') setLandSummary(draft.landSummary);
+        if (typeof draft.envSummary !== 'undefined') setEnvSummary(draft.envSummary);
+        if (typeof draft.safety !== 'undefined') setSafety(draft.safety);
+        if (typeof draft.preparedBy !== 'undefined') setPreparedBy(draft.preparedBy);
+        if (typeof draft.signature !== 'undefined') setSignature(draft.signature);
+        if (typeof draft.sigDate !== 'undefined') setSigDate(draft.sigDate);
+        if (draft.photos) setPhotos(draft.photos);
+      }
+      localStorage.removeItem('i3_daily_utility_current_draftId');
+    }
+  }, []);
+
   return (
     <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', overflow: 'auto' }}>
       <Box sx={{ p: { xs: 1, sm: 3 } }}>
         <PageHeader
           title="I3 Daily Utility Report"
-          backPath="/utility"
+          backPath="/utility/reports"
           backButtonStyle={{ backgroundColor: '#000000', color: '#ffffff', '&:hover': { backgroundColor: '#333333' } }}
         />
         <Paper className={styles.paper} sx={{ mt: 2, p: { xs: 1, sm: 3 } }}>
@@ -350,7 +376,7 @@ const I3DailyUtilityReport = () => {
                 <Typography variant="h6" sx={{ mb: 2 }}>Equipment</Typography>
                 <Stack spacing={2}>
                   {equipmentRows.map((row, idx) => (
-                    <Box key={idx} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', position: 'relative', pb: 2 }}>
+                    <Box key={idx} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center', position: 'relative', pb: 4 }}>
                       <TextField
                         label="Equipment"
                         value={row.equipment}
@@ -374,7 +400,7 @@ const I3DailyUtilityReport = () => {
                       />
                       <IconButton
                         onClick={() => setEquipmentRows(equipmentRows.length > 1 ? equipmentRows.filter((_, i) => i !== idx) : equipmentRows)}
-                        sx={{ position: 'absolute', bottom: 8, right: -8 }}
+                        sx={{ position: 'absolute', bottom: 8, right: 8 }}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -530,8 +556,43 @@ const I3DailyUtilityReport = () => {
               </CardContent>
             </Card>
             {/* Review Button */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
               <Button type="submit" variant="contained" color="primary">Review</Button>
+              <Button variant="outlined" color="success" onClick={() => {
+                // Save as draft logic
+                const draftKey = `i3_daily_utility_draft_${Date.now()}`;
+                const draftData = {
+                  header,
+                  weather,
+                  am,
+                  pm,
+                  rows,
+                  equipmentRows,
+                  generalSummary,
+                  landSummary,
+                  envSummary,
+                  safety,
+                  preparedBy,
+                  signature,
+                  sigDate,
+                  photos,
+                  lastModified: Date.now(),
+                };
+                localStorage.setItem(draftKey, JSON.stringify(draftData));
+                alert('Draft saved!');
+              }}>Save</Button>
+              <Button variant="outlined" color="error" onClick={() => {
+                if (window.confirm('Are you sure you want to delete this report?')) {
+                  // Placeholder: implement delete logic here
+                  alert('Report deleted.');
+                  navigate('/'); // Or wherever you want to go after delete
+                }
+              }}>Delete</Button>
+              <Button variant="outlined" onClick={() => {
+                if (window.confirm('Are you sure you want to exit? Unsaved changes will be lost.')) {
+                  navigate('/'); // Or wherever you want to go on exit
+                }
+              }}>Exit</Button>
             </Box>
           </form>
         </Paper>
