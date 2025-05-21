@@ -133,7 +133,7 @@ const EnvironmentalMain = () => {
       overflow: 'auto'
     }}>
       <PageHeader 
-        title="Environmental Management" 
+        title="Environmental Dashboard" 
         backPath="/"
         backButtonStyle={{
           backgroundColor: '#000000',

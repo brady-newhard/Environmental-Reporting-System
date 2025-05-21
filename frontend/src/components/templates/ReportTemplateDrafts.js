@@ -39,13 +39,19 @@ const ReportTemplateDrafts = ({ config }) => {
   };
 
   const handleEdit = (draft) => {
-    navigate(`/${config.reportType}/reports/new`, { state: { formData: draft } });
+    const draftId = draft.id.replace(`${config.reportType}_draft_`, '');
+    navigate(`${config.editPath}?draftId=${draftId}`, {
+      state: { 
+        formData: draft,
+        from: `${config.reportType}/reports/drafts`
+      }
+    });
   };
 
   const handleView = (draft) => {
     const draftId = draft.id.replace(`${config.reportType}_draft_`, '');
-    navigate(`/${config.reportType}/reports/review/${draftId}`, {
-      state: { from: `/${config.reportType}/reports/drafts`, formData: draft },
+    navigate(`${config.reviewPath}/${draftId}`, {
+      state: { from: `${config.reportType}/reports/drafts`, formData: draft },
     });
   };
 
