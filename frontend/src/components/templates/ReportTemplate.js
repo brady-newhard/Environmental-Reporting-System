@@ -362,10 +362,10 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                     <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
                     <Stack spacing={2}>
                       {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative' }}>
-                          <Grid container spacing={2} alignItems="center">
-                            {sectionConfig.fields.map(fieldConfig => (
-                              <Grid item xs={12} sm={4} key={fieldConfig.name} sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative', border: '2px solid red' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                            {sectionConfig.fields.map((fieldConfig, idx) => (
+                              <Box key={fieldConfig.name} sx={{ flex: 1, minWidth: 0, border: '1px dashed blue', backgroundColor: idx === 0 ? '#e3f2fd' : idx === 1 ? '#fce4ec' : '#e8f5e9' }}>
                                 {fieldConfig.type === 'dropdown' ? (
                                   <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
                                     <InputLabel>{fieldConfig.label}</InputLabel>
@@ -391,17 +391,17 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                                     sx={{ bgcolor: '#fff' }}
                                   />
                                 )}
-                              </Grid>
+                              </Box>
                             ))}
-                            <Grid item xs={12} sm={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                            <Box sx={{ minWidth: 0, display: 'flex', alignItems: 'center', border: '1px dashed red', backgroundColor: '#fff3e0' }}>
                               <IconButton
                                 onClick={() => handleRemoveRow(section.name, rowIndex)}
                                 sx={{ zIndex: 2, bgcolor: '#fff' }}
                               >
                                 <DeleteIcon />
                               </IconButton>
-                            </Grid>
-                          </Grid>
+                            </Box>
+                          </Box>
                         </Paper>
                       ))}
                       <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
