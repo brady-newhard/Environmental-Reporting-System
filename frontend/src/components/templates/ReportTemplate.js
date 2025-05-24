@@ -32,6 +32,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
+import ReportPhotoSection from '../common/ReportPhotoSection';
 
 // Template configuration
 const defaultConfig = {
@@ -680,58 +681,7 @@ const ReportTemplate = ({ config = defaultConfig }) => {
               <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 2 }}>Photos</Typography>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    startIcon={<PhotoCamera />}
-                  >
-                    Upload Photos
-                    <input
-                      type="file"
-                      hidden
-                      multiple
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                    />
-                  </Button>
-                  {photos.length > 0 && (
-                    <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      {photos.map((photo, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            width: 100,
-                            height: 100,
-                            position: 'relative',
-                            '& img': {
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              borderRadius: 1
-                            }
-                          }}
-                        >
-                          <img
-                            src={typeof photo === 'string' ? photo : URL.createObjectURL(photo)}
-                            alt={`Photo ${index + 1}`}
-                          />
-                          <IconButton
-                            size="small"
-                            sx={{
-                              position: 'absolute',
-                              top: -8,
-                              right: -8,
-                              bgcolor: 'white',
-                              '&:hover': { bgcolor: 'white' }
-                            }}
-                            onClick={() => setPhotos(photos.filter((_, i) => i !== index))}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
+                  <ReportPhotoSection photos={photos} onPhotosChange={setPhotos} editable={true} />
                 </CardContent>
               </Card>
             )}

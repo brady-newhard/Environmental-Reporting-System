@@ -18,6 +18,7 @@ import { Edit as EditIcon, ExitToApp as ExitToAppIcon, CheckCircle as SubmitIcon
 import Tooltip from '@mui/material/Tooltip';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import ReportPhotoSection from '../common/ReportPhotoSection';
 
 const ReportTemplateReview = ({ config }) => {
   const location = useLocation();
@@ -55,6 +56,14 @@ const ReportTemplateReview = ({ config }) => {
       path += `?draftId=${draftId}`;
     }
     navigate(path, { state: { formData: data } });
+  };
+
+  // Helper to format date fields
+  const formatDate = (value) => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (!isNaN(d)) return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    return value;
   };
 
   return (
@@ -121,50 +130,126 @@ const ReportTemplateReview = ({ config }) => {
       <Paper sx={{ p: 3, bgcolor: '#fff' }}>
         <Typography variant="h4" gutterBottom>{config.title}</Typography>
         
-        {/* Project Info */}
+        {/* Project Information Section */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6" gutterBottom>Project Information</Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-            {config.headerFields.map(field => (
-              <Box key={field.name}>
-                <b>{field.label}:</b> {data.header?.[field.name]}
+            {config.headerFields.filter(f => [
+              'project', 'contractor', 'inspector', 'date', 'spread', 'facility', 'milepost_start', 'milepost_end', 'station_start', 'station_end'
+            ].includes(f.name)).map(field => (
+              <Box key={field.name} sx={{ minWidth: 180 }}>
+                <b>{field.label}:</b> {field.type === 'date' ? formatDate(data.header?.[field.name]) : (data.header?.[field.name] || '')}
               </Box>
             ))}
-            <Box><b>Date:</b> {data.header?.date ? new Date(data.header.date).toLocaleDateString() : ''}</Box>
-            <Box><b>Report No.:</b> {data.header?.reportNo}</Box>
           </Box>
         </Box>
 
-        {/* Dynamic Sections */}
+        {/* Weather Information Section */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h6" gutterBottom>Weather Information</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+            {config.headerFields.filter(f => [
+              'weather_conditions', 'temperature', 'precipitation_type', 'soil_conditions'
+            ].includes(f.name)).map(field => (
+              <Box key={field.name} sx={{ minWidth: 180 }}>
+                <b>{field.label}:</b> {data.header?.[field.name] || ''}
+              </Box>
+            ))}
+          </Box>
+          {/* Rain Gauges */}
+          {data.header?.rain_gauges && data.header.rain_gauges.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Rain Gauge Data</Typography>
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Location</TableCell>
+                      <TableCell>Rain (in)</TableCell>
+                      <TableCell>Snow (in)</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {data.header.rain_gauges.map((gauge, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell>{gauge.location}</TableCell>
+                        <TableCell>{gauge.rain}</TableCell>
+                        <TableCell>{gauge.snow}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+          {/* Additional Comments */}
+          {data.header?.additional_comments && (
+            <Box sx={{ mt: 2 }}>
+              <b>Additional Comments:</b> {data.header.additional_comments}
+            </Box>
+          )}
+        </Box>
+
+        {/* Dynamic Sections (Crew Daily Summaries with Summary as its own row) */}
         {data.sections.map(section => (
           <Box key={section.name} sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>{section.name}</Typography>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    {Object.keys(section.rows[0]).map(field => (
-                      <TableCell key={field}>{field}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {section.rows.map((row, idx) => (
-                    <TableRow key={idx}>
-                      {Object.values(row).map((value, fieldIdx) => (
-                        <TableCell key={fieldIdx}>{value}</TableCell>
+            {section.name === 'Crew Daily Summaries' ? (
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {section.rows.length > 0 && Object.keys(section.rows[0]).filter(f => f !== 'Summary').map(field => (
+                        <TableCell key={field}>{field}</TableCell>
                       ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {section.rows.map((row, idx) => (
+                      <React.Fragment key={idx}>
+                        <TableRow>
+                          {Object.entries(row).filter(([k]) => k !== 'Summary').map(([k, v]) => (
+                            <TableCell key={k}>{v}</TableCell>
+                          ))}
+                        </TableRow>
+                        <TableRow>
+                          <TableCell colSpan={Object.keys(row).length - 1}>
+                            <b>Summary:</b> {row.Summary}
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {section.rows.length > 0 && Object.keys(section.rows[0]).map(field => (
+                        <TableCell key={field}>{field}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {section.rows.map((row, idx) => (
+                      <TableRow key={idx}>
+                        {Object.values(row).map((value, fieldIdx) => (
+                          <TableCell key={fieldIdx}>{value}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </Box>
         ))}
 
         {/* Summaries */}
         <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" gutterBottom>Summaries</Typography>
+          <Typography variant="h6" gutterBottom>Environmental Inspection Summary</Typography>
           {config.summaryFields.map(field => (
             <Typography key={field.name}>
               <b>{field.label}:</b> {data.summaries?.[field.name]}
@@ -186,29 +271,15 @@ const ReportTemplateReview = ({ config }) => {
           </Box>
         )}
 
-        {/* Photos */}
+        {/* Photos Section (2-column grid, full size, wrapped text) */}
         {config.requiresPhotos && data.photos && data.photos.length > 0 && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>Photos</Typography>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              {data.photos.map((photo, idx) => {
-                let src = '';
-                if (typeof photo === 'string') {
-                  src = photo;
-                } else if (photo instanceof Blob) {
-                  src = URL.createObjectURL(photo);
-                }
-                if (!src) return null;
-                return (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt={`Photo ${idx + 1}`}
-                    style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 4, border: '1px solid #ccc' }}
-                  />
-                );
-              })}
-            </Box>
+            <ReportPhotoSection
+              photos={data.photos}
+              editable={false}
+              gridProps={{ columns: 2, fullSize: true, wrapText: true }}
+            />
           </Box>
         )}
       </Paper>
