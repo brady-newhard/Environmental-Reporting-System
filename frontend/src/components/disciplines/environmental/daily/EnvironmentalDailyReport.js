@@ -4,17 +4,26 @@ import ReportTemplate from '../../../templates/ReportTemplate';
 const config = {
   title: 'Daily Environmental Report',
   reportType: 'environmental',
+  summarySectionTitle: 'Environmental Summary',
   headerFields: [
+    { name: 'inspection_type', label: 'Inspection Type', type: 'dropdown', options: ['Routine Weekly Inspection', 'Precipitation Event > 0.25"'], required: true },
+    { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
     { name: 'project', label: 'Project', required: true },
-    { name: 'date', label: 'Date', required: true },
+    { name: 'spread', label: 'Spread', required: false },
+    { name: 'contractor', label: 'Contractor', required: false },
+    { name: 'inspector', label: 'Inspector', required: true },
+    { name: 'weather_conditions', label: 'Sky Cover', type: 'dropdown', options: ['Sunny', 'Mostly Sunny', 'Partly Sunny', 'Cloudy', 'Overcast'], required: false },
+    { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false },
+    { name: 'precipitation_type', label: 'Precipitation Type', type: 'dropdown', options: ['none', 'drizzle', 'rain', 'snow', 'sleet', 'hail'], required: false },
+    { name: 'soil_conditions', label: 'Soil Conditions', type: 'dropdown', options: ['Dry', 'Wet', 'Saturated', 'Frozen'], required: false },
+    { name: 'rain_gauges', label: 'Rain Gauges', type: 'dynamicArray', subFields: [
+      { name: 'location', label: 'Rain Gauge Location', type: 'text' },
+      { name: 'rain', label: 'Rain (in)', type: 'number' },
+      { name: 'snow', label: 'Snow (in)', type: 'number' }
+    ] },
+    { name: 'additional_comments', label: 'Additional Comments', multiline: true, required: false },
     { name: 'author', label: 'Author', required: true },
     { name: 'report_type', label: 'Report Type', required: true },
-    { name: 'weather_description', label: 'Weather Description', required: false },
-    { name: 'temperature', label: 'Temperature', required: false },
-    { name: 'precipitation_type', label: 'Precipitation Type', required: false },
-    { name: 'precipitation_inches', label: 'Precipitation Inches', required: false },
-    { name: 'route', label: 'Route', required: false },
-    { name: 'spread', label: 'Spread', required: false },
     { name: 'facility', label: 'Facility', required: false },
     { name: 'state', label: 'State', required: false },
     { name: 'county', label: 'County', required: false },
@@ -28,6 +37,27 @@ const config = {
     { name: 'compliance_level', label: 'Compliance Level', required: false }
   ],
   dynamicSections: [
+    {
+      name: 'Crew Daily Summaries',
+      dropdownLabel: 'Crew',
+      dropdownName: 'Crew',
+      dropdownOptions: [
+        'Pipe Crew',
+        'Weld Crew',
+        'Coating Crew',
+        'Backfill Crew',
+        'Cleanup Crew',
+        'Other'
+      ],
+      fields: [
+        { name: 'Crew', label: 'Crew', type: 'dropdown' },
+        { name: 'Foreman', label: 'Foreman', type: 'text' },
+        { name: 'Start Station', label: 'Start Station', type: 'text' },
+        { name: 'End Station', label: 'End Station', type: 'text' },
+        { name: 'Summary', label: 'Summary', type: 'multiline' }
+      ],
+      defaultRow: () => ({ Crew: '', Foreman: '', 'Start Station': '', 'End Station': '', Summary: '' })
+    },
     {
       name: 'Daily Progress',
       dropdownLabel: 'Progress Item',
@@ -55,7 +85,7 @@ const config = {
         { name: 'Start Station', label: 'Start Station', type: 'text' },
         { name: 'End Station', label: 'End Station', type: 'text' }
       ],
-      defaultRow: () => ({ progress_item: '', start_station: '', end_station: '' })
+      defaultRow: () => ({ Phase: '', 'Start Station': '', 'End Station': '' })
     }
   ],
   summaryFields: [
