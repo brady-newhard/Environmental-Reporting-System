@@ -1,5 +1,6 @@
 import React from 'react';
 import ReportTemplate from '../../../templates/ReportTemplate';
+import ReportPhotoSection from '../../../common/ReportPhotoSection';
 
 const config = {
   title: 'Daily Environmental Report',

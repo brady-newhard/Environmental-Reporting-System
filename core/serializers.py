@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from users.models import Contact
-from .models import Report
+from .models import Report, ReportDraft
 from django.utils import timezone
 from django.db import transaction
 
@@ -76,4 +76,10 @@ class ReportSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at',
             'finalized',
         ]
-        read_only_fields = ['created_at', 'updated_at', 'finalized'] 
+        read_only_fields = ['created_at', 'updated_at', 'finalized']
+
+class ReportDraftSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReportDraft
+        fields = ['id', 'user', 'report_type', 'data', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at'] 

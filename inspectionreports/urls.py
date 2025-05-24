@@ -23,7 +23,7 @@ from users.views_auth import CustomAuthToken
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/core/', include('core.urls')),
+    path('api/', include('core.urls')),
     path('api/users/', include('users.urls')),
     path('api/environmental/', include('disciplines.environmental.urls')),
     path('api/coating/', include('disciplines.coating.urls')),

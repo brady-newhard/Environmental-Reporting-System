@@ -82,7 +82,7 @@ const UtilityReports = () => {
                       fontSize: '1.25rem',
                     }}
                   >
-                    New Payload Report
+                    New Pay Item Report
                   </Typography>
                 </Box>
                 
@@ -93,7 +93,7 @@ const UtilityReports = () => {
                     flex: 1,
                   }}
                 >
-                  Create a new daily utility report to document equipment status, maintenance activities, and any issues encountered.
+                  Create a new pay item report to document daily expenses.
                 </Typography>
 
                 <Button
@@ -181,7 +181,7 @@ const UtilityReports = () => {
                   </Typography>
                 </Box>
                 <Typography variant="body2" sx={{ color: '#666666', flex: 1 }}>
-                  Create a new I3 daily utility report for detailed construction and environmental tracking.
+                  Create a new I3 daily utility report for detailed construction tracking.
                 </Typography>
                 <Button
                   variant="contained"
