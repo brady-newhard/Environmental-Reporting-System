@@ -46,7 +46,11 @@ const defaultConfig = {
     { name: 'weather_description', label: 'Weather Description', required: false },
     { name: 'temperature', label: 'Temperature', required: false },
     { name: 'precipitation_type', label: 'Precipitation Type', required: false },
-    { name: 'precipitation_inches', label: 'Precipitation Inches', required: false }
+    { name: 'precipitation_inches', label: 'Precipitation Inches', required: false },
+    { name: 'weather_conditions', label: 'Weather Conditions', required: false },
+    { name: 'soil_conditions', label: 'Soil Conditions', required: false },
+    { name: 'rain_gauges', label: 'Rain Gauges', required: false },
+    { name: 'additional_comments', label: 'Additional Comments', required: false }
   ],
   dynamicSections: [], // Array of section configurations
   summaryFields: [
@@ -195,9 +199,29 @@ const ReportTemplate = ({ config = defaultConfig }) => {
     console.log('Form submitted:', { header, sections, summaries, preparedBy, signature, sigDate, photos });
   };
 
-  // Filter header fields for project and weather
-  const projectFields = config.headerFields.filter(f => !['weather_description','temperature','precipitation_type','precipitation_inches'].includes(f.name));
-  const weatherFields = config.headerFields.filter(f => ['weather_description','temperature','precipitation_type','precipitation_inches'].includes(f.name));
+  // Project fields for the Project Information section (custom order)
+  const projectFieldNames = [
+    'project',
+    'date',
+    'contractor',
+    'spread',
+    'facility',
+    'inspector',
+    'milepost_start',
+    'milepost_end',
+    'station_start',
+    'station_end'
+  ];
+  const projectFields = config.headerFields.filter(f => projectFieldNames.includes(f.name));
+  const weatherFieldNames = [
+    'weather_conditions',
+    'temperature',
+    'precipitation_type',
+    'soil_conditions'
+  ];
+  const weatherFields = config.headerFields.filter(f => weatherFieldNames.includes(f.name));
+  const rainGaugeField = config.headerFields.find(f => f.name === 'rain_gauges');
+  const additionalCommentsField = config.headerFields.find(f => f.name === 'additional_comments');
 
   const handleChange = (field, value) => {
     setFormData(prev => ({
@@ -334,89 +358,114 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                         mb: 2,
                       }}
                     >
-                      <TextField
-                        label={field.label}
-                        name={field.name}
-                        value={formData[field.name] || header[field.name]}
-                        onChange={(e) => {
-                          handleChange(field.name, e.target.value);
-                          handleHeaderChange(e);
-                        }}
-                        required={field.required}
-                        fullWidth
-                        sx={{ bgcolor: '#fff' }}
-                      />
+                      {field.type === 'dropdown' ? (
+                        <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
+                          <InputLabel>{field.label}</InputLabel>
+                          <Select
+                            label={field.label}
+                            name={field.name}
+                            value={formData[field.name] || header[field.name] || ''}
+                            onChange={(e) => {
+                              handleChange(field.name, e.target.value);
+                              handleHeaderChange(e);
+                            }}
+                            required={field.required}
+                          >
+                            <MenuItem value="" disabled>
+                              <em>Select {field.label}</em>
+                            </MenuItem>
+                            {field.options.map(option => (
+                              <MenuItem key={option} value={option}>{option}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      ) : (
+                        <TextField
+                          label={field.label}
+                          name={field.name}
+                          type={field.type || 'text'}
+                          value={formData[field.name] || header[field.name] || ''}
+                          onChange={(e) => {
+                            handleChange(field.name, e.target.value);
+                            handleHeaderChange(e);
+                          }}
+                          required={field.required}
+                          fullWidth
+                          sx={{ bgcolor: '#fff' }}
+                        />
+                      )}
                     </Box>
                   ))}
                 </Box>
+                {/* Rain Gauges dynamic array */}
+                {rainGaugeField && (
+                  <Paper sx={{ p: 2, bgcolor: '#f8f8f8', borderRadius: 1, mt: 2 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>Rain Gauge Data</Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {(header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).map((row, idx) => (
+                        <Box key={idx} sx={{ display: { xs: 'block', sm: 'flex' }, gap: 2, alignItems: 'center', width: '100%', bgcolor: 'transparent', p: 0, borderRadius: 0 }}>
+                          {rainGaugeField.subFields.map(subField => (
+                            <TextField
+                              key={subField.name}
+                              label={subField.label}
+                              name={subField.name}
+                              type={subField.type || 'text'}
+                              value={row[subField.name] || ''}
+                              onChange={e => {
+                                const updatedRows = (header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).map((r, i) =>
+                                  i === idx ? { ...r, [subField.name]: e.target.value } : r
+                                );
+                                setHeader({ ...header, [rainGaugeField.name]: updatedRows });
+                              }}
+                              size="small"
+                              fullWidth
+                              sx={{
+                                bgcolor: '#fff',
+                                flex: {
+                                  xs: '1 1 100%',
+                                  sm: subField.name === 'location' ? 2 : 1
+                                },
+                                minWidth: 0,
+                                mb: { xs: 2, sm: 0 }
+                              }}
+                            />
+                          ))}
+                          <IconButton
+                            color="error"
+                            onClick={() => {
+                              const updatedRows = (header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).filter((_, i) => i !== idx);
+                              setHeader({ ...header, [rainGaugeField.name]: updatedRows.length ? updatedRows : [{ location: '', rain: '', snow: '' }] });
+                            }}
+                            disabled={(header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).length === 1}
+                            sx={{ ml: 1 }}
+                            aria-label="Remove Rain Gauge"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ))}
+                      <Button
+                        onClick={() => {
+                          const updatedRows = [...(header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]), { location: '', rain: '', snow: '' }];
+                          setHeader({ ...header, [rainGaugeField.name]: updatedRows });
+                        }}
+                        size="small"
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        sx={{ width: '200px', alignSelf: 'center', borderColor: 'primary.main', '&:hover': { borderColor: 'primary.dark' } }}
+                      >
+                        Add Rain Gage
+                      </Button>
+                    </Box>
+                  </Paper>
+                )}
               </CardContent>
             </Card>
-
-            {/* Dynamic Sections */}
-            {sections.map(section => {
-              // Find the section config for field definitions and dropdown options
-              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              return (
-                <Card key={section.name} sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
-                    <Stack spacing={2}>
-                      {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative', border: '2px solid red' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                            {sectionConfig.fields.map((fieldConfig, idx) => (
-                              <Box key={fieldConfig.name} sx={{ flex: 1, minWidth: 0, border: '1px dashed blue', backgroundColor: idx === 0 ? '#e3f2fd' : idx === 1 ? '#fce4ec' : '#e8f5e9' }}>
-                                {fieldConfig.type === 'dropdown' ? (
-                                  <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
-                                    <InputLabel>{fieldConfig.label}</InputLabel>
-                                    <Select
-                                      label={fieldConfig.label}
-                                      value={row[fieldConfig.name] || ''}
-                                      onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                    >
-                                      <MenuItem value="" disabled>
-                                        <em>Select {fieldConfig.label}</em>
-                                      </MenuItem>
-                                      {sectionConfig.dropdownOptions && sectionConfig.dropdownOptions.map(option => (
-                                        <MenuItem key={option} value={option}>{option}</MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                ) : (
-                                  <TextField
-                                    label={fieldConfig.label}
-                                    value={row[fieldConfig.name] || ''}
-                                    onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                    fullWidth
-                                    sx={{ bgcolor: '#fff' }}
-                                  />
-                                )}
-                              </Box>
-                            ))}
-                            <Box sx={{ minWidth: 0, display: 'flex', alignItems: 'center', border: '1px dashed red', backgroundColor: '#fff3e0' }}>
-                              <IconButton
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                sx={{ zIndex: 2, bgcolor: '#fff' }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          </Box>
-                        </Paper>
-                      ))}
-                      <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
-                        Add Row
-                      </Button>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              );
-            })}
 
             {/* Summary Section */}
             <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
               <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>Summaries</Typography>
+                <Typography variant="h6" sx={{ mb: 2 }}>{config.summarySectionTitle || 'Summaries'}</Typography>
                 <Stack spacing={2}>
                   {config.summaryFields.map(field => (
                     <TextField
@@ -433,6 +482,144 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                 </Stack>
               </CardContent>
             </Card>
+
+            {/* Dynamic Sections (restored) */}
+            {sections.map(section => {
+              // Find the section config for field definitions and dropdown options
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              if (!sectionConfig) {
+                console.warn(`Section config not found for section: ${section.name}`);
+                return null;
+              }
+              return (
+                <Card key={section.name} sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
+                    <Stack spacing={2}>
+                      {section.rows.map((row, rowIndex) => (
+                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative' }}>
+                          <Box
+                            sx={{
+                              display: { xs: 'block', sm: 'flex' },
+                              alignItems: 'center',
+                              gap: 2,
+                              width: '100%'
+                            }}
+                          >
+                            {/* Render non-multiline fields in the row */}
+                            {(sectionConfig.fields || []).filter(f => f.type !== 'multiline').map((fieldConfig, idx) => {
+                              // Crew dropdown with 'Other' logic
+                              if (fieldConfig.name === 'Crew') {
+                                const isOther = row['Crew'] === 'Other';
+                                return (
+                                  <Box key={fieldConfig.name} sx={{ flex: 1, minWidth: 0, mb: { xs: 2, sm: 0 } }}>
+                                    {isOther ? (
+                                      <TextField
+                                        label="Custom Crew/Duty"
+                                        value={row['CustomCrew'] || ''}
+                                        onChange={e => handleSectionChange(section.name, rowIndex, 'CustomCrew', e.target.value)}
+                                        fullWidth
+                                        sx={{ bgcolor: '#fff' }}
+                                      />
+                                    ) : (
+                                      <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
+                                        <InputLabel>{fieldConfig.label}</InputLabel>
+                                        <Select
+                                          label={fieldConfig.label}
+                                          value={row[fieldConfig.name] || ''}
+                                          onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                        >
+                                          <MenuItem value="" disabled>
+                                            <em>Select {fieldConfig.label}</em>
+                                          </MenuItem>
+                                          {sectionConfig.dropdownOptions && sectionConfig.dropdownOptions.map(option => (
+                                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                                          ))}
+                                        </Select>
+                                      </FormControl>
+                                    )}
+                                  </Box>
+                                );
+                              }
+                              // Standard dropdown or text field
+                              return (
+                                <Box key={fieldConfig.name} sx={{ flex: 1, minWidth: 0, mb: { xs: 2, sm: 0 } }}>
+                                  {fieldConfig.type === 'dropdown' ? (
+                                    <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
+                                      <InputLabel>{fieldConfig.label}</InputLabel>
+                                      <Select
+                                        label={fieldConfig.label}
+                                        value={row[fieldConfig.name] || ''}
+                                        onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                      >
+                                        <MenuItem value="" disabled>
+                                          <em>Select {fieldConfig.label}</em>
+                                        </MenuItem>
+                                        {sectionConfig.dropdownOptions && sectionConfig.dropdownOptions.map(option => (
+                                          <MenuItem key={option} value={option}>{option}</MenuItem>
+                                        ))}
+                                      </Select>
+                                    </FormControl>
+                                  ) : (
+                                    <TextField
+                                      label={fieldConfig.label}
+                                      value={row[fieldConfig.name] || ''}
+                                      onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                      fullWidth
+                                      sx={{ bgcolor: '#fff' }}
+                                    />
+                                  )}
+                                </Box>
+                              );
+                            })}
+                          </Box>
+                          {/* Render multiline fields below the row, always full width */}
+                          {(sectionConfig.fields || []).filter(f => f.type === 'multiline').map(fieldConfig => (
+                            <Box key={fieldConfig.name} sx={{ width: '100%', mt: 2 }}>
+                              <TextField
+                                label={fieldConfig.label}
+                                value={row[fieldConfig.name] || ''}
+                                onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                fullWidth
+                                multiline
+                                minRows={2}
+                                sx={{ bgcolor: '#fff' }}
+                              />
+                            </Box>
+                          ))}
+                          {/* Move delete button here if this is Crew Daily Summaries */}
+                          {section.name === 'Crew Daily Summaries' && (
+                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                              <IconButton
+                                onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                sx={{ zIndex: 2, bgcolor: '#fff' }}
+                                aria-label="Delete Crew Summary"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          )}
+                          {/* For other sections, keep delete button in the row */}
+                          {section.name !== 'Crew Daily Summaries' && (
+                            <Box sx={{ minWidth: 0, display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 0 } }}>
+                              <IconButton
+                                onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                sx={{ zIndex: 2, bgcolor: '#fff' }}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          )}
+                        </Paper>
+                      ))}
+                      <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
+                        Add Row
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              );
+            })}
 
             {/* Signature Section */}
             {config.requiresSignature && (

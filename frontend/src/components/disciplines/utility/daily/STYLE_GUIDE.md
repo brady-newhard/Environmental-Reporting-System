@@ -71,4 +71,52 @@
     <TextField ... className={styles['header-field']} />
   </div>
 </div>
-``` 
+```
+
+# Dynamic Section Row Layout (Flexbox Standard)
+
+- **Use a flexbox-based layout for all dynamic (addable/removable) row sections in reports.**
+- Do NOT use MUI Grid for these rows; use `<Box sx={{ display: 'flex', ... }}>` or a CSS class with `display: flex`.
+- Each field in the row should be in a flex child with `flex: 1` and `min-width: 0`.
+- The delete/trashcan icon should be in its own flex child at the end, with minimal width.
+- Use `gap` for spacing between fields.
+- This ensures all fields fill the row, are responsive, and the layout is consistent regardless of MUI version.
+
+## Example JSX
+```jsx
+<Paper>
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+    {fields.map((field, idx) => (
+      <Box key={field.name} sx={{ flex: 1, minWidth: 0 }}>
+        {/* TextField or Select here */}
+      </Box>
+    ))}
+    <Box sx={{ minWidth: 0, display: 'flex', alignItems: 'center' }}>
+      <IconButton>
+        <DeleteIcon />
+      </IconButton>
+    </Box>
+  </Box>
+</Paper>
+```
+
+## Example CSS (if using CSS modules)
+```css
+.dynamic-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+.dynamic-row-field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.dynamic-row-trash {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+```
+
+- **Use this pattern for all dynamic/addable row layouts in all reports for consistency.** 
