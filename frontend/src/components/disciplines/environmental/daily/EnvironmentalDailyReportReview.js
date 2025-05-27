@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getAllDrafts } from '../../../../utils/draftStorage';
 import { Box, Typography, Paper, Button, Grid, Divider } from '@mui/material';
+import PageHeader from '../../../../components/common/PageHeader';
 
 const config = {
   headerFields: [
@@ -13,8 +14,7 @@ const config = {
     { name: 'milepost_end', label: 'Milepost End' },
     { name: 'station_start', label: 'Station Start' },
     { name: 'station_end', label: 'Station End' },
-    { name: 'inspection_type', label: 'Inspection Type' },
-    { name: 'inspection_date', label: 'Inspection Date', type: 'date' }
+    { name: 'date', label: 'Date', type: 'date' }
   ],
   weatherFields: [
     { name: 'weather_conditions', label: 'Sky Cover' },
@@ -50,7 +50,7 @@ const config = {
     }
   ],
   summaryFields: [
-    { name: 'notes', label: 'Notes' }
+    { name: 'notes', label: 'Environmental Summary' }
   ]
 };
 
@@ -62,6 +62,9 @@ export default function EnvironmentalDailyReportReview() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const reportType = 'environmental';
+
+  // Get the back path from location state or default to drafts
+  const backPath = location.state?.from || '/environmental/reports/daily/drafts';
 
   useEffect(() => {
     const loadDraft = async () => {
@@ -103,15 +106,18 @@ export default function EnvironmentalDailyReportReview() {
   if (isLoading) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>Environmental Daily Report Review</Typography>
+        <PageHeader 
+          title="Environmental Daily Report Review"
+          backPath={backPath}
+          backButtonStyle={{
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            '&:hover': {
+              backgroundColor: '#333333'
+            }
+          }}
+        />
         <Typography>Loading draft...</Typography>
-        <Button 
-          variant="outlined" 
-          sx={{ mt: 2 }} 
-          onClick={() => navigate('/environmental/reports/daily/drafts')}
-        >
-          Back to Drafts
-        </Button>
       </Box>
     );
   }
@@ -119,15 +125,18 @@ export default function EnvironmentalDailyReportReview() {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>Environmental Daily Report Review</Typography>
+        <PageHeader 
+          title="Environmental Daily Report Review"
+          backPath={backPath}
+          backButtonStyle={{
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            '&:hover': {
+              backgroundColor: '#333333'
+            }
+          }}
+        />
         <Typography>{error}</Typography>
-        <Button 
-          variant="outlined" 
-          sx={{ mt: 2 }} 
-          onClick={() => navigate('/environmental/reports/daily/drafts')}
-        >
-          Back to Drafts
-        </Button>
       </Box>
     );
   }
@@ -251,12 +260,8 @@ export default function EnvironmentalDailyReportReview() {
     <Paper sx={{ p: 2, mb: 2 }}>
       <Typography sx={sectionHeader}>Photos</Typography>
       {Array.isArray(photos) && photos.length > 0 ? (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+        <Grid container spacing={2}>
           {photos.map((photo, idx) => {
-            // Handle different photo formats:
-            // 1. String URL
-            // 2. Object with url property
-            // 3. Object with file property (base64)
             let photoUrl;
             if (typeof photo === 'string') {
               photoUrl = photo;
@@ -266,35 +271,74 @@ export default function EnvironmentalDailyReportReview() {
               photoUrl = photo.file;
             }
 
-            if (!photoUrl) {
-              console.warn('Invalid photo data:', photo);
-              return null;
-            }
-            
+            const location = photo.location || '';
+            const comments = photo.comments || photo.comment || '';
+
             return (
-              <Box key={idx} sx={{ width: 120, height: 120, border: '1px solid #ccc', borderRadius: 1, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img 
-                  src={photoUrl} 
-                  alt={`Report Photo ${idx + 1}`} 
-                  style={{ 
-                    maxWidth: '100%', 
-                    maxHeight: '100%',
-                    objectFit: 'contain'
-                  }} 
-                  onError={(e) => {
-                    console.error('Error loading photo:', photoUrl);
-                    e.target.style.display = 'none';
-                  }}
-                />
-                {photo.location && (
-                  <Typography variant="caption" sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, bgcolor: 'rgba(0,0,0,0.5)', color: 'white', p: 0.5, textAlign: 'center' }}>
-                    {photo.location}
-                  </Typography>
-                )}
-              </Box>
+              <Grid item xs={12} sm={6} key={idx}>
+                <Box sx={{
+                  width: '100%',
+                  border: '1px solid #ccc',
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  bgcolor: '#fafafa',
+                  p: 1
+                }}>
+                  <Box sx={{
+                    width: '100%',
+                    height: 220,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 1,
+                    background: '#eee',
+                    position: 'relative',
+                  }}>
+                    {photoUrl ? (
+                      <img
+                        src={photoUrl}
+                        alt={`Report Photo ${idx + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          display: 'block',
+                        }}
+                        onError={e => {
+                          e.target.onerror = null;
+                          e.target.src = '';
+                          e.target.style.display = 'none';
+                          const placeholder = document.createElement('div');
+                          placeholder.innerText = 'Image not available';
+                          placeholder.style.textAlign = 'center';
+                          placeholder.style.width = '100%';
+                          placeholder.style.color = '#888';
+                          e.target.parentNode.appendChild(placeholder);
+                        }}
+                      />
+                    ) : (
+                      <Typography color="text.secondary">Image not available</Typography>
+                    )}
+                  </Box>
+                  {location && (
+                    <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#333', fontWeight: 500 }}>
+                      Location: {location}
+                    </Typography>
+                  )}
+                  {comments && (
+                    <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+                      {comments}
+                    </Typography>
+                  )}
+                </Box>
+              </Grid>
             );
           })}
-        </Box>
+        </Grid>
       ) : (
         <Typography color="text.secondary">No photos</Typography>
       )}
@@ -318,7 +362,17 @@ export default function EnvironmentalDailyReportReview() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>Environmental Daily Report Review</Typography>
+      <PageHeader 
+        title="Environmental Daily Report Review"
+        backPath={backPath}
+        backButtonStyle={{
+          backgroundColor: '#000000',
+          color: '#ffffff',
+          '&:hover': {
+            backgroundColor: '#333333'
+          }
+        }}
+      />
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography sx={sectionHeader}>Project Information</Typography>
         {renderHeaderFields()}
@@ -332,7 +386,6 @@ export default function EnvironmentalDailyReportReview() {
       {renderSummaryFields()}
       {renderPhotosSection()}
       {renderSignaturesSection()}
-      <Button variant="outlined" sx={{ mt: 3 }} onClick={() => navigate('/environmental/reports/daily/drafts')}>Back to Drafts</Button>
     </Box>
   );
 } 
