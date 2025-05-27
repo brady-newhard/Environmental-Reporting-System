@@ -1,3 +1,4 @@
+import 'antd/dist/reset.css';
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -34,6 +35,7 @@ import NewVarianceReport from './components/disciplines/environmental/variance/N
 import EnvironmentalDailyReport from './components/disciplines/environmental/daily/EnvironmentalDailyReport';
 import EnvironmentalDailyReportReview from './components/disciplines/environmental/daily/EnvironmentalDailyReportReview';
 import EnvironmentalDailyReportDrafts from './components/disciplines/environmental/daily/EnvironmentalDailyReportDrafts';
+import EnvironmentalDailyReportForm from './components/disciplines/environmental/daily/EnvironmentalDailyReportForm';
 
 // Welding Components
 import WeldingMain from './components/disciplines/welding/main/WeldingMain';
@@ -256,6 +258,22 @@ function App() {
             element={
               <PrivateRoute>
                 <EnvironmentalDailyReport />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/reports/daily/edit/:id"
+            element={
+              <PrivateRoute>
+                <EnvironmentalDailyReportForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/reports/daily/review/:id"
+            element={
+              <PrivateRoute>
+                <EnvironmentalDailyReportReview />
               </PrivateRoute>
             }
           />

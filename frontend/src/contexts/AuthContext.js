@@ -35,7 +35,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (token, username, first_name) => {
+    console.log('Login called with token:', token);
     localStorage.setItem('token', token);
+    console.log('Token stored in localStorage:', localStorage.getItem('token'));
     setUser({ username, first_name });
     setIsAuthenticated(true);
   };
