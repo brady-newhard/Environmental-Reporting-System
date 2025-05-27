@@ -38,11 +38,27 @@ const ReportTemplateDrafts = ({ config }) => {
     }
   };
 
+  // Helper to ensure the draft has all required keys/structure
+  const normalizeDraft = (data) => {
+    return {
+      header: data.header || {},
+      sections: data.sections || [
+        { name: 'Crew Daily Summaries', rows: [] },
+        { name: 'Daily Progress', rows: [] }
+      ],
+      summaries: data.summaries || {},
+      photos: data.photos || [],
+      signature: data.signature || '',
+      sigDate: data.sigDate || data.sig_date || '',
+      id: data.id || null
+    };
+  };
+
   const handleEdit = (draft) => {
     const draftId = draft.id.replace(`${config.reportType}_draft_`, '');
     navigate(`${config.editPath}?draftId=${draftId}`, {
       state: { 
-        formData: draft,
+        formData: normalizeDraft(draft),
         from: `${config.reportType}/reports/drafts`
       }
     });
@@ -51,7 +67,7 @@ const ReportTemplateDrafts = ({ config }) => {
   const handleView = (draft) => {
     const draftId = draft.id.replace(`${config.reportType}_draft_`, '');
     navigate(`${config.reviewPath}/${draftId}`, {
-      state: { from: `${config.reportType}/reports/drafts`, formData: draft },
+      state: { from: `${config.reportType}/reports/drafts`, formData: normalizeDraft(draft) },
     });
   };
 

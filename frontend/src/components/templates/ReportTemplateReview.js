@@ -55,7 +55,12 @@ const ReportTemplateReview = ({ config }) => {
     if (draftId) {
       path += `?draftId=${draftId}`;
     }
-    navigate(path, { state: { formData: data } });
+    navigate(path, { 
+      state: { 
+        formData: data,
+        from: `${config.reportType}/reports/drafts`
+      }
+    });
   };
 
   // Helper to format date fields
@@ -65,6 +70,15 @@ const ReportTemplateReview = ({ config }) => {
     if (!isNaN(d)) return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
     return value;
   };
+
+  // Defensive: ensure all fields are present
+  const header = data.header || {};
+  const sections = Array.isArray(data.sections) ? data.sections : [];
+  const summaries = typeof data.summaries === 'object' && data.summaries !== null ? data.summaries : {};
+  const preparedBy = data.preparedBy || '';
+  const signature = data.signature || '';
+  const sigDate = data.sigDate || '';
+  const photos = Array.isArray(data.photos) ? data.photos : [];
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
@@ -138,7 +152,7 @@ const ReportTemplateReview = ({ config }) => {
               'project', 'contractor', 'inspector', 'date', 'spread', 'facility', 'milepost_start', 'milepost_end', 'station_start', 'station_end'
             ].includes(f.name)).map(field => (
               <Box key={field.name} sx={{ minWidth: 180 }}>
-                <b>{field.label}:</b> {field.type === 'date' ? formatDate(data.header?.[field.name]) : (data.header?.[field.name] || '')}
+                <b>{field.label}:</b> {field.type === 'date' ? formatDate(header[field.name]) : (header[field.name] || '')}
               </Box>
             ))}
           </Box>
@@ -152,12 +166,12 @@ const ReportTemplateReview = ({ config }) => {
               'weather_conditions', 'temperature', 'precipitation_type', 'soil_conditions'
             ].includes(f.name)).map(field => (
               <Box key={field.name} sx={{ minWidth: 180 }}>
-                <b>{field.label}:</b> {data.header?.[field.name] || ''}
+                <b>{field.label}:</b> {header[field.name] || ''}
               </Box>
             ))}
           </Box>
           {/* Rain Gauges */}
-          {data.header?.rain_gauges && data.header.rain_gauges.length > 0 && (
+          {header?.rain_gauges && header.rain_gauges.length > 0 && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>Rain Gauge Data</Typography>
               <TableContainer component={Paper}>
@@ -170,7 +184,7 @@ const ReportTemplateReview = ({ config }) => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.header.rain_gauges.map((gauge, idx) => (
+                    {header.rain_gauges.map((gauge, idx) => (
                       <TableRow key={idx}>
                         <TableCell>{gauge.location}</TableCell>
                         <TableCell>{gauge.rain}</TableCell>
@@ -183,15 +197,15 @@ const ReportTemplateReview = ({ config }) => {
             </Box>
           )}
           {/* Additional Comments */}
-          {data.header?.additional_comments && (
+          {header?.additional_comments && (
             <Box sx={{ mt: 2 }}>
-              <b>Additional Comments:</b> {data.header.additional_comments}
+              <b>Additional Comments:</b> {header.additional_comments}
             </Box>
           )}
         </Box>
 
         {/* Dynamic Sections (Crew Daily Summaries with Summary as its own row) */}
-        {data.sections.map(section => (
+        {sections.map(section => (
           <Box key={section.name} sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>{section.name}</Typography>
             {section.name === 'Crew Daily Summaries' ? (
@@ -223,26 +237,28 @@ const ReportTemplateReview = ({ config }) => {
                 </Table>
               </TableContainer>
             ) : (
-              <TableContainer component={Paper}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      {section.rows.length > 0 && Object.keys(section.rows[0]).map(field => (
-                        <TableCell key={field}>{field}</TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {section.rows.map((row, idx) => (
-                      <TableRow key={idx}>
-                        {Object.values(row).map((value, fieldIdx) => (
-                          <TableCell key={fieldIdx}>{value}</TableCell>
+              <>
+                <TableContainer component={Paper}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        {section.rows.length > 0 && Object.keys(section.rows[0]).map(field => (
+                          <TableCell key={field}>{field}</TableCell>
                         ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {section.rows.map((row, idx) => (
+                        <TableRow key={idx}>
+                          {Object.values(row).map((value, fieldIdx) => (
+                            <TableCell key={fieldIdx}>{value}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
             )}
           </Box>
         ))}
@@ -252,7 +268,7 @@ const ReportTemplateReview = ({ config }) => {
           <Typography variant="h6" gutterBottom>Environmental Inspection Summary</Typography>
           {config.summaryFields.map(field => (
             <Typography key={field.name}>
-              <b>{field.label}:</b> {data.summaries?.[field.name]}
+              <b>{field.label}:</b> {summaries?.[field.name]}
             </Typography>
           ))}
         </Box>
@@ -261,22 +277,22 @@ const ReportTemplateReview = ({ config }) => {
         {config.requiresSignature && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>Inspector Signature</Typography>
-            <Typography><b>Prepared by:</b> {data.preparedBy}</Typography>
-            {data.signature && (
+            <Typography><b>Prepared by:</b> {preparedBy}</Typography>
+            {signature && (
               <Box sx={{ my: 1 }}>
-                <img src={data.signature} alt="Signature" style={{ maxWidth: 300, border: '1px solid #ccc' }} />
+                <img src={signature} alt="Signature" style={{ maxWidth: 300, border: '1px solid #ccc' }} />
               </Box>
             )}
-            <Typography><b>Date:</b> {data.sigDate}</Typography>
+            <Typography><b>Date:</b> {sigDate}</Typography>
           </Box>
         )}
 
         {/* Photos Section (2-column grid, full size, wrapped text) */}
-        {config.requiresPhotos && data.photos && data.photos.length > 0 && (
+        {config.requiresPhotos && photos && photos.length > 0 && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>Photos</Typography>
             <ReportPhotoSection
-              photos={data.photos}
+              photos={photos}
               editable={false}
               gridProps={{ columns: 2, fullSize: true, wrapText: true }}
             />

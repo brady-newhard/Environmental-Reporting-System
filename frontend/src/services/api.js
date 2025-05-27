@@ -5,6 +5,8 @@ const API_URL =
     ? 'https://environmental-reporting-system-febba9464fe7.herokuapp.com/api'
     : 'http://localhost:8000/api';
 
+console.log('API_URL:', API_URL);
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -15,9 +17,11 @@ const api = axios.create({
 // Add token to all requests if it exists
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  console.log('Request interceptor - token:', token);
   if (token) {
     config.headers.Authorization = `Token ${token}`;
   }
+  console.log('Request config:', config);
   return config;
 });
 

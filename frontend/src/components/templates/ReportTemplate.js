@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   TextField,
@@ -20,10 +21,13 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Snackbar,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, PhotoCamera, Save as SaveIcon, Visibility as VisibilityIcon, ExitToApp as ExitToAppIcon } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import SignaturePad from 'react-signature-canvas';
 import PageHeader from '../common/PageHeader';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -33,6 +37,13 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
 import ReportPhotoSection from '../common/ReportPhotoSection';
+import axios from '../../utils/axios';
+import { message } from 'antd';
+import { uploadPhoto } from '../../utils/photoUtils';
+import { getDraft, saveDraft } from '../../utils/draftUtils';
+import { useAuth } from '../../contexts/AuthContext';
+
+console.log('ReportTemplate loaded');
 
 // Template configuration
 const defaultConfig = {
@@ -64,74 +75,155 @@ const defaultConfig = {
   requiresPhotos: true
 };
 
-const ReportTemplate = ({ config = defaultConfig }) => {
+const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
   const sigPadRef = useRef();
+  const { id } = useParams();
   
-  // State management
-  const [header, setHeader] = useState(
-    config.headerFields.reduce((acc, field) => ({ ...acc, [field.name]: '' }), { date: null, reportNo: 'Pending' })
-  );
-  const [sections, setSections] = useState(
-    config.dynamicSections.map(section => ({
+  // Initialize state with default values from config
+  const [header, setHeader] = useState(() => {
+    const defaultHeader = config.headerFields.reduce((acc, field) => {
+      // Initialize rain_gauges as an empty array if it's a dynamicArray type
+      if (field.type === 'dynamicArray') {
+        return { ...acc, [field.name]: [] };
+      }
+      return { ...acc, [field.name]: '' };
+    }, { date: null, reportNo: 'Pending' });
+    
+    // If we have initialData, merge it with defaultHeader, ensuring rain_gauges is an array
+    if (initialData?.header) {
+      const mergedHeader = { ...defaultHeader, ...initialData.header };
+      // Ensure rain_gauges is an array
+      if (config.headerFields.some(field => field.type === 'dynamicArray')) {
+        config.headerFields.forEach(field => {
+          if (field.type === 'dynamicArray') {
+            mergedHeader[field.name] = Array.isArray(mergedHeader[field.name]) 
+              ? mergedHeader[field.name] 
+              : [];
+          }
+        });
+      }
+      return mergedHeader;
+    }
+    return defaultHeader;
+  });
+
+  const [sections, setSections] = useState(() => {
+    if (initialData?.sections) {
+      return initialData.sections.map(section => ({
+        ...section,
+        rows: section.rows && section.rows.length > 0 ? section.rows : [section.defaultRow ? section.defaultRow() : {}]
+      }));
+    }
+    return config.dynamicSections.map(section => ({
       name: section.name,
       rows: [section.defaultRow()]
-    }))
-  );
-  const [summaries, setSummaries] = useState(
-    config.summaryFields.reduce((acc, field) => ({ ...acc, [field.name]: '' }), {})
-  );
-  const [preparedBy, setPreparedBy] = useState('');
-  const [signature, setSignature] = useState('');
-  const [sigDate, setSigDate] = useState('');
-  const [signing, setSigning] = useState(false);
-  const [photos, setPhotos] = useState([]);
-  const [formData, setFormData] = useState({});
-  const [draftId, setDraftId] = useState(null);
+    }));
+  });
+
+  const [summaries, setSummaries] = useState(() => {
+    const defaultSummaries = config.summaryFields.reduce((acc, field) => ({ ...acc, [field.name]: '' }), {});
+    return initialData?.summaries ? { ...defaultSummaries, ...initialData.summaries } : defaultSummaries;
+  });
+
+  const [preparedBy, setPreparedBy] = useState(initialData?.preparedBy || '');
+  const [signature, setSignature] = useState(initialData?.signature || '');
+  const [sigDate, setSigDate] = useState(initialData?.sigDate ? new Date(initialData.sigDate) : null);
+  const [photos, setPhotos] = useState(initialData?.photos || []);
+  const [draftId, setDraftId] = useState(initialData?.id || null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Update state when initialData changes
   useEffect(() => {
-    // Check for draftId in URL
-    const params = new URLSearchParams(location.search);
-    const urlDraftId = params.get('draftId');
+    if (!initialData) return;
     
-    // Check for draft data in location state
-    const stateDraft = location.state?.formData;
-
-    if (urlDraftId) {
-      // Load draft from localStorage
-      const draft = localStorage.getItem(`${config.reportType}_draft_${urlDraftId}`);
-      if (draft) {
-        const parsedDraft = JSON.parse(draft);
-        setFormData(parsedDraft);
-        setDraftId(urlDraftId);
-        // Initialize form fields with draft data
-        setHeader(parsedDraft.header || {});
-        setSections(parsedDraft.sections || []);
-        setSummaries(parsedDraft.summaries || {});
-        setPreparedBy(parsedDraft.preparedBy || '');
-        setSignature(parsedDraft.signature || '');
-        setSigDate(parsedDraft.sigDate || '');
-        setPhotos(parsedDraft.photos || []);
+    console.log('ReportTemplate initialData changed:', initialData);
+    
+    // Update header with default values for required fields
+    const defaultHeader = config.headerFields.reduce((acc, field) => {
+      // Initialize rain_gauges as an empty array if it's a dynamicArray type
+      if (field.type === 'dynamicArray') {
+        return { ...acc, [field.name]: [] };
       }
-    } else if (stateDraft) {
-      // Use draft from navigation state
-      setFormData(stateDraft);
-      setDraftId(stateDraft.id?.replace(`${config.reportType}_draft_`, ''));
-      // Initialize form fields with draft data
-      setHeader(stateDraft.header || {});
-      setSections(stateDraft.sections || []);
-      setSummaries(stateDraft.summaries || {});
-      setPreparedBy(stateDraft.preparedBy || '');
-      setSignature(stateDraft.signature || '');
-      setSigDate(stateDraft.sigDate || '');
-      setPhotos(stateDraft.photos || []);
+      return { ...acc, [field.name]: '' };
+    }, { date: null, reportNo: 'Pending' });
+
+    const updatedHeader = {
+      ...defaultHeader,
+      ...initialData.header
+    };
+    console.log('Updated header:', updatedHeader);
+    setHeader(updatedHeader);
+
+    // Update sections
+    if (initialData.sections) {
+      const updatedSections = initialData.sections.map(section => ({
+        ...section,
+        rows: section.rows && section.rows.length > 0 ? section.rows : [section.defaultRow ? section.defaultRow() : {}]
+      }));
+      console.log('Updated sections:', updatedSections);
+      setSections(updatedSections);
     }
-  }, [location, config.reportType]);
+
+    // Update summaries
+    if (initialData.summaries) {
+      const updatedSummaries = {
+        ...summaries,
+        ...initialData.summaries
+      };
+      console.log('Updated summaries:', updatedSummaries);
+      setSummaries(updatedSummaries);
+    }
+
+    // Update other fields
+    if (initialData.preparedBy) setPreparedBy(initialData.preparedBy);
+    if (initialData.signature) setSignature(initialData.signature);
+    if (initialData.sigDate) setSigDate(new Date(initialData.sigDate));
+    if (initialData.photos) setPhotos(initialData.photos);
+    if (initialData.id) setDraftId(initialData.id);
+  }, [initialData]);
+
+  // Initialize state with default values from config
+  useEffect(() => {
+    if (!initialData) {
+      const defaultHeader = config.headerFields.reduce((acc, field) => {
+        // Initialize rain_gauges as an empty array if it's a dynamicArray type
+        if (field.type === 'dynamicArray') {
+          return { ...acc, [field.name]: [] };
+        }
+        return { ...acc, [field.name]: '' };
+      }, { date: null, reportNo: 'Pending' });
+      setHeader(defaultHeader);
+
+      const defaultSections = config.dynamicSections.map(section => ({
+        name: section.name,
+        rows: [section.defaultRow()]
+      }));
+      setSections(defaultSections);
+
+      const defaultSummaries = config.summaryFields.reduce((acc, field) => ({ ...acc, [field.name]: '' }), {});
+      setSummaries(defaultSummaries);
+    }
+  }, []);
+
+  // DEBUG: Log state on every render
+  useEffect(() => {
+  console.log('ReportTemplate state:', {
+    header,
+    sections,
+    summaries,
+    preparedBy,
+    signature,
+    sigDate,
+    photos,
+    draftId
+  });
+  }, [header, sections, summaries, preparedBy, signature, sigDate, photos, draftId]);
 
   // Handlers
   const handleHeaderChange = e => setHeader({ ...header, [e.target.name]: e.target.value });
@@ -178,26 +270,66 @@ const ReportTemplate = ({ config = defaultConfig }) => {
     sigPadRef.current?.clear();
     setSignature('');
   };
-  const handleSaveDraft = () => {
-    const id = draftId || Date.now().toString();
-    const draftData = {
-      header,
-      sections,
-      summaries,
-      preparedBy,
-      signature,
-      sigDate,
-      photos,
-      savedAt: new Date().toISOString()
-    };
-    localStorage.setItem(`${config.reportType}_draft_${id}`, JSON.stringify(draftData));
-    setDraftId(id);
-    enqueueSnackbar('Draft saved successfully', { variant: 'success' });
-  };
-  const handleSubmit = (e) => {
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Form submitted:', { header, sections, summaries, preparedBy, signature, sigDate, photos });
+    if (typeof onSave === 'function') {
+      onSave({
+        header,
+        sections,
+        summaries,
+        photos,
+        signature,
+        sigDate,
+        id: draftId,
+      });
+    }
+  };
+  const handleSave = async () => {
+    console.log('Save button clicked');
+    console.log('onSave prop:', onSave);
+    if (typeof onSave !== 'function') {
+      console.error('onSave prop is not a function:', onSave);
+      enqueueSnackbar('Error: Save functionality not available', { variant: 'error' });
+      return;
+    }
+
+    try {
+      console.log('Starting save operation...');
+      setLoading(true);
+      const formData = {
+        header,
+        sections,
+        summaries,
+        photos,
+        signature,
+        sigDate,
+        preparedBy,
+        id: draftId,
+      };
+      console.log('Saving form data:', formData);
+      const savedId = await onSave(formData);
+      console.log('Save operation completed successfully');
+      
+      // Update local state with the saved data
+      if (savedId) {
+        setDraftId(savedId);
+        // Don't reset the form data since we want to keep the current values
+        enqueueSnackbar('Draft saved successfully', { variant: 'success' });
+      }
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+      enqueueSnackbar('Error saving draft: ' + (error.message || 'Unknown error'), { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (field, value) => {
+    if (field === 'preparedBy') {
+      setPreparedBy(value);
+    } else if (field === 'sigDate') {
+      setSigDate(value);
+    }
   };
 
   // Project fields for the Project Information section (custom order)
@@ -224,23 +356,16 @@ const ReportTemplate = ({ config = defaultConfig }) => {
   const rainGaugeField = config.headerFields.find(f => f.name === 'rain_gauges');
   const additionalCommentsField = config.headerFields.find(f => f.name === 'additional_comments');
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleDelete = () => {
-    if (draftId) {
-      const shouldDelete = window.confirm('Are you sure you want to delete this draft? This action cannot be undone.');
-      if (shouldDelete) {
-        localStorage.removeItem(`${config.reportType}_draft_${draftId}`);
-        setDraftId(null);
-        setFormData({});
-        enqueueSnackbar('Draft deleted successfully', { variant: 'success' });
-        navigate(`/${config.reportType}/reports`);
-      }
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      await axios.delete(`/api/drafts/${id}/`);
+      message.success('Draft deleted successfully');
+      setDraftId(null);
+      navigate(`/${config.reportType}/drafts`);
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      message.error('Failed to delete draft');
     }
   };
 
@@ -254,8 +379,12 @@ const ReportTemplate = ({ config = defaultConfig }) => {
         signature,
         sigDate,
         photos,
-        id: `${config.reportType}_draft_${draftId}`,
+        id: draftId,
       };
+      // Store in localStorage for backup
+      const localKey = `${config.reportType}_draft_${draftId}`;
+      localStorage.setItem(localKey, JSON.stringify(reviewData));
+      
       navigate(`${config.reviewPath}/${draftId}`, {
         state: { formData: reviewData }
       });
@@ -265,32 +394,27 @@ const ReportTemplate = ({ config = defaultConfig }) => {
   const handleExit = () => {
     const shouldSave = window.confirm('Do you want to save your changes before exiting? Click OK to save, or Cancel to exit without saving.');
     if (shouldSave) {
-      handleSaveDraft();
+      handleSave();
     }
     navigate(-1);
   };
 
   return (
-    <Box sx={{ bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)', overflow: 'auto' }}>
-      <Box sx={{ p: { xs: 1, sm: 3 } }}>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto', px: 2, py: 3, mt: 1, mb: 1, bgcolor: '#f5f5f5', borderRadius: 2 }}>
         <PageHeader
           title={config.title}
           backPath={`/${config.reportType}/reports`}
           backButtonStyle={{ backgroundColor: '#000000', color: '#ffffff', '&:hover': { backgroundColor: '#333333' } }}
         />
-        <Paper sx={{ mt: 2, p: { xs: 1, sm: 3 } }}>
-          <form onSubmit={handleSubmit}>
-            {/* Header Section */}
-            <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-              <CardContent>
+      <Paper sx={{ width: '100%', boxShadow: 'none', p: 0, bgcolor: 'transparent' }}>
+          <FormControl component="form" onSubmit={handleFormSubmit} layout="vertical">
+          <Grid container spacing={3} direction="column">
+            {/* Project Information Section */}
+            <Grid item xs={12} sx={{ mx: 1, mt: 2 }}>
+              <Card sx={{ width: '100%', p: 0 }}>
+                <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>Project Information</Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 2,
-                  }}
-                >
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                   {projectFields.map((field, index) => (
                     <Box
                       key={field.name}
@@ -304,13 +428,14 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                       <TextField
                         label={field.label}
                         name={field.name}
-                        value={formData[field.name] || header[field.name]}
+                        value={header[field.name] || ''}
                         onChange={(e) => {
                           handleChange(field.name, e.target.value);
                           handleHeaderChange(e);
                         }}
                         required={field.required}
                         fullWidth
+                        variant="outlined"
                         sx={{ bgcolor: '#fff' }}
                       />
                     </Box>
@@ -326,7 +451,7 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                     <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
                         label="Date"
-                        value={formData.date || header.date || null}
+                        value={header.date ? new Date(header.date) : null}
                         onChange={(date) => {
                           handleChange('date', date);
                           handleHeaderChange({ target: { name: 'date', value: date } });
@@ -338,17 +463,14 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                 </Box>
               </CardContent>
             </Card>
-            {/* Weather Section */}
-            <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-              <CardContent>
+            </Grid>
+
+            {/* Weather Information Section (Rain Gauge Data INSIDE) */}
+            <Grid item xs={12} sx={{ mx: 1 }}>
+              <Card sx={{ width: '100%', p: 0 }}>
+                <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>Weather Information</Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 2,
-                  }}
-                >
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                   {weatherFields.map((field, index) => (
                     <Box
                       key={field.name}
@@ -365,7 +487,7 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                           <Select
                             label={field.label}
                             name={field.name}
-                            value={formData[field.name] || header[field.name] || ''}
+                            value={header[field.name] || ''}
                             onChange={(e) => {
                               handleChange(field.name, e.target.value);
                               handleHeaderChange(e);
@@ -385,21 +507,20 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                           label={field.label}
                           name={field.name}
                           type={field.type || 'text'}
-                          value={formData[field.name] || header[field.name] || ''}
+                          value={header[field.name] || ''}
                           onChange={(e) => {
                             handleChange(field.name, e.target.value);
                             handleHeaderChange(e);
                           }}
                           required={field.required}
                           fullWidth
-                          sx={{ bgcolor: '#fff' }}
+                            sx={{ bgcolor: '#fff' }}
                         />
                       )}
                     </Box>
                   ))}
                 </Box>
-                {/* Rain Gauges dynamic array */}
-                {rainGaugeField && (
+                  {rainGaugeField && rainGaugeField.subFields && (
                   <Paper sx={{ p: 2, bgcolor: '#f8f8f8', borderRadius: 1, mt: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>Rain Gauge Data</Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -462,179 +583,157 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                 )}
               </CardContent>
             </Card>
+            </Grid>
 
-            {/* Summary Section */}
-            <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-              <CardContent>
+            {/* Environmental Summary Section */}
+            <Grid item xs={12} sx={{ mx: 1 }}>
+              <Card sx={{ width: '100%', p: 0 }}>
+                <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>{config.summarySectionTitle || 'Summaries'}</Typography>
                 <Stack spacing={2}>
                   {config.summaryFields.map(field => (
-                    <TextField
-                      key={field.name}
-                      label={field.label}
-                      value={summaries[field.name] || formData[field.name]}
-                      onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                      multiline={field.multiline}
-                      rows={field.multiline ? 2 : 1}
-                      fullWidth
-                      sx={{ bgcolor: '#fff' }}
-                    />
+                      <TextField
+                        key={field.name}
+                        label={field.label}
+                        name={field.name}
+                        value={summaries[field.name] || ''}
+                        onChange={(e) => handleSummaryChange(field.name, e.target.value)}
+                        multiline={field.multiline}
+                        rows={field.multiline ? 2 : 1}
+                        fullWidth
+                        sx={{ bgcolor: '#fff' }}
+                      />
                   ))}
                 </Stack>
               </CardContent>
             </Card>
+            </Grid>
 
-            {/* Dynamic Sections (restored) */}
+            {/* Crew Daily Summaries Section */}
             {sections.map(section => {
-              // Find the section config for field definitions and dropdown options
+              if (section.name !== 'Crew Daily Summaries') return null;
               const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              if (!sectionConfig) {
-                console.warn(`Section config not found for section: ${section.name}`);
-                return null;
-              }
+              if (!sectionConfig) return null;
               return (
-                <Card key={section.name} sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-                  <CardContent>
+                <Grid item xs={12} sx={{ mx: 1, mt: 2 }} key={section.name}>
+                  <Card sx={{ width: '100%', p: 0 }}>
+                    <CardContent sx={{ p: 2, width: '100%' }}>
                     <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
-                    <Stack spacing={2}>
                       {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative' }}>
+                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative', width: '100%' }}>
+                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0 }}>
+                            {sectionConfig.fields.filter(f => f.name !== 'Summary').map(fieldConfig => (
                           <Box
+                                key={fieldConfig.name}
                             sx={{
-                              display: { xs: 'block', sm: 'flex' },
-                              alignItems: 'center',
-                              gap: 2,
-                              width: '100%'
-                            }}
-                          >
-                            {/* Render non-multiline fields in the row */}
-                            {(sectionConfig.fields || []).filter(f => f.type !== 'multiline').map((fieldConfig, idx) => {
-                              // Crew dropdown with 'Other' logic
-                              if (fieldConfig.name === 'Crew') {
-                                const isOther = row['Crew'] === 'Other';
-                                return (
-                                  <Box key={fieldConfig.name} sx={{ flex: 1, minWidth: 0, mb: { xs: 2, sm: 0 } }}>
-                                    {isOther ? (
+                                  flex: { xs: '1 1 100%', sm: '1 1 25%' },
+                                  minWidth: 0,
+                                  maxWidth: { xs: '100%', sm: '25%' }
+                                }}
+                              >
                                       <TextField
-                                        label="Custom Crew/Duty"
-                                        value={row['CustomCrew'] || ''}
-                                        onChange={e => handleSectionChange(section.name, rowIndex, 'CustomCrew', e.target.value)}
-                                        fullWidth
-                                        sx={{ bgcolor: '#fff' }}
-                                      />
-                                    ) : (
-                                      <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
-                                        <InputLabel>{fieldConfig.label}</InputLabel>
-                                        <Select
                                           label={fieldConfig.label}
+                                          name={fieldConfig.name}
                                           value={row[fieldConfig.name] || ''}
                                           onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                        >
-                                          <MenuItem value="" disabled>
-                                            <em>Select {fieldConfig.label}</em>
-                                          </MenuItem>
-                                          {sectionConfig.dropdownOptions && sectionConfig.dropdownOptions.map(option => (
-                                            <MenuItem key={option} value={option}>{option}</MenuItem>
-                                          ))}
-                                        </Select>
-                                      </FormControl>
-                                    )}
+                                  fullWidth
+                                  sx={{ bgcolor: '#fff' }}
+                                />
                                   </Box>
-                                );
-                              }
-                              // Standard dropdown or text field
-                              return (
-                                <Box key={fieldConfig.name} sx={{ flex: 1, minWidth: 0, mb: { xs: 2, sm: 0 } }}>
-                                  {fieldConfig.type === 'dropdown' ? (
-                                    <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
-                                      <InputLabel>{fieldConfig.label}</InputLabel>
-                                      <Select
-                                        label={fieldConfig.label}
-                                        value={row[fieldConfig.name] || ''}
-                                        onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                      >
-                                        <MenuItem value="" disabled>
-                                          <em>Select {fieldConfig.label}</em>
-                                        </MenuItem>
-                                        {sectionConfig.dropdownOptions && sectionConfig.dropdownOptions.map(option => (
-                                          <MenuItem key={option} value={option}>{option}</MenuItem>
-                                        ))}
-                                      </Select>
-                                    </FormControl>
-                                  ) : (
-                                    <TextField
-                                      label={fieldConfig.label}
-                                      value={row[fieldConfig.name] || ''}
-                                      onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                      fullWidth
-                                      sx={{ bgcolor: '#fff' }}
-                                    />
-                                  )}
-                                </Box>
-                              );
-                            })}
+                            ))}
                           </Box>
-                          {/* Render multiline fields below the row, always full width */}
-                          {(sectionConfig.fields || []).filter(f => f.type === 'multiline').map(fieldConfig => (
-                            <Box key={fieldConfig.name} sx={{ width: '100%', mt: 2 }}>
-                              <TextField
-                                label={fieldConfig.label}
-                                value={row[fieldConfig.name] || ''}
-                                onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                fullWidth
-                                multiline
-                                minRows={2}
-                                sx={{ bgcolor: '#fff' }}
-                              />
-                            </Box>
-                          ))}
-                          {/* Move delete button here if this is Crew Daily Summaries */}
-                          {section.name === 'Crew Daily Summaries' && (
-                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                              <IconButton
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                sx={{ zIndex: 2, bgcolor: '#fff' }}
-                                aria-label="Delete Crew Summary"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          )}
-                          {/* For other sections, keep delete button in the row */}
-                          {section.name !== 'Crew Daily Summaries' && (
-                            <Box sx={{ minWidth: 0, display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 0 } }}>
-                              <IconButton
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                sx={{ zIndex: 2, bgcolor: '#fff' }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          )}
+                          {/* Only one summary field at 100% width below the four fields */}
+                          <Box sx={{ width: '100%', mt: 2 }}>
+                                    <TextField
+                              label="Summary"
+                              name="Summary"
+                              value={row['Summary'] || ''}
+                              onChange={e => handleSectionChange(section.name, rowIndex, 'Summary', e.target.value)}
+                                      fullWidth
+                              multiline
+                              minRows={2}
+                              sx={{ bgcolor: '#fff' }}
+                            />
+                                </Box>
                         </Paper>
                       ))}
                       <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
                         Add Row
                       </Button>
-                    </Stack>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                              );
+                            })}
+
+            {/* Daily Progress Section */}
+            {sections.map(section => {
+              if (section.name !== 'Daily Progress') return null;
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              if (!sectionConfig) return null;
+              return (
+                <Grid item xs={12} sx={{ mx: 1, mt: 2 }} key={section.name}>
+                  <Card sx={{ width: '100%', p: 0 }}>
+                    <CardContent sx={{ p: 2 }}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
+                      {section.rows.map((row, rowIndex) => (
+                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative', width: '100%' }}>
+                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0 }}>
+                            {sectionConfig.fields.map(fieldConfig => (
+                              <Box
+                                key={fieldConfig.name}
+                                sx={{
+                                  flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                  minWidth: 0,
+                                  maxWidth: { xs: '100%', sm: '33.33%' }
+                                }}
+                              >
+                              <TextField
+                                label={fieldConfig.label}
+                                name={fieldConfig.name}
+                                value={row[fieldConfig.name] || ''}
+                                onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                fullWidth
+                                sx={{ bgcolor: '#fff' }}
+                              />
+                            </Box>
+                          ))}
+                            </Box>
+                        </Paper>
+                      ))}
+                      <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
+                        Add Row
+                      </Button>
                   </CardContent>
                 </Card>
+                </Grid>
               );
             })}
 
             {/* Signature Section */}
             {config.requiresSignature && (
-              <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-                <CardContent>
+              <Grid item xs={12} sx={{ mx: 1, mt: 2 }}>
+                <Card sx={{ width: '100%', p: 0 }}>
+                  <CardContent sx={{ p: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>Inspector Signature</Typography>
                   <Stack spacing={2}>
-                    <TextField
-                      label="Inspector/Report Prepared by"
-                      value={preparedBy || formData.preparedBy}
-                      onChange={(e) => setPreparedBy(e.target.value)}
-                      fullWidth
-                      sx={{ bgcolor: '#fff' }}
-                    />
+                    <Box
+                      sx={{
+                        flex: { xs: '1 1 100%', sm: '1 1 48%' },
+                        minWidth: { xs: '100%', sm: '48%' },
+                        maxWidth: { xs: '100%', sm: '48%' },
+                        mb: 2,
+                      }}
+                    >
+                      <TextField
+                        label="Inspector/Report Prepared by"
+                        name="preparedBy"
+                          value={preparedBy}
+                          onChange={(e) => handleChange('preparedBy', e.target.value)}
+                        fullWidth
+                        sx={{ bgcolor: '#fff' }}
+                      />
+                    </Box>
                     <Box
                       sx={{
                         width: '100%',
@@ -662,11 +761,9 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                       <LocalizationProvider dateAdapter={AdapterDateFns}>
                         <DatePicker
                           label="Signature Date"
-                          value={sigDate || formData.sigDate || null}
-                          onChange={(date) => {
-                            setSigDate(date);
-                            handleChange('sigDate', date);
-                          }}
+                          name="sigDate"
+                            value={sigDate}
+                            onChange={(date) => handleChange('sigDate', date)}
                           slotProps={{ textField: { fullWidth: true, sx: { bgcolor: '#fff' } } }}
                         />
                       </LocalizationProvider>
@@ -674,27 +771,32 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                   </Stack>
                 </CardContent>
               </Card>
+              </Grid>
             )}
 
             {/* Photo Section */}
             {config.requiresPhotos && (
-              <Card sx={{ mb: 2, bgcolor: '#f3f3f3' }}>
-                <CardContent>
+              <Grid item xs={12} sx={{ mx: 1, mt: 2 }}>
+                <Card sx={{ width: '100%', p: 0 }}>
+                  <CardContent sx={{ p: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>Photos</Typography>
                   <ReportPhotoSection photos={photos} onPhotosChange={setPhotos} editable={true} />
                 </CardContent>
               </Card>
+              </Grid>
             )}
 
-            {/* Action Buttons */}
+            {/* Action Buttons at the bottom */}
+            <Grid item xs={12}>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3, flexWrap: 'wrap' }}>
               <Tooltip title="Save Draft">
                 <span>
                   <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<SaveIcon />}
-                    onClick={handleSaveDraft}
+                      variant="contained"
+                      color="primary"
+                      onClick={handleSave}
+                      startIcon={<SaveIcon />}
+                      disabled={loading}
                     sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
                     aria-label="Save Draft"
                   >
@@ -702,15 +804,15 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                   </Button>
                 </span>
               </Tooltip>
-              {draftId && (
+              {id && (
                 <>
                   <Tooltip title="Delete Draft">
                     <span>
                       <Button
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
+                          variant="contained"
+                          color="error"
                         onClick={handleDelete}
+                          startIcon={<DeleteIcon />}
                         sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
                         aria-label="Delete"
                       >
@@ -718,20 +820,22 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                       </Button>
                     </span>
                   </Tooltip>
-                  <Tooltip title="Review Draft">
-                    <span>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<VisibilityIcon />}
-                        onClick={handleReview}
-                        sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
-                        aria-label="Review"
-                      >
-                        {!isMobile && 'Review'}
-                      </Button>
-                    </span>
-                  </Tooltip>
+                  {draftId && (
+                    <Tooltip title="Review Draft">
+                      <span>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          startIcon={<VisibilityIcon />}
+                          onClick={handleReview}
+                          sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
+                          aria-label="Review"
+                        >
+                          {!isMobile && 'Review'}
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  )}
                 </>
               )}
               <Tooltip title="Exit">
@@ -749,11 +853,59 @@ const ReportTemplate = ({ config = defaultConfig }) => {
                 </span>
               </Tooltip>
             </Box>
-          </form>
+            </Grid>
+          </Grid>
+          </FormControl>
         </Paper>
-      </Box>
     </Box>
   );
+};
+
+ReportTemplate.propTypes = {
+  config: PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    reportType: PropTypes.string.isRequired,
+    headerFields: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      required: PropTypes.bool
+    })).isRequired,
+    dynamicSections: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      dropdownLabel: PropTypes.string,
+      dropdownName: PropTypes.string,
+      dropdownOptions: PropTypes.arrayOf(PropTypes.string),
+      fields: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        label: PropTypes.string.isRequired,
+        type: PropTypes.string
+      })).isRequired,
+      defaultRow: PropTypes.func.isRequired
+    })).isRequired,
+    summaryFields: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      multiline: PropTypes.bool
+    })).isRequired,
+    requiresSignature: PropTypes.bool,
+    requiresPhotos: PropTypes.bool,
+    reviewPath: PropTypes.string,
+    editPath: PropTypes.string
+  }),
+  initialData: PropTypes.shape({
+    header: PropTypes.object,
+    sections: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      rows: PropTypes.arrayOf(PropTypes.object).isRequired
+    })),
+    summaries: PropTypes.object,
+    photos: PropTypes.array,
+    signature: PropTypes.string,
+    sigDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    preparedBy: PropTypes.string,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  }),
+  onSave: PropTypes.func.isRequired
 };
 
 export default ReportTemplate; 
