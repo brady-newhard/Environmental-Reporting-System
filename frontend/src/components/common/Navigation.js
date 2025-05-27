@@ -162,139 +162,142 @@ const Navigation = () => {
   );
 
   return (
-    <AppBar position="static" sx={{ 
-      backgroundColor: '#000000', 
-      boxShadow: 'none', 
-      borderBottom: '1px solid #000000',
-      '& .MuiTypography-root': {
-        color: '#ffffff',
-      },
-      '& .MuiIconButton-root': {
-        color: '#ffffff',
-      },
-      '& .MuiSelect-select': {
-        color: '#ffffff',
-      },
-      '& .MuiSelect-icon': {
-        color: '#ffffff',
-      },
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#ffffff',
-      },
-      '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#ffffff',
-      },
-      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#ffffff',
-      },
-    }}>
-      <Toolbar>
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="menu"
-          onClick={toggleDrawer(true)}
-          sx={{ 
-            color: '#ffffff',
-            mr: 2,
-          }}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none' }} component={RouterLink} to="/">
-        <Typography
-            variant="h5"
-          sx={{
+    <>
+      <AppBar position="fixed" sx={{ 
+        backgroundColor: '#000000', 
+        boxShadow: 'none', 
+        borderBottom: '1px solid #000000',
+        '& .MuiTypography-root': {
+          color: '#ffffff',
+        },
+        '& .MuiIconButton-root': {
+          color: '#ffffff',
+        },
+        '& .MuiSelect-select': {
+          color: '#ffffff',
+        },
+        '& .MuiSelect-icon': {
+          color: '#ffffff',
+        },
+        '& .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#ffffff',
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#ffffff',
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          borderColor: '#ffffff',
+        },
+      }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={toggleDrawer(true)}
+            sx={{ 
               color: '#ffffff',
-              fontWeight: 700,
-              letterSpacing: 2,
-              lineHeight: 1,
-            textDecoration: 'none',
+              mr: 2,
             }}
           >
-            PIPE
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-            color: '#ffffff',
-              opacity: 0.8,
-              fontWeight: 400,
-              fontSize: '0.75rem',
-              lineHeight: 1,
-              textDecoration: 'none',
-              mt: 0.5,
-          }}
-        >
-            Pipeline Information & Project Evaluation
-        </Typography>
-        </Box>
-
-        {isAuthenticated && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              {user?.first_name || user?.username || 'User'}
+            <MenuIcon />
+          </IconButton>
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none' }} component={RouterLink} to="/">
+            <Typography
+              variant="h5"
+              sx={{
+                color: '#ffffff',
+                fontWeight: 700,
+                letterSpacing: 2,
+                lineHeight: 1,
+                textDecoration: 'none',
+              }}
+            >
+              PIPE
             </Typography>
-            <IconButton
-              onClick={handleProfileMenuOpen}
-              sx={{ color: '#ffffff' }}
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#ffffff',
+                opacity: 0.8,
+                fontWeight: 400,
+                fontSize: '0.75rem',
+                lineHeight: 1,
+                textDecoration: 'none',
+                mt: 0.5,
+              }}
             >
-              <Avatar sx={{ bgcolor: '#ffffff', color: '#000000' }}>
-                <PersonIcon />
-              </Avatar>
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleProfileMenuClose}
-            >
-              <MenuItem 
-                component={RouterLink} 
-                to="/profile"
-                onClick={handleProfileMenuClose}
-              >
-                Profile
-              </MenuItem>
-              <MenuItem 
-                component={RouterLink} 
-                to="/settings"
-                onClick={handleProfileMenuClose}
-              >
-                Settings
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={handleLogout}>Logout</MenuItem>
-            </Menu>
+              Pipeline Information & Project Evaluation
+            </Typography>
           </Box>
-        )}
 
-        {!isAuthenticated && !isMobile && (
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Button
-              component={RouterLink}
-              to="/login"
-              sx={{ color: '#ffffff' }}
-            >
-              Login
-            </Button>
-            <Button
-              component={RouterLink}
-              to="/signup"
-              sx={{ color: '#ffffff' }}
-            >
-              Sign Up
-            </Button>
-          </Box>
-        )}
-      </Toolbar>
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={toggleDrawer(false)}
-      >
-        {drawer}
-      </Drawer>
-    </AppBar>
+          {isAuthenticated && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                {user?.first_name || user?.username || 'User'}
+              </Typography>
+              <IconButton
+                onClick={handleProfileMenuOpen}
+                sx={{ color: '#ffffff' }}
+              >
+                <Avatar sx={{ bgcolor: '#ffffff', color: '#000000' }}>
+                  <PersonIcon />
+                </Avatar>
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleProfileMenuClose}
+              >
+                <MenuItem 
+                  component={RouterLink} 
+                  to="/profile"
+                  onClick={handleProfileMenuClose}
+                >
+                  Profile
+                </MenuItem>
+                <MenuItem 
+                  component={RouterLink} 
+                  to="/settings"
+                  onClick={handleProfileMenuClose}
+                >
+                  Settings
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+              </Menu>
+            </Box>
+          )}
+
+          {!isAuthenticated && !isMobile && (
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Button
+                component={RouterLink}
+                to="/login"
+                sx={{ color: '#ffffff' }}
+              >
+                Login
+              </Button>
+              <Button
+                component={RouterLink}
+                to="/signup"
+                sx={{ color: '#ffffff' }}
+              >
+                Sign Up
+              </Button>
+            </Box>
+          )}
+        </Toolbar>
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={toggleDrawer(false)}
+        >
+          {drawer}
+        </Drawer>
+      </AppBar>
+      <Box sx={{ height: { xs: '56px', sm: '64px' } }} />
+    </>
   );
 };
 
