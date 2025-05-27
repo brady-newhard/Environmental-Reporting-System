@@ -160,7 +160,7 @@ export default function EnvironmentalDailyReportReview() {
   };
 
   // Section header style
-  const sectionHeader = { fontWeight: 'bold', fontSize: 20, mb: 2 };
+  const sectionHeader = { fontWeight: 'bold', fontSize: { xs: 16, sm: 20 }, mb: 2 };
 
   // Render header fields
   const renderHeaderFields = () => (
@@ -171,7 +171,7 @@ export default function EnvironmentalDailyReportReview() {
         if (!value) value = '—';
         return (
           <Grid item xs={12} sm={6} key={field.name}>
-            <Typography><b>{field.label}:</b> {value}</Typography>
+            <Typography sx={{ fontSize: { xs: 14, sm: 16 } }}><b>{field.label}:</b> {value}</Typography>
           </Grid>
         );
       })}
@@ -224,7 +224,7 @@ export default function EnvironmentalDailyReportReview() {
     const section = sections.find(s => s.name === sectionConfig.name) || { rows: [] };
     const sectionData = section.rows || [];
     return (
-      <Paper sx={{ p: 2, mb: 2 }} key={sectionConfig.name}>
+      <Paper sx={{ p: { xs: 1, sm: 2 }, mb: 2 }} key={sectionConfig.name}>
         <Typography sx={sectionHeader}>{sectionConfig.label}</Typography>
         {Array.isArray(sectionData) && sectionData.length > 0 ? (
           sectionData.map((row, idx) => (
@@ -232,7 +232,7 @@ export default function EnvironmentalDailyReportReview() {
               <Grid container spacing={2}>
                 {sectionConfig.fields.map(field => (
                   <Grid item xs={12} sm={4} key={field.name}>
-                    <Typography><b>{field.label}:</b> {row[field.name] || '—'}</Typography>
+                    <Typography sx={{ fontSize: { xs: 14, sm: 16 } }}><b>{field.label}:</b> {row[field.name] || '—'}</Typography>
                   </Grid>
                 ))}
               </Grid>
@@ -260,7 +260,7 @@ export default function EnvironmentalDailyReportReview() {
 
   // Render photos section
   const renderPhotosSection = () => (
-    <Paper sx={{ p: 2, mb: 2 }}>
+    <Paper sx={{ p: { xs: 1, sm: 2 }, mb: 2 }}>
       <Typography sx={sectionHeader}>Photos</Typography>
       {Array.isArray(photos) && photos.length > 0 ? (
         <Box
@@ -287,8 +287,8 @@ export default function EnvironmentalDailyReportReview() {
               <Box
                 key={idx}
                 sx={{
-                  flex: '0 0 calc(50% - 6px)',
-                  maxWidth: 'calc(50% - 6px)',
+                  flex: { xs: '0 0 100%', sm: '0 0 calc(50% - 6px)' },
+                  maxWidth: { xs: '100%', sm: 'calc(50% - 6px)' },
                   minWidth: 0,
                   boxSizing: 'border-box',
                   display: 'flex',
@@ -298,10 +298,6 @@ export default function EnvironmentalDailyReportReview() {
                   borderRadius: 2,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                   background: '#fafafa',
-                  '@media (max-width: 600px)': {
-                    flex: '0 0 100%',
-                    maxWidth: '100%',
-                  },
                 }}
               >
                 <Box
@@ -323,6 +319,7 @@ export default function EnvironmentalDailyReportReview() {
                         height: 'auto',
                         display: 'block',
                         objectFit: 'contain',
+                        maxHeight: '220px',
                       }}
                       onError={e => {
                         e.target.onerror = null;
@@ -335,12 +332,12 @@ export default function EnvironmentalDailyReportReview() {
                   )}
                 </Box>
                 {location && (
-                  <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#333', fontWeight: 500 }}>
+                  <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#333', fontWeight: 500, fontSize: { xs: 12, sm: 14 } }}>
                     Location: {location}
                   </Typography>
                 )}
                 {comments && (
-                  <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+                  <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#666', fontStyle: 'italic', fontSize: { xs: 12, sm: 14 } }}>
                     {comments}
                   </Typography>
                 )}
@@ -405,7 +402,7 @@ export default function EnvironmentalDailyReportReview() {
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 1, sm: 3 } }}>
       <PageHeader 
         title="Environmental Daily Report Review"
         backPath={backPath}
@@ -417,11 +414,11 @@ export default function EnvironmentalDailyReportReview() {
           }
         }}
       />
-      <Paper sx={{ p: 2, mb: 2 }}>
+      <Paper sx={{ p: { xs: 1, sm: 2 }, mb: 2 }}>
         <Typography sx={sectionHeader}>Project Information</Typography>
         {renderHeaderFields()}
       </Paper>
-      <Paper sx={{ p: 2, mb: 2 }}>
+      <Paper sx={{ p: { xs: 1, sm: 2 }, mb: 2 }}>
         <Typography sx={sectionHeader}>Weather Data</Typography>
         {renderWeatherFields()}
       </Paper>
@@ -432,11 +429,11 @@ export default function EnvironmentalDailyReportReview() {
       {renderSignaturesSection()}
 
       {/* Action Buttons */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
-        <Button variant="outlined" color="primary" onClick={handleEdit}>Edit</Button>
-        <Button variant="outlined" color="inherit" onClick={handleExit}>Exit</Button>
-        <Button variant="outlined" color="error" onClick={() => setDeleteDialogOpen(true)}>Delete</Button>
-        <Button variant="contained" color="success" onClick={() => setSubmitDialogOpen(true)}>Submit</Button>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: { xs: 'center', sm: 'flex-end' }, mt: 3 }}>
+        <Button variant="outlined" color="primary" onClick={handleEdit} sx={{ minWidth: { xs: 100, sm: 120 }, fontSize: { xs: 14, sm: 16 } }}>Edit</Button>
+        <Button variant="outlined" color="inherit" onClick={handleExit} sx={{ minWidth: { xs: 100, sm: 120 }, fontSize: { xs: 14, sm: 16 } }}>Exit</Button>
+        <Button variant="outlined" color="error" onClick={() => setDeleteDialogOpen(true)} sx={{ minWidth: { xs: 100, sm: 120 }, fontSize: { xs: 14, sm: 16 } }}>Delete</Button>
+        <Button variant="contained" color="success" onClick={() => setSubmitDialogOpen(true)} sx={{ minWidth: { xs: 100, sm: 120 }, fontSize: { xs: 14, sm: 16 } }}>Submit</Button>
       </Box>
 
       {/* Delete Confirmation Dialog */}
