@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
-import { Box, Card, CardContent, CardActions, Button, Typography, IconButton, Chip } from '@mui/material';
+import { Box, Card, CardContent, CardActions, Button, Typography, IconButton, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 export default function EnvironmentalDailyReportDrafts() {
   const [drafts, setDrafts] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [draftToDelete, setDraftToDelete] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
   const reportType = 'environmental';
 
@@ -29,19 +32,46 @@ export default function EnvironmentalDailyReportDrafts() {
     loadDrafts();
   }, []);
 
-  const handleDelete = async (draft) => {
+  const handleDeleteClick = (draft) => {
+    setDraftToDelete(draft);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      await deleteDraft(reportType, draft.id);
+      await deleteDraft(reportType, draftToDelete.id);
       const updatedDrafts = await getAllDrafts(reportType);
       const formattedDrafts = updatedDrafts.map(draft => ({
         ...draft.data,
-        id: draft.id, // Ensure the ID is preserved in the root object
-        photos: draft.data.photos || [] // Ensure photos array exists
+        id: draft.id,
+        photos: draft.data.photos || []
       }));
       setDrafts(formattedDrafts);
+      setSnackbar({
+        open: true,
+        message: 'Draft deleted successfully',
+        severity: 'success'
+      });
     } catch (error) {
       console.error('Error deleting draft:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete draft',
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDraftToDelete(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setDraftToDelete(null);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const handleEdit = (draft) => {
@@ -88,10 +118,39 @@ export default function EnvironmentalDailyReportDrafts() {
             >
               <VisibilityIcon />
             </IconButton>
-            <IconButton onClick={() => handleDelete(draft)} color="error"><DeleteIcon /></IconButton>
+            <IconButton onClick={() => handleDeleteClick(draft)} color="error"><DeleteIcon /></IconButton>
           </CardActions>
         </Card>
       ))}
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+      >
+        <DialogTitle>Delete Draft</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this draft? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 } 

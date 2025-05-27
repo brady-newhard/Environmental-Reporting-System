@@ -144,7 +144,10 @@ export const getDraft = async (reportType, id) => {
 // Delete a draft
 export const deleteDraft = async (reportType, id) => {
   try {
-    await api.delete(`${reportType}/drafts/${id}/`);
+    const mappedType = mapReportType(reportType);
+    await api.delete(`drafts/${id}/`, {
+      params: { report_type: mappedType }
+    });
   } catch (error) {
     console.error('Error deleting draft:', error);
     throw error;
