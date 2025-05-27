@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getAllDrafts } from '../../../../utils/draftStorage';
-import { Box, Typography, Paper, Button, Grid, Divider } from '@mui/material';
+import { Box, Typography, Paper, Button, Grid, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
 import PageHeader from '../../../../components/common/PageHeader';
 
 const config = {
@@ -62,6 +62,9 @@ export default function EnvironmentalDailyReportReview() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const reportType = 'environmental';
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Get the back path from location state or default to drafts
   const backPath = location.state?.from || '/environmental/reports/daily/drafts';
@@ -260,7 +263,13 @@ export default function EnvironmentalDailyReportReview() {
     <Paper sx={{ p: 2, mb: 2 }}>
       <Typography sx={sectionHeader}>Photos</Typography>
       {Array.isArray(photos) && photos.length > 0 ? (
-        <Grid container spacing={2}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
           {photos.map((photo, idx) => {
             let photoUrl;
             if (typeof photo === 'string') {
@@ -275,70 +284,70 @@ export default function EnvironmentalDailyReportReview() {
             const comments = photo.comments || photo.comment || '';
 
             return (
-              <Grid item xs={12} sm={6} key={idx}>
-                <Box sx={{
-                  width: '100%',
-                  border: '1px solid #ccc',
-                  borderRadius: 1,
-                  overflow: 'hidden',
+              <Box
+                key={idx}
+                sx={{
+                  flex: '0 0 calc(50% - 6px)',
+                  maxWidth: 'calc(50% - 6px)',
+                  minWidth: 0,
+                  boxSizing: 'border-box',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  bgcolor: '#fafafa',
-                  p: 1
-                }}>
-                  <Box sx={{
+                  border: '1.5px solid #bbb',
+                  borderRadius: 2,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  background: '#fafafa',
+                  '@media (max-width: 600px)': {
+                    flex: '0 0 100%',
+                    maxWidth: '100%',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
                     width: '100%',
-                    height: 220,
+                    overflow: 'hidden',
+                    mb: 1,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    mb: 1,
-                    background: '#eee',
-                    position: 'relative',
-                  }}>
-                    {photoUrl ? (
-                      <img
-                        src={photoUrl}
-                        alt={`Report Photo ${idx + 1}`}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                          display: 'block',
-                        }}
-                        onError={e => {
-                          e.target.onerror = null;
-                          e.target.src = '';
-                          e.target.style.display = 'none';
-                          const placeholder = document.createElement('div');
-                          placeholder.innerText = 'Image not available';
-                          placeholder.style.textAlign = 'center';
-                          placeholder.style.width = '100%';
-                          placeholder.style.color = '#888';
-                          e.target.parentNode.appendChild(placeholder);
-                        }}
-                      />
-                    ) : (
-                      <Typography color="text.secondary">Image not available</Typography>
-                    )}
-                  </Box>
-                  {location && (
-                    <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#333', fontWeight: 500 }}>
-                      Location: {location}
-                    </Typography>
-                  )}
-                  {comments && (
-                    <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
-                      {comments}
-                    </Typography>
+                  }}
+                >
+                  {photoUrl ? (
+                    <img
+                      src={photoUrl}
+                      alt={`Report Photo ${idx + 1}`}
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        display: 'block',
+                        objectFit: 'contain',
+                      }}
+                      onError={e => {
+                        e.target.onerror = null;
+                        e.target.src = '';
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <Typography color="text.secondary">Image not available</Typography>
                   )}
                 </Box>
-              </Grid>
+                {location && (
+                  <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#333', fontWeight: 500 }}>
+                    Location: {location}
+                  </Typography>
+                )}
+                {comments && (
+                  <Typography variant="caption" sx={{ width: '100%', textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+                    {comments}
+                  </Typography>
+                )}
+              </Box>
             );
           })}
-        </Grid>
+        </Box>
       ) : (
         <Typography color="text.secondary">No photos</Typography>
       )}
@@ -359,6 +368,41 @@ export default function EnvironmentalDailyReportReview() {
       </Grid>
     </Paper>
   );
+
+  // Button handlers
+  const handleEdit = () => {
+    navigate(`/environmental/reports/daily/edit/${id}`, { state: { draft } });
+  };
+
+  const handleExit = () => {
+    navigate(backPath);
+  };
+
+  const handleDelete = async () => {
+    setDeleteDialogOpen(false);
+    try {
+      // Assume deleteDraft is imported from utils
+      await import('../../../../utils/draftUtils').then(utils => utils.deleteDraft('environmental_daily', id));
+      setSnackbar({ open: true, message: 'Draft deleted successfully.', severity: 'success' });
+      setTimeout(() => navigate('/environmental/reports/daily/drafts'), 1000);
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to delete draft.', severity: 'error' });
+    }
+  };
+
+  const handleSubmit = async () => {
+    setSubmitDialogOpen(false);
+    try {
+      // Placeholder: Replace with actual submit API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setSnackbar({ open: true, message: 'Draft submitted successfully.', severity: 'success' });
+      setTimeout(() => navigate('/environmental/reports/daily/drafts'), 1000);
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to submit draft.', severity: 'error' });
+    }
+  };
+
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
   return (
     <Box sx={{ p: 3 }}>
@@ -386,6 +430,46 @@ export default function EnvironmentalDailyReportReview() {
       {renderSummaryFields()}
       {renderPhotosSection()}
       {renderSignaturesSection()}
+
+      {/* Action Buttons */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'flex-end', mt: 3 }}>
+        <Button variant="outlined" color="primary" onClick={handleEdit}>Edit</Button>
+        <Button variant="outlined" color="inherit" onClick={handleExit}>Exit</Button>
+        <Button variant="outlined" color="error" onClick={() => setDeleteDialogOpen(true)}>Delete</Button>
+        <Button variant="contained" color="success" onClick={() => setSubmitDialogOpen(true)}>Submit</Button>
+      </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Delete Draft?</DialogTitle>
+        <DialogContent>Are you sure you want to delete this draft? This action cannot be undone.</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color="inherit">Cancel</Button>
+          <Button onClick={handleDelete} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Submit Confirmation Dialog */}
+      <Dialog open={submitDialogOpen} onClose={() => setSubmitDialogOpen(false)}>
+        <DialogTitle>Submit Draft?</DialogTitle>
+        <DialogContent>Are you sure you want to submit this draft as a final report?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSubmitDialogOpen(false)} color="inherit">Cancel</Button>
+          <Button onClick={handleSubmit} color="success">Submit</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 } 
