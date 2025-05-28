@@ -400,7 +400,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto', px: 2, py: 3, mt: 1, mb: 1, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+    <Box sx={{ width: { xs: '100%', sm: '100%' }, maxWidth: { xs: '100%', sm: 1400 }, mx: 0, px: { xs: 1, sm: 2 }, py: 3, mt: 1, mb: 1, bgcolor: '#f5f5f5', borderRadius: 2, overflowX: 'hidden', boxSizing: 'border-box' }}>
         <PageHeader
           title={config.title}
           backPath={`/${config.reportType}/reports`}
@@ -410,8 +410,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
           <FormControl component="form" onSubmit={handleFormSubmit} layout="vertical">
           <Grid container spacing={3} direction="column">
             {/* Project Information Section */}
-            <Grid item xs={12} sx={{ mx: 1, mt: 2 }}>
-              <Card sx={{ width: '100%', p: 0 }}>
+            <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }}>
+              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                 <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>Project Information</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -466,8 +466,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
             </Grid>
 
             {/* Weather Information Section (Rain Gauge Data INSIDE) */}
-            <Grid item xs={12} sx={{ mx: 1 }}>
-              <Card sx={{ width: '100%', p: 0 }}>
+            <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 } }}>
+              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                 <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>Weather Information</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -586,8 +586,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
             </Grid>
 
             {/* Environmental Summary Section */}
-            <Grid item xs={12} sx={{ mx: 1 }}>
-              <Card sx={{ width: '100%', p: 0 }}>
+            <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 } }}>
+              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                 <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>{config.summarySectionTitle || 'Summaries'}</Typography>
                 <Stack spacing={2}>
@@ -615,8 +615,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
               const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
               if (!sectionConfig) return null;
               return (
-                <Grid item xs={12} sx={{ mx: 1, mt: 2 }} key={section.name}>
-                  <Card sx={{ width: '100%', p: 0 }}>
+                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
+                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                     <CardContent sx={{ p: 2, width: '100%' }}>
                     <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
                       {section.rows.map((row, rowIndex) => (
@@ -672,8 +672,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
               const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
               if (!sectionConfig) return null;
               return (
-                <Grid item xs={12} sx={{ mx: 1, mt: 2 }} key={section.name}>
-                  <Card sx={{ width: '100%', p: 0 }}>
+                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
+                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
                       {section.rows.map((row, rowIndex) => (
@@ -712,8 +712,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
 
             {/* Signature Section */}
             {config.requiresSignature && (
-              <Grid item xs={12} sx={{ mx: 1, mt: 2 }}>
-                <Card sx={{ width: '100%', p: 0 }}>
+              <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }}>
+                <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                   <CardContent sx={{ p: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>Inspector Signature</Typography>
                   <Stack spacing={2}>
@@ -776,8 +776,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
 
             {/* Photo Section */}
             {config.requiresPhotos && (
-              <Grid item xs={12} sx={{ mx: 1, mt: 2 }}>
-                <Card sx={{ width: '100%', p: 0 }}>
+              <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }}>
+                <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                   <CardContent sx={{ p: 2 }}>
                   <Typography variant="h6" sx={{ mb: 2 }}>Photos</Typography>
                   <ReportPhotoSection photos={photos} onPhotosChange={setPhotos} editable={true} />

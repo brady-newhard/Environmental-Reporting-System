@@ -166,16 +166,14 @@ export default function EnvironmentalDailyReportForm() {
 
   return (
     <>
-      <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
       <ReportTemplate 
-          initialData={draft}
-          onChange={(newData) => setDraft(newData)}
+        initialData={draft}
+        onChange={(newData) => setDraft(newData)}
         onSave={handleSave}
-          onReview={handleReview}
-          onCancel={handleCloseSnackbar}
-          config={environmentalDailyReportConfig}
+        onReview={handleReview}
+        onCancel={handleCloseSnackbar}
+        config={environmentalDailyReportConfig}
       />
-      </Box>
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
