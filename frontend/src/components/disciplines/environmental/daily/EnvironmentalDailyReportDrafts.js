@@ -100,22 +100,18 @@ export default function EnvironmentalDailyReportDrafts() {
         }}
       />
       {drafts.map((draft, index) => (
-        <Card key={`draft-${draft.id || index}`} sx={{ mb: 2 }}>
-          <CardContent>
+        <Card key={`draft-${draft.id || index}`} sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'nowrap' }}>
+          <CardContent sx={{ flex: 1 }}>
             <Typography variant="h6">Project: {draft.header?.project || 'N/A'}</Typography>
             <Typography>Date: {draft.header?.date ? new Date(draft.header.date).toLocaleDateString() : 'N/A'}</Typography>
             <Typography>Inspector: {draft.header?.inspector || 'N/A'}</Typography>
             <Typography>Spread: {draft.header?.spread || 'N/A'}</Typography>
+            <Typography>Report ID: {draft.id || 'N/A'}</Typography>
           </CardContent>
-          <CardActions>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleEdit(draft)}
-              startIcon={<EditIcon />}
-            >
-              Edit
-            </Button>
+          <CardActions sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <IconButton onClick={() => handleEdit(draft)} color="primary">
+              <EditIcon />
+            </IconButton>
             <IconButton 
               onClick={() => {
                 console.log('Navigating to review with draft:', draft);
