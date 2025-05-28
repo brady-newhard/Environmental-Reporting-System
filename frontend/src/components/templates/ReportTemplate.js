@@ -562,7 +562,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                             sx={{ ml: 1 }}
                             aria-label="Remove Rain Gauge"
                           >
-                            <DeleteIcon />
+                            <DeleteIcon sx={{ fontSize: isMobile ? 42 : 24 }} />
                           </IconButton>
                         </Box>
                       ))}
@@ -620,7 +620,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                     <CardContent sx={{ p: 2, width: '100%' }}>
                     <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
                       {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative', width: '100%' }}>
+                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
                           <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0 }}>
                             {sectionConfig.fields.filter(f => f.name !== 'Summary').map(fieldConfig => (
                           <Box
@@ -677,7 +677,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                     <CardContent sx={{ p: 2 }}>
                       <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
                       {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, position: 'relative', width: '100%' }}>
+                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
                           <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0 }}>
                             {sectionConfig.fields.map(fieldConfig => (
                               <Box
@@ -788,70 +788,72 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
 
             {/* Action Buttons at the bottom */}
             <Grid item xs={12}>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 3, flexWrap: 'wrap' }}>
-              <Tooltip title="Save Draft">
-                <span>
-                  <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleSave}
-                      startIcon={<SaveIcon />}
-                      disabled={loading}
-                    sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
-                    aria-label="Save Draft"
-                  >
-                    {!isMobile && 'Save'}
-                  </Button>
-                </span>
-              </Tooltip>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              mt: 3,
+              px: { xs: 3, sm: 4 },
+              pb: { xs: 2, sm: 3 }
+            }}>
+              <Button
+                variant={isMobile ? "text" : "contained"}
+                color={isMobile ? "success" : "primary"}
+                onClick={handleSave}
+                startIcon={<SaveIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
+                disabled={loading}
+                sx={{ 
+                  minWidth: isMobile ? 40 : 120,
+                  height: isMobile ? 40 : 48,
+                  p: isMobile ? 0 : 1
+                }}
+              >
+                {!isMobile && 'Save'}
+              </Button>
               {id && (
                 <>
-                  <Tooltip title="Delete Draft">
-                    <span>
-                      <Button
-                          variant="contained"
-                          color="error"
-                        onClick={handleDelete}
-                          startIcon={<DeleteIcon />}
-                        sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
-                        aria-label="Delete"
-                      >
-                        {!isMobile && 'Delete'}
-                      </Button>
-                    </span>
-                  </Tooltip>
+                  <Button
+                    variant={isMobile ? "text" : "contained"}
+                    color="error"
+                    onClick={handleDelete}
+                    startIcon={<DeleteIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
+                    sx={{ 
+                      minWidth: isMobile ? 40 : 120,
+                      height: isMobile ? 40 : 48,
+                      p: isMobile ? 0 : 1
+                    }}
+                  >
+                    {!isMobile && 'Delete'}
+                  </Button>
                   {draftId && (
-                    <Tooltip title="Review Draft">
-                      <span>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          startIcon={<VisibilityIcon />}
-                          onClick={handleReview}
-                          sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
-                          aria-label="Review"
-                        >
-                          {!isMobile && 'Review'}
-                        </Button>
-                      </span>
-                    </Tooltip>
+                    <Button
+                      variant={isMobile ? "text" : "contained"}
+                      color={isMobile ? "info" : "primary"}
+                      startIcon={<VisibilityIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
+                      onClick={handleReview}
+                      sx={{ 
+                        minWidth: isMobile ? 40 : 120,
+                        height: isMobile ? 40 : 48,
+                        p: isMobile ? 0 : 1
+                      }}
+                    >
+                      {!isMobile && 'Review'}
+                    </Button>
                   )}
                 </>
               )}
-              <Tooltip title="Exit">
-                <span>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    startIcon={<ExitToAppIcon />}
-                    onClick={handleExit}
-                    sx={{ minWidth: isMobile ? 48 : 120, width: isMobile ? 48 : 'auto', height: 48, p: 0 }}
-                    aria-label="Exit"
-                  >
-                    {!isMobile && 'Exit'}
-                  </Button>
-                </span>
-              </Tooltip>
+              <Button
+                variant={isMobile ? "text" : "contained"}
+                color="secondary"
+                startIcon={<ExitToAppIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
+                onClick={handleExit}
+                sx={{ 
+                  minWidth: isMobile ? 40 : 120,
+                  height: isMobile ? 40 : 48,
+                  p: isMobile ? 0 : 1
+                }}
+              >
+                {!isMobile && 'Exit'}
+              </Button>
             </Box>
             </Grid>
           </Grid>

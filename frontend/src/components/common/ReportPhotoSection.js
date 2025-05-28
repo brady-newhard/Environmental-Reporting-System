@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Box, Button, IconButton, TextField, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Paper, Snackbar, Alert } from '@mui/material';
-import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
 import heic2any from 'heic2any';
 
@@ -123,39 +123,9 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) =>
 
   return (
     <Box>
-      {editable && (
-        <>
-          <Button
-            variant="outlined"
-            startIcon={<AddPhotoAlternateIcon />}
-            onClick={handleAddPhotoClick}
-            sx={{ mb: 2 }}
-          >
-            Add Photo
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            multiple
-            onChange={handleFileChange}
-          />
-          <Dialog open={promptOpen} onClose={handlePromptClose}>
-            <DialogTitle>Add Photo</DialogTitle>
-            <DialogContent>
-              <Button fullWidth onClick={() => handlePromptSelect('camera')} sx={{ mb: 1 }}>Take Photo</Button>
-              <Button fullWidth onClick={() => handlePromptSelect('file')}>Upload from Device</Button>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handlePromptClose}>Cancel</Button>
-            </DialogActions>
-          </Dialog>
-        </>
-      )}
       {/* Photo grid: flexbox for review mode, Grid for editable mode */}
       {editable ? (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, width: '100%' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, width: '100%' }}>
           {photos.map((photo, idx) => {
             let src = '';
             if (photo.file instanceof File || photo.file instanceof Blob) {
@@ -173,8 +143,8 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) =>
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 1,
-                  width: { xs: '100%', sm: '50%' },
-                  flex: { xs: '0 0 100%', sm: '0 0 50%' },
+                  width: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 12px)' },
+                  flex: { xs: '0 0 calc(50% - 4px)', sm: '0 0 calc(25% - 12px)' },
                   boxSizing: 'border-box',
                   justifyContent: 'flex-start',
                   overflow: 'hidden',
@@ -183,8 +153,8 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) =>
               >
                 <Box
                   sx={{
-                    width: 120,
-                    height: 120,
+                    width: '100%',
+                    height: { xs: 150, sm: 180 },
                     mb: 1,
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -201,7 +171,7 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) =>
                     <img
                       src={src}
                       alt={`Photo ${idx + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                   ) : (
                     <Typography variant="caption" color="error">No image</Typography>
@@ -229,9 +199,30 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) =>
               </Paper>
             );
           })}
+          <Paper
+            sx={{
+              width: { xs: '90px', sm: '100px' },
+              height: { xs: '90px', sm: '100px' },
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 1,
+              border: '2px dashed #ccc',
+              bgcolor: '#fafafa',
+              cursor: 'pointer',
+              mb: 2,
+              mx: 'auto'
+            }}
+            onClick={handleAddPhotoClick}
+          >
+            <CameraAltIcon sx={{ fontSize: 28, color: '#666' }} />
+            <Typography variant="caption" sx={{ mt: 0.5, color: '#666' }}>Add Photo</Typography>
+          </Paper>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, width: '100%' }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, width: '100%' }}>
           {photos.map((photo, idx) => {
             let src = '';
             if (photo.file instanceof File || photo.file instanceof Blob) {
@@ -249,8 +240,8 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) =>
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 1,
-                  width: { xs: '100%', sm: '50%' },
-                  flex: { xs: '0 0 100%', sm: '0 0 50%' },
+                  width: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 12px)' },
+                  flex: { xs: '0 0 calc(50% - 4px)', sm: '0 0 calc(25% - 12px)' },
                   boxSizing: 'border-box',
                   justifyContent: 'flex-start',
                   overflow: 'hidden',
@@ -332,6 +323,28 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) =>
           {alert.message}
         </Alert>
       </Snackbar>
+      {editable && (
+        <>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            multiple
+            onChange={handleFileChange}
+          />
+          <Dialog open={promptOpen} onClose={handlePromptClose}>
+            <DialogTitle>Add Photo</DialogTitle>
+            <DialogContent>
+              <Button fullWidth onClick={() => handlePromptSelect('camera')} sx={{ mb: 1 }}>Take Photo</Button>
+              <Button fullWidth onClick={() => handlePromptSelect('file')}>Upload from Device</Button>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handlePromptClose}>Cancel</Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      )}
     </Box>
   );
 };
