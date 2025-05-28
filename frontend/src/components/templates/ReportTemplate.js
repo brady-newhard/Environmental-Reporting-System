@@ -26,7 +26,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, PhotoCamera, Save as SaveIcon, Visibility as VisibilityIcon, ExitToApp as ExitToAppIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, PhotoCamera, Save as SaveIcon, Visibility as VisibilityIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import SignaturePad from 'react-signature-canvas';
 import PageHeader from '../common/PageHeader';
@@ -400,7 +400,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   };
 
   return (
-    <Box sx={{ width: { xs: '100%', sm: '100%' }, maxWidth: { xs: '100%', sm: 1400 }, mx: 0, px: { xs: 1, sm: 2 }, py: 3, mt: 1, mb: 1, bgcolor: '#f5f5f5', borderRadius: 2, overflowX: 'hidden', boxSizing: 'border-box' }}>
+    <Box sx={{ width: { xs: '100%', sm: '100%' }, maxWidth: { xs: '100%', sm: 1400 }, mx: 0, px: { xs: 1, sm: 2 }, py: 3, mt: 1, mb: 1, pb: { xs: 6, sm: 6 }, bgcolor: '#f5f5f5', borderRadius: 2, overflowX: 'hidden', boxSizing: 'border-box' }}>
         <PageHeader
           title={config.title}
           backPath={`/${config.reportType}/reports`}
@@ -562,7 +562,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                             sx={{ ml: 1 }}
                             aria-label="Remove Rain Gauge"
                           >
-                            <DeleteIcon sx={{ fontSize: isMobile ? 42 : 24 }} />
+                            <Box sx={{ fontSize: 42 }}><DeleteIcon sx={{ fontSize: 'inherit' }} /></Box>
                           </IconButton>
                         </Box>
                       ))}
@@ -573,7 +573,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                         }}
                         size="small"
                         variant="outlined"
-                        startIcon={<AddIcon />}
+                        startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>}
                         sx={{ width: '200px', alignSelf: 'center', borderColor: 'primary.main', '&:hover': { borderColor: 'primary.dark' } }}
                       >
                         Add Rain Gage
@@ -615,56 +615,66 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
               const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
               if (!sectionConfig) return null;
               return (
-                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
+                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: { xs: 0.5, sm: 2 } }} key={section.name}>
                   <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
                     <CardContent sx={{ p: 2, width: '100%' }}>
-                    <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
+                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
                       {section.rows.map((row, rowIndex) => (
                         <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
                           <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0 }}>
                             {sectionConfig.fields.filter(f => f.name !== 'Summary').map(fieldConfig => (
-                          <Box
+                              <Box
                                 key={fieldConfig.name}
-                            sx={{
+                                sx={{
                                   flex: { xs: '1 1 100%', sm: '1 1 25%' },
                                   minWidth: 0,
                                   maxWidth: { xs: '100%', sm: '25%' }
                                 }}
                               >
-                                      <TextField
-                                          label={fieldConfig.label}
-                                          name={fieldConfig.name}
-                                          value={row[fieldConfig.name] || ''}
-                                          onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                <TextField
+                                  label={fieldConfig.label}
+                                  name={fieldConfig.name}
+                                  value={row[fieldConfig.name] || ''}
+                                  onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
                                   fullWidth
                                   sx={{ bgcolor: '#fff' }}
                                 />
-                                  </Box>
+                              </Box>
                             ))}
                           </Box>
-                          {/* Only one summary field at 100% width below the four fields */}
                           <Box sx={{ width: '100%', mt: 2 }}>
-                                    <TextField
+                            <TextField
                               label="Summary"
                               name="Summary"
                               value={row['Summary'] || ''}
                               onChange={e => handleSectionChange(section.name, rowIndex, 'Summary', e.target.value)}
-                                      fullWidth
+                              fullWidth
                               multiline
                               minRows={2}
                               sx={{ bgcolor: '#fff' }}
                             />
-                                </Box>
+                          </Box>
+                          {section.rows.length > 1 && (
+                            <Box sx={{ width: '100%', display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' }, mt: 1 }}>
+                              <IconButton
+                                color="error"
+                                onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                aria-label={`Remove ${section.name} row`}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          )}
                         </Paper>
                       ))}
-                      <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
+                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
                         Add Row
                       </Button>
                     </CardContent>
                   </Card>
                 </Grid>
-                              );
-                            })}
+              );
+            })}
 
             {/* Daily Progress Section */}
             {sections.map(section => {
@@ -698,10 +708,21 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               />
                             </Box>
                           ))}
-                            </Box>
+                            {/* Delete button for row */}
+                            {section.rows.length > 1 && (
+                              <IconButton
+                                color="error"
+                                onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                sx={{ alignSelf: 'center', ml: 1 }}
+                                aria-label={`Remove ${section.name} row`}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            )}
+                          </Box>
                         </Paper>
                       ))}
-                      <Button startIcon={<AddIcon />} onClick={() => handleAddRow(section.name)}>
+                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
                         Add Row
                       </Button>
                   </CardContent>
@@ -799,7 +820,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                 variant={isMobile ? "text" : "contained"}
                 color={isMobile ? "success" : "primary"}
                 onClick={handleSave}
-                startIcon={<SaveIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
                 disabled={loading}
                 sx={{ 
                   minWidth: isMobile ? 40 : 120,
@@ -807,6 +827,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                   p: isMobile ? 0 : 1
                 }}
               >
+                <SaveIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
                 {!isMobile && 'Save'}
               </Button>
               {id && (
@@ -815,20 +836,19 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                     variant={isMobile ? "text" : "contained"}
                     color="error"
                     onClick={handleDelete}
-                    startIcon={<DeleteIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
                     sx={{ 
                       minWidth: isMobile ? 40 : 120,
                       height: isMobile ? 40 : 48,
                       p: isMobile ? 0 : 1
                     }}
                   >
+                    <DeleteIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
                     {!isMobile && 'Delete'}
                   </Button>
                   {draftId && (
                     <Button
                       variant={isMobile ? "text" : "contained"}
                       color={isMobile ? "info" : "primary"}
-                      startIcon={<VisibilityIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
                       onClick={handleReview}
                       sx={{ 
                         minWidth: isMobile ? 40 : 120,
@@ -836,6 +856,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                         p: isMobile ? 0 : 1
                       }}
                     >
+                      <VisibilityIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
                       {!isMobile && 'Review'}
                     </Button>
                   )}
@@ -844,7 +865,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
               <Button
                 variant={isMobile ? "text" : "contained"}
                 color="secondary"
-                startIcon={<ExitToAppIcon sx={{ fontSize: isMobile ? 42 : 24 }} />}
                 onClick={handleExit}
                 sx={{ 
                   minWidth: isMobile ? 40 : 120,
@@ -852,6 +872,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                   p: isMobile ? 0 : 1
                 }}
               >
+                <CloseIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
                 {!isMobile && 'Exit'}
               </Button>
             </Box>
