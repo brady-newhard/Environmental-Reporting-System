@@ -764,6 +764,287 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
               );
             })}
 
+            {/* Generic Dynamic Sections */}
+            {sections.map(section => {
+              // Skip sections that are already handled
+              if (section.name === 'Crew Daily Summaries' || section.name === 'Daily Progress' || section.name === 'SWPPP Inspection Items') return null;
+              
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              if (!sectionConfig) return null;
+
+              return (
+                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
+                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
+                    <CardContent sx={{ p: 2 }}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
+                      {section.rows.map((row, rowIndex) => (
+                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, width: '100%', minWidth: 0 }}>
+                            {sectionConfig.fields.map(fieldConfig => (
+                              <Box
+                                key={fieldConfig.name}
+                                sx={{
+                                  flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                  minWidth: 0,
+                                  maxWidth: { xs: '100%', sm: '33.33%' }
+                                }}
+                              >
+                                {fieldConfig.type === 'dropdown' ? (
+                                  <FormControl fullWidth size="small">
+                                    <InputLabel>{fieldConfig.label}</InputLabel>
+                                    <Select
+                                      value={row[fieldConfig.name] || ''}
+                                      label={fieldConfig.label}
+                                      onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                    >
+                                      {fieldConfig.options.map(option => (
+                                        <MenuItem key={option} value={option}>{option}</MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                ) : fieldConfig.type === 'multiline' ? (
+                                  <TextField
+                                    label={fieldConfig.label}
+                                    name={fieldConfig.name}
+                                    value={row[fieldConfig.name] || ''}
+                                    onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                    fullWidth
+                                    multiline
+                                    minRows={2}
+                                    sx={{ bgcolor: '#fff' }}
+                                  />
+                                ) : (
+                                  <TextField
+                                    label={fieldConfig.label}
+                                    name={fieldConfig.name}
+                                    value={row[fieldConfig.name] || ''}
+                                    onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                    fullWidth
+                                    type={fieldConfig.type === 'date' ? 'date' : fieldConfig.type === 'time' ? 'time' : 'text'}
+                                    InputLabelProps={fieldConfig.type === 'date' || fieldConfig.type === 'time' ? { shrink: true } : undefined}
+                                    sx={{ bgcolor: '#fff' }}
+                                  />
+                                )}
+                              </Box>
+                            ))}
+                            {section.rows.length > 1 && (
+                              <IconButton
+                                color="error"
+                                onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                sx={{ alignSelf: 'center', ml: 1 }}
+                                aria-label={`Remove ${section.name} row`}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </Paper>
+                      ))}
+                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
+                        Add Row
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+
+            {/* SWPPP Inspection Items Section */}
+            {sections.map(section => {
+              if (section.name !== 'SWPPP Inspection Items') return null;
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              if (!sectionConfig) return null;
+              return (
+                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
+                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
+                    <CardContent sx={{ p: 2 }}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
+                      {section.rows.map((row, rowIndex) => (
+                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
+                          {/* Row 1 */}
+                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0, mb: 2 }}>
+                            {sectionConfig.fields.slice(0, 3).map(fieldConfig => (
+                              <Box
+                                key={fieldConfig.name}
+                                sx={{
+                                  flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                  minWidth: 0,
+                                  maxWidth: { xs: '100%', sm: '33.33%' }
+                                }}
+                              >
+                                <TextField
+                                  label={fieldConfig.label}
+                                  name={fieldConfig.name}
+                                  value={row[fieldConfig.name] || ''}
+                                  onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
+                                  fullWidth
+                                  sx={{ bgcolor: '#fff' }}
+                                />
+                              </Box>
+                            ))}
+                          </Box>
+                          
+                          {/* Row 2 */}
+                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0, mb: 2 }}>
+                            {/* Inspector ID */}
+                            <Box
+                              sx={{
+                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                minWidth: 0,
+                                maxWidth: { xs: '100%', sm: '33.33%' }
+                              }}
+                            >
+                              <TextField
+                                label="Inspector ID"
+                                name="inspector_id"
+                                value={row.inspector_id || ''}
+                                onChange={e => handleSectionChange(section.name, rowIndex, 'inspector_id', e.target.value)}
+                                fullWidth
+                                sx={{ bgcolor: '#fff' }}
+                              />
+                            </Box>
+                            {/* Inspection Time */}
+                            <Box
+                              sx={{
+                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                minWidth: 0,
+                                maxWidth: { xs: '100%', sm: '33.33%' }
+                              }}
+                            >
+                              <TextField
+                                label="Inspection Time"
+                                name="inspection_time"
+                                type="time"
+                                value={row.inspection_time || ''}
+                                onChange={e => handleSectionChange(section.name, rowIndex, 'inspection_time', e.target.value)}
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ bgcolor: '#fff' }}
+                              />
+                            </Box>
+                            {/* Inspection Date */}
+                            <Box
+                              sx={{
+                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                minWidth: 0,
+                                maxWidth: { xs: '100%', sm: '33.33%' }
+                              }}
+                            >
+                              <TextField
+                                label="Inspection Date"
+                                name="inspection_date"
+                                type="date"
+                                value={row.inspection_date || ''}
+                                onChange={e => handleSectionChange(section.name, rowIndex, 'inspection_date', e.target.value)}
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ bgcolor: '#fff' }}
+                              />
+                            </Box>
+                          </Box>
+                          
+                          {/* Row 3 */}
+                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0, mb: 2 }}>
+                            {/* ECD Functional? */}
+                            <Box
+                              sx={{
+                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                minWidth: 0,
+                                maxWidth: { xs: '100%', sm: '33.33%' }
+                              }}
+                            >
+                              <FormControl fullWidth size="small">
+                                <InputLabel>ECD Functional?</InputLabel>
+                                <Select
+                                  value={row.ecd_functional || ''}
+                                  label="ECD Functional?"
+                                  onChange={e => handleSectionChange(section.name, rowIndex, 'ecd_functional', e.target.value)}
+                                >
+                                  <MenuItem value="">Select</MenuItem>
+                                  <MenuItem value="Yes">Yes</MenuItem>
+                                  <MenuItem value="No">No</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Box>
+                            {/* ECD Needs Maintenance? */}
+                            <Box
+                              sx={{
+                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                minWidth: 0,
+                                maxWidth: { xs: '100%', sm: '33.33%' }
+                              }}
+                            >
+                              <FormControl fullWidth size="small">
+                                <InputLabel>ECD Needs Maintenance?</InputLabel>
+                                <Select
+                                  value={row.ecd_maintenance || ''}
+                                  label="ECD Needs Maintenance?"
+                                  onChange={e => handleSectionChange(section.name, rowIndex, 'ecd_maintenance', e.target.value)}
+                                >
+                                  <MenuItem value="">Select</MenuItem>
+                                  <MenuItem value="Yes">Yes</MenuItem>
+                                  <MenuItem value="No">No</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Box>
+                            {/* Soil Disturbed? */}
+                            <Box
+                              sx={{
+                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
+                                minWidth: 0,
+                                maxWidth: { xs: '100%', sm: '33.33%' }
+                              }}
+                            >
+                              <FormControl fullWidth size="small">
+                                <InputLabel>Soil Disturbed?</InputLabel>
+                                <Select
+                                  value={row.soil_disturbed || ''}
+                                  label="Soil Disturbed?"
+                                  onChange={e => handleSectionChange(section.name, rowIndex, 'soil_disturbed', e.target.value)}
+                                >
+                                  <MenuItem value="">Select</MenuItem>
+                                  <MenuItem value="Yes">Yes</MenuItem>
+                                  <MenuItem value="No">No</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Box>
+                          </Box>
+                          {/* Row 4 - Comments */}
+                          <Box sx={{ width: '100%', mb: 2 }}>
+                            <TextField
+                              label="Comments"
+                              name="comments"
+                              value={row.comments || ''}
+                              onChange={e => handleSectionChange(section.name, rowIndex, 'comments', e.target.value)}
+                              fullWidth
+                              multiline
+                              minRows={2}
+                              sx={{ bgcolor: '#fff' }}
+                            />
+                          </Box>
+                          
+                          {section.rows.length > 1 && (
+                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                              <IconButton
+                                color="error"
+                                onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                aria-label={`Remove ${section.name} row`}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </Box>
+                          )}
+                        </Paper>
+                      ))}
+                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
+                        Add Row
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+
             {/* Signature Section */}
             {config.requiresSignature && (
               <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }}>
