@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Snackbar, Alert, Grid, Typography, TextField, Button, Box } from '@mui/material';
 import ReportTemplate from '../../../templates/ReportTemplate';
-import { saveDraft, normalizeDraft, getAllDrafts } from '../../../../utils/draftUtils';
+import { saveDraft, normalizeDraft, loadDraft } from '../../../../utils/draftUtils';
 import AddIcon from '@mui/icons-material/Add';
 import environmentalDailyReportConfig from './environmentalDailyReportConfig';
 
@@ -41,7 +41,7 @@ export default function EnvironmentalDailyReportForm() {
   const reportType = 'environmental';
 
   useEffect(() => {
-    const loadDraft = async () => {
+    const loadDraftData = async () => {
       setIsLoading(true);
       try {
         let draftData = null;
@@ -54,17 +54,13 @@ export default function EnvironmentalDailyReportForm() {
           console.log('Loading draft from location state draft:', location.state.draft);
           draftData = {
             ...location.state.draft,
-            id: location.state.draft.id || id // Use ID from draft or URL param
+            id: location.state.draft.id || id
           };
         }
-        // Then try to get from localStorage
+        // Then try to load from IndexedDB/backend
         else if (id) {
-          const localKey = `${reportType}_draft_${id}`;
-          const localData = localStorage.getItem(localKey);
-          if (localData) {
-            console.log('Loading draft from localStorage:', localData);
-            draftData = JSON.parse(localData);
-          }
+          console.log('Loading draft from storage with ID:', id);
+          draftData = await loadDraft(reportType, id);
         }
 
         if (draftData) {
@@ -85,7 +81,7 @@ export default function EnvironmentalDailyReportForm() {
       }
     };
 
-    loadDraft();
+    loadDraftData();
   }, [id, location.state]);
 
   const handleSave = async (formData) => {
@@ -96,31 +92,14 @@ export default function EnvironmentalDailyReportForm() {
       console.log('handleSave dataToSave:', dataToSave);
       console.log('Calling saveDraft with:', { reportType, dataToSave });
       
-      // Save to backend first
+      // Save draft using the new storage system
       const savedDraft = await saveDraft(reportType, dataToSave);
       console.log('Draft saved with ID:', savedDraft.id);
-      
-      // Try to save to localStorage, but don't fail if it doesn't work
-      try {
-        // Clear old drafts to make space
-        const allDrafts = await getAllDrafts(reportType);
-        if (allDrafts.length > 0) {
-          // Keep only the most recent 5 drafts
-          const recentDrafts = allDrafts.slice(-5);
-          localStorage.setItem(`${reportType}_drafts`, JSON.stringify(recentDrafts));
-        }
-        
-        // Save the current draft
-        localStorage.setItem(`${reportType}_draft_${savedDraft.id}`, JSON.stringify(dataToSave));
-      } catch (storageError) {
-        console.warn('Could not save to localStorage:', storageError);
-        // Continue execution - the draft is still saved in the backend
-      }
       
       // Update the URL if this was a new draft
       if (!dataToSave.id) {
         navigate(`/environmental/reports/daily/edit/${savedDraft.id}`, {
-          state: { draft: { ...dataToSave, id: savedDraft.id } }
+          state: { draft: { ...savedDraft.data, id: savedDraft.id } }
         });
       }
       
@@ -146,22 +125,8 @@ export default function EnvironmentalDailyReportForm() {
   };
 
   const handleReview = () => {
-    console.log('Navigating to review with draft:', draft);
-    const reviewData = {
-      ...draft,
-      id: draft.id,
-      photos: draft.photos || [],
-      header: draft.header || {},
-      sections: draft.sections || [],
-      summaries: draft.summaries || {},
-      signature: draft.signature || '',
-      sigDate: draft.sigDate || '',
-      preparedBy: draft.preparedBy || ''
-    };
-    console.log('Review data being passed:', reviewData);
-    navigate(`/environmental/reports/daily/review/${draft.id}`, {
-      state: { draft: reviewData }
-    });
+    console.log('Navigating to review with draft ID:', draft.id);
+    navigate(`/environmental/reports/daily/review/${draft.id}`);
   };
 
   return (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { getAllDrafts } from '../../../../utils/draftStorage';
+import { loadDraft } from '../../../../utils/draftUtils';
 import { Box, Typography, Paper, Button, Grid, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
 import PageHeader from '../../../../components/common/PageHeader';
 
@@ -70,27 +70,15 @@ export default function EnvironmentalDailyReportReview() {
   const backPath = location.state?.from || '/environmental/reports/daily/drafts';
 
   useEffect(() => {
-    const loadDraft = async () => {
+    const loadDraftData = async () => {
       setIsLoading(true);
       try {
-        // First check if we have the draft in location state
-        if (location.state?.draft) {
-          console.log('Loading draft from location state:', location.state.draft);
-          setDraft(location.state.draft);
-          setIsLoading(false);
-          return;
-        }
-
-        // If not in location state, try to get from API
-        const drafts = await getAllDrafts('environmental_daily');
-        console.log('Loaded drafts:', drafts);
-        console.log('Looking for draft with ID:', id, 'Type:', typeof id);
+        // Load draft using the new storage system
+        const loadedDraft = await loadDraft('environmental', id);
+        console.log('Loaded draft:', loadedDraft);
         
-        const foundDraft = drafts.find(d => String(d.id) === String(id));
-        console.log('Found draft:', foundDraft);
-        
-        if (foundDraft) {
-          setDraft(foundDraft);
+        if (loadedDraft) {
+          setDraft(loadedDraft);
         } else {
           console.log('Draft not found with ID:', id);
           setError('Draft not found');
@@ -103,8 +91,8 @@ export default function EnvironmentalDailyReportReview() {
       }
     };
 
-    loadDraft();
-  }, [id, location.state]);
+    loadDraftData();
+  }, [id]);
 
   if (isLoading) {
     return (
