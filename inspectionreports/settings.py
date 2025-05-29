@@ -29,9 +29,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-nnb6$&aupre_w8s3h0sgahlz)-j3@saidvu0m_yvjmo4+c!vb^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = True
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.203']
 
 
 # Application definition
@@ -135,7 +135,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'frontend' / 'static',
+    BASE_DIR / 'static',
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -157,8 +157,8 @@ else:
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://192.168.1.203:3000",
         "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
-        # Add your custom frontend domain here if you have one
     ]
     CORS_ALLOW_CREDENTIALS = True
 
@@ -187,8 +187,10 @@ CORS_ALLOW_HEADERS = [
 
 # CSRF trusted origins for production
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://192.168.1.203:3000",
     "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
-    # Add your custom frontend domain here if you have one
 ]
 
 # REST Framework settings
