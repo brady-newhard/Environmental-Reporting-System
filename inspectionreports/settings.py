@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-nnb6$&aupre_w8s3h0sgahlz)-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.203']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.203', 'environmental-reporting-system-febba9464fe7.herokuapp.com']
 
 
 # Application definition
