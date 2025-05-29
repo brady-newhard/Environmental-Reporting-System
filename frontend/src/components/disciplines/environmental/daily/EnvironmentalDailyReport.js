@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import ReportTemplate from '../../../templates/ReportTemplate';
-import ReportPhotoSection from '../../../common/ReportPhotoSection';
 import { useNavigate } from 'react-router-dom';
 import { saveDraft, normalizeDraft } from '../../../../utils/draftUtils';
 import { useSnackbar } from 'notistack';
@@ -18,25 +17,20 @@ const EnvironmentalDailyReport = () => {
       
       // Normalize and save the draft
       const dataToSave = normalizeDraft(formData);
-      const savedId = await saveDraft('environmental', dataToSave);
-      
-      // Save to localStorage as backup
-      const localKey = `environmental_draft_${savedId}`;
-      localStorage.setItem(localKey, JSON.stringify(dataToSave));
+      const savedDraft = await saveDraft('environmental', dataToSave);
       
       // Show success message
       enqueueSnackbar('Draft saved successfully', { variant: 'success' });
       
       // Update URL with new ID if this was a new draft
       if (!formData.id) {
-        // Use replace: false to allow back navigation
-        navigate(`/environmental/reports/daily/edit/${savedId}`, { 
-          state: { formData: { ...dataToSave, id: savedId } },
+        navigate(`/environmental/reports/daily/edit/${savedDraft.id}`, { 
+          state: { formData: { ...savedDraft.data, id: savedDraft.id } },
           replace: false 
         });
       }
       
-      return savedId;  // Return the saved ID
+      return savedDraft.id;
     } catch (error) {
       console.error('Error saving report:', error);
       enqueueSnackbar('Error saving draft: ' + (error.message || 'Unknown error'), { variant: 'error' });

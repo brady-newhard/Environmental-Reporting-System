@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../common/PageHeader';
+import { indexedDBStorage } from '../../../../utils/indexedDBConfig';
 
 const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount, onCreate }) => {
   const navigate = useNavigate();
@@ -160,20 +161,23 @@ const EnvironmentalReports = () => {
   const [punchlistDraftCount, setPunchlistDraftCount] = useState(0);
 
   useEffect(() => {
-    const swpppDrafts = Object.keys(localStorage)
-      .filter(key => key.startsWith('swppp_draft_'))
-      .length;
-    setSwpppDraftCount(swpppDrafts);
+    const loadDraftCounts = async () => {
+      try {
+        // Get drafts from IndexedDB
+        const swpppDrafts = await indexedDBStorage.getAllDrafts('swppp');
+        setSwpppDraftCount(swpppDrafts.length);
 
-    const dailyDrafts = Object.keys(localStorage)
-      .filter(key => key.startsWith('environmental_draft_'))
-      .length;
-    setDailyDraftCount(dailyDrafts);
+        const dailyDrafts = await indexedDBStorage.getAllDrafts('environmental');
+        setDailyDraftCount(dailyDrafts.length);
 
-    const punchlistDrafts = Object.keys(localStorage)
-      .filter(key => key.startsWith('punchlist_draft_'))
-      .length;
-    setPunchlistDraftCount(punchlistDrafts);
+        const punchlistDrafts = await indexedDBStorage.getAllDrafts('punchlist');
+        setPunchlistDraftCount(punchlistDrafts.length);
+      } catch (error) {
+        console.error('Error loading draft counts:', error);
+      }
+    };
+
+    loadDraftCounts();
   }, []);
 
   const handleCreateNewPunchlist = () => {

@@ -24,7 +24,11 @@ import {
   MenuItem,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, PhotoCamera, Save as SaveIcon, Visibility as VisibilityIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
@@ -134,6 +138,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   const [sigDate, setSigDate] = useState(initialData?.sigDate ? new Date(initialData.sigDate) : null);
   const [photos, setPhotos] = useState(initialData?.photos || []);
   const [draftId, setDraftId] = useState(initialData?.id || null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -358,15 +364,55 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
 
   const handleDelete = async () => {
     if (!id) return;
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
       await axios.delete(`/api/drafts/${id}/`);
-      message.success('Draft deleted successfully');
+      enqueueSnackbar('Draft deleted successfully', { variant: 'success' });
       setDraftId(null);
-      navigate(`/${config.reportType}/drafts`);
+      navigate(`/${config.reportType}/reports/daily/drafts`);
     } catch (error) {
       console.error('Error deleting draft:', error);
-      message.error('Failed to delete draft');
+      enqueueSnackbar('Failed to delete draft', { variant: 'error' });
+    } finally {
+      setDeleteDialogOpen(false);
     }
+  };
+
+  const handleExit = () => {
+    setExitDialogOpen(true);
+  };
+
+  const handleExitConfirm = async (shouldSave) => {
+    if (shouldSave) {
+      try {
+        setLoading(true);
+        await handleSave();
+      } catch (error) {
+        console.error('Error saving before exit:', error);
+        enqueueSnackbar('Error saving draft: ' + (error.message || 'Unknown error'), { variant: 'error' });
+        setLoading(false);
+        return; // Don't navigate if save failed
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Determine where to navigate based on the current context
+    const path = location.pathname;
+    if (path.includes('/new')) {
+      // If we're on the new report page, go back to reports
+      navigate(`/${config.reportType}/reports`);
+    } else if (path.includes('/review') || path.includes('/edit')) {
+      // If we're on the review or edit page, go to drafts
+      navigate(`/${config.reportType}/reports/daily/drafts`);
+    } else {
+      // Default fallback
+      navigate(-1);
+    }
+    setExitDialogOpen(false);
   };
 
   const handleReview = () => {
@@ -381,22 +427,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
         photos,
         id: draftId,
       };
-      // Store in localStorage for backup
-      const localKey = `${config.reportType}_draft_${draftId}`;
-      localStorage.setItem(localKey, JSON.stringify(reviewData));
       
-      navigate(`${config.reviewPath}/${draftId}`, {
-        state: { formData: reviewData }
-      });
+      navigate(`${config.reviewPath}/${draftId}`);
     }
-  };
-
-  const handleExit = () => {
-    const shouldSave = window.confirm('Do you want to save your changes before exiting? Click OK to save, or Cancel to exit without saving.');
-    if (shouldSave) {
-      handleSave();
-    }
-    navigate(-1);
   };
 
   return (
@@ -880,6 +913,74 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
           </Grid>
           </FormControl>
         </Paper>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete Draft</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this draft?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Exit Confirmation Dialog */}
+      <Dialog
+        open={exitDialogOpen}
+        onClose={() => setExitDialogOpen(false)}
+      >
+        <DialogTitle>Exit</DialogTitle>
+        <DialogContent>
+          <Typography>Do you want to save your changes before exiting?</Typography>
+        </DialogContent>
+        <DialogActions sx={{ 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: { xs: 'stretch', sm: 'space-between' },
+          px: { xs: 2, sm: 3 },
+          pb: { xs: 2, sm: 2 },
+          gap: { xs: 1, sm: 0 }
+        }}>
+          <Button 
+            onClick={() => setExitDialogOpen(false)}
+            fullWidth={isMobile}
+            sx={{ 
+              order: { xs: 3, sm: 1 },
+              mt: { xs: 1, sm: 0 }
+            }}
+          >
+            Cancel
+          </Button>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1, sm: 1 },
+            width: { xs: '100%', sm: 'auto' },
+            order: { xs: 1, sm: 2 }
+          }}>
+            <Button 
+              onClick={() => handleExitConfirm(false)}
+              fullWidth={isMobile}
+            >
+              Exit Without Saving
+            </Button>
+            <Button 
+              onClick={() => handleExitConfirm(true)} 
+              color="primary" 
+              variant="contained"
+              fullWidth={isMobile}
+            >
+              Save & Exit
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
