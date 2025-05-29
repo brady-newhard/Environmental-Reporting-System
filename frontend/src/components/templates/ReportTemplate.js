@@ -92,7 +92,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
     const defaultHeader = config.headerFields.reduce((acc, field) => {
       // Initialize rain_gauges as an empty array if it's a dynamicArray type
       if (field.type === 'dynamicArray') {
-        return { ...acc, [field.name]: [] };
+        return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
       }
       return { ...acc, [field.name]: '' };
     }, { date: null, reportNo: 'Pending' });
@@ -104,9 +104,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
       if (config.headerFields.some(field => field.type === 'dynamicArray')) {
         config.headerFields.forEach(field => {
           if (field.type === 'dynamicArray') {
-            mergedHeader[field.name] = Array.isArray(mergedHeader[field.name]) 
+            mergedHeader[field.name] = Array.isArray(mergedHeader[field.name]) && mergedHeader[field.name].length > 0
               ? mergedHeader[field.name] 
-              : [];
+              : [{ location: '', rain: '', snow: '' }];
           }
         });
       }
@@ -154,7 +154,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
     const defaultHeader = config.headerFields.reduce((acc, field) => {
       // Initialize rain_gauges as an empty array if it's a dynamicArray type
       if (field.type === 'dynamicArray') {
-        return { ...acc, [field.name]: [] };
+        return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
       }
       return { ...acc, [field.name]: '' };
     }, { date: null, reportNo: 'Pending' });
@@ -200,7 +200,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
       const defaultHeader = config.headerFields.reduce((acc, field) => {
         // Initialize rain_gauges as an empty array if it's a dynamicArray type
         if (field.type === 'dynamicArray') {
-          return { ...acc, [field.name]: [] };
+          return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
         }
         return { ...acc, [field.name]: '' };
       }, { date: null, reportNo: 'Pending' });
@@ -500,7 +500,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
 
             {/* Weather Information Section (Rain Gauge Data INSIDE) */}
             <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 } }}>
-              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
+              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff', mb: 2 }}>
                 <CardContent sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 2 }}>Weather Information</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
