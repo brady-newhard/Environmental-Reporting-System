@@ -40,7 +40,7 @@ const SignIn = () => {
     e.preventDefault();
     try {
       console.log('Attempting login with:', { username: formData.username });
-      const response = await api.post('/api/login/', {
+      const response = await api.post('/login/', {
         username: formData.username,
         password: formData.password
       });
