@@ -15,10 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from users.views_auth import CustomAuthToken
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +30,10 @@ urlpatterns = [
     path('api/welding/', include('disciplines.welding.urls')),
     path('api/utility/', include('disciplines.utility.urls')),
     path('api/login/', CustomAuthToken.as_view(), name='api_token_auth'),
+]
+
+urlpatterns += [
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]
 
 # Add static and media URLs in development
