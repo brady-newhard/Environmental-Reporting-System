@@ -93,7 +93,7 @@ const NewPunchlistReport = ({ reportId }) => {
 
   const fetchReport = async () => {
     try {
-      const response = await axios.get(`/api/environmental/punchlist/reports/${reportId}`);
+      const response = await axios.get(`/api/environmental/punchlists/reports/${reportId}`);
       setReport(response.data);
     } catch (error) {
       console.error('Error fetching report:', error);
@@ -126,7 +126,7 @@ const NewPunchlistReport = ({ reportId }) => {
   const handleEditItem = async () => {
     try {
       // 1. Update the item (without photos)
-      await axios.put(`/api/environmental/punchlist/reports/${reportId}/items/${editingItem.id}`, {
+      await axios.put(`/api/environmental/punchlists/reports/${reportId}/items/${editingItem.id}`, {
         startStation: editingItem.startStation,
         endStation: editingItem.endStation,
         feature: editingItem.feature,
@@ -142,7 +142,7 @@ const NewPunchlistReport = ({ reportId }) => {
           formData.append('image', newItemPhotos[i]);
           formData.append('description', photoComments[i] || '');
           await axios.post(
-            `/api/environmental/punchlist/reports/${reportId}/items/${editingItem.id}/upload_photo/`,
+            `/api/environmental/punchlists/reports/${reportId}/items/${editingItem.id}/upload_photo/`,
             formData,
             { headers: { 'Content-Type': 'multipart/form-data' } }
           );
@@ -161,7 +161,7 @@ const NewPunchlistReport = ({ reportId }) => {
 
   const handleDeleteItem = async (itemId) => {
     try {
-      await axios.delete(`/api/environmental/punchlist/reports/${reportId}/items/${itemId}`);
+      await axios.delete(`/api/environmental/punchlists/reports/${reportId}/items/${itemId}`);
       setItems(items.filter(item => item.id !== itemId));
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -171,7 +171,7 @@ const NewPunchlistReport = ({ reportId }) => {
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
       if (reportId) {
-        axios.delete(`/api/environmental/punchlist/reports/${reportId}/`).then(() => {
+        axios.delete(`/api/environmental/punchlists/reports/${reportId}/`).then(() => {
           alert('Report deleted.');
           navigate('/environmental/reports');
         }).catch(() => alert('Failed to delete report.'));
@@ -193,7 +193,7 @@ const NewPunchlistReport = ({ reportId }) => {
     try {
       if (reportId) {
         // Save to server for live version
-        await axios.put(`/api/environmental/punchlist/reports/${reportId}`, {
+        await axios.put(`/api/environmental/punchlists/reports/${reportId}`, {
           items,
           spread,
           inspectorName,
@@ -202,25 +202,21 @@ const NewPunchlistReport = ({ reportId }) => {
         });
         alert('Report saved successfully.');
       } else {
-        // Save to localStorage for draft version
+        // Save to localStorage for draft
         const draftId = getDraftId();
+        localStorage.setItem(`punchlist_draft_${draftId}`, JSON.stringify({
+          items,
+          spread,
+          inspectorName,
+          inspectionDate,
+          lastModified: Date.now(),
+        }));
         localStorage.setItem('punchlist_current_draftId', draftId);
-        const draftKey = `punchlist_draft_${draftId}`;
-        localStorage.setItem(
-          draftKey,
-          JSON.stringify({
-            items,
-            spread,
-            inspectorName,
-            inspectionDate,
-            lastModified: Date.now(),
-          })
-        );
-        alert('Draft saved locally.');
+        alert('Draft saved successfully.');
       }
     } catch (error) {
       console.error('Error saving report:', error);
-      alert('Failed to save report. Please try again.');
+      alert('Error saving report. Please try again.');
     }
   };
 
