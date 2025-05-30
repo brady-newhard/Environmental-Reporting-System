@@ -4,7 +4,7 @@ import { Assignment as DailyReportIcon, Drafts as DraftsIcon, Build as StationRe
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../common/PageHeader';
 import Badge from '@mui/material/Badge';
-import { getDraftCount } from '../../../utils/draftUtils';
+import { getDraftCount } from '../../../../utils/draftUtils';
 
 const ReportCard = ({ title, icon: Icon, description, path, secondaryAction, reportType }) => {
   const navigate = useNavigate();
