@@ -1,9 +1,10 @@
 import 'antd/dist/reset.css';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
+import { syncDrafts } from './utils/draftUtils';
 
 // Common Components
 import HomePage from './components/common/HomePage';
@@ -221,6 +222,17 @@ const theme = createTheme({
 });
 
 function App() {
+  useEffect(() => {
+    // Sync drafts on app load
+    syncDrafts('environmental');
+    // Sync drafts when coming back online
+    const handleOnline = () => syncDrafts('environmental');
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

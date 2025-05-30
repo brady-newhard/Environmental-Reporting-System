@@ -58,11 +58,11 @@ export async function saveDraft(reportType, data) {
             data: normalizedData
           });
           savedId = response.data.id;
-          
-          // Update IndexedDB with the new ID
-          await indexedDBStorage.deleteDraft(reportType, 'temp');
-          await indexedDBStorage.saveDraft(reportType, savedId, normalizedData);
         }
+        
+        // Always update IndexedDB with the backend's ID and data
+        await indexedDBStorage.deleteDraft(reportType, data.id || 'temp');
+        await indexedDBStorage.saveDraft(reportType, savedId, normalizedData);
         
         console.log('Successfully saved to backend:', savedId);
       } catch (error) {
@@ -200,4 +200,45 @@ export async function loadDraft(reportType, draftId) {
     console.error('Error loading draft:', error);
     throw error;
   }
+}
+
+// Sync local drafts to backend
+export async function syncDrafts(reportType) {
+  try {
+    if (!isOnline()) return;
+    // Get all drafts (local and backend)
+    const indexedDrafts = await indexedDBStorage.getAllDrafts(reportType);
+    const response = await api.get(`/drafts/?report_type=${mapReportType(reportType)}`);
+    const backendDrafts = response.data.map(d => ({ ...d.data, id: String(d.id) }));
+    const backendIds = new Set(backendDrafts.map(d => d.id));
+
+    // Find local drafts not in backend
+    const unsyncedLocalDrafts = indexedDrafts.filter(draft => !backendIds.has(String(draft.id)));
+
+    for (const draft of unsyncedLocalDrafts) {
+      try {
+        // Save to backend
+        const res = await api.post('/drafts/', {
+          report_type: mapReportType(reportType),
+          data: draft
+        });
+        // Remove from local after successful sync
+        await indexedDBStorage.deleteDraft(reportType, draft.id);
+        // Optionally, save the backend version to local for offline access
+        await indexedDBStorage.saveDraft(reportType, res.data.id, draft);
+      } catch (err) {
+        console.error('Error syncing draft to backend:', err);
+      }
+    }
+  } catch (error) {
+    console.error('Error during syncDrafts:', error);
+  }
+}
+
+// Get the count of unique drafts for a report type (backend + unsynced local)
+export async function getDraftCount(reportType) {
+  const allDrafts = await getAllDrafts(reportType);
+  // Use a Set to ensure unique IDs
+  const uniqueIds = new Set(allDrafts.map(d => d.id));
+  return uniqueIds.size;
 } 
