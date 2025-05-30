@@ -19,6 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../common/PageHeader';
 import { indexedDBStorage } from '../../../../utils/indexedDBConfig';
+import { getDraftCount } from '../../../../utils/draftUtils';
 
 const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount, onCreate }) => {
   const navigate = useNavigate();
@@ -163,20 +164,13 @@ const EnvironmentalReports = () => {
   useEffect(() => {
     const loadDraftCounts = async () => {
       try {
-        // Get drafts from IndexedDB
-        const swpppDrafts = await indexedDBStorage.getAllDrafts('swppp');
-        setSwpppDraftCount(swpppDrafts.length);
-
-        const dailyDrafts = await indexedDBStorage.getAllDrafts('environmental');
-        setDailyDraftCount(dailyDrafts.length);
-
-        const punchlistDrafts = await indexedDBStorage.getAllDrafts('punchlist');
-        setPunchlistDraftCount(punchlistDrafts.length);
+        setSwpppDraftCount(await getDraftCount('swppp'));
+        setDailyDraftCount(await getDraftCount('environmental'));
+        setPunchlistDraftCount(await getDraftCount('punchlist'));
       } catch (error) {
         console.error('Error loading draft counts:', error);
       }
     };
-
     loadDraftCounts();
   }, []);
 

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Add as AddIcon } from '@mui/icons-material';
 import PageHeader from '../../../../components/common/PageHeader';
 import Badge from '@mui/material/Badge';
+import { getDraftCount } from '../../../../utils/draftUtils';
 
 const UtilityReports = () => {
   const navigate = useNavigate();
@@ -17,12 +18,11 @@ const UtilityReports = () => {
   const [i3DraftCount, setI3DraftCount] = React.useState(0);
 
   React.useEffect(() => {
-    // Count drafts for Payload (DailyUtilityReport)
-    const payloadDrafts = Object.keys(localStorage).filter(key => key.startsWith('daily_utility_draft_'));
-    setPayloadDraftCount(payloadDrafts.length);
-    // Count drafts for I3
-    const i3Drafts = Object.keys(localStorage).filter(key => key.startsWith('i3_daily_utility_draft_'));
-    setI3DraftCount(i3Drafts.length);
+    const loadDraftCounts = async () => {
+      setPayloadDraftCount(await getDraftCount('utility'));
+      setI3DraftCount(await getDraftCount('i3_utility'));
+    };
+    loadDraftCounts();
   }, []);
 
   return (

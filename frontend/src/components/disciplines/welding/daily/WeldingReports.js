@@ -4,20 +4,17 @@ import { Assignment as DailyReportIcon, Drafts as DraftsIcon, Build as StationRe
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../common/PageHeader';
 import Badge from '@mui/material/Badge';
+import { getDraftCount } from '../../../utils/draftUtils';
 
-const ReportCard = ({ title, icon: Icon, description, path, secondaryAction, draftsKey }) => {
+const ReportCard = ({ title, icon: Icon, description, path, secondaryAction, reportType }) => {
   const navigate = useNavigate();
   const [draftCount, setDraftCount] = React.useState(0);
 
   React.useEffect(() => {
-    if (secondaryAction) {
-      const prefix = draftsKey === 'dailyWeldingStationReportDrafts' 
-        ? 'daily_welding_station_draft_'
-        : 'daily_welding_draft_';
-      const draftKeys = Object.keys(localStorage).filter(key => key.startsWith(prefix));
-      setDraftCount(draftKeys.length);
+    if (secondaryAction && reportType) {
+      getDraftCount(reportType).then(setDraftCount);
     }
-  }, [secondaryAction, draftsKey]);
+  }, [secondaryAction, reportType]);
 
   const handleFillOut = () => {
     // Clear any existing draft ID from URL
@@ -126,6 +123,7 @@ const WeldingReports = () => {
               text: "View Draft Reports",
               path: "/welding/reports/drafts"
             }}
+            reportType="welding"
           />
           <ReportCard
             title="Daily Weld Station Report"
@@ -136,7 +134,7 @@ const WeldingReports = () => {
               text: "View Draft Reports",
               path: "/welding/reports/station-drafts"
             }}
-            draftsKey="dailyWeldingStationReportDrafts"
+            reportType="welding_station"
           />
         </Box>
       </Box>
