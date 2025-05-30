@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'core',  # Core functionality
     'users',  # User management
     'disciplines.environmental',  # Environmental base app
-    'disciplines.environmental.punchlist',  # Punchlist reports
+    'disciplines.environmental.punchlists',  # Punchlist reports (plural, uniform)
     'disciplines.environmental.swppp',  # SWPPP reports
     'disciplines.coating',  # Coating reports
     'disciplines.welding',  # Welding reports
@@ -136,9 +136,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
+    BASE_DIR / 'frontend' / 'build' / 'static',
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' 
 
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
