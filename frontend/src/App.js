@@ -36,6 +36,7 @@ import EnvironmentalDailyReport from './components/disciplines/environmental/dai
 import EnvironmentalDailyReportReview from './components/disciplines/environmental/daily/EnvironmentalDailyReportReview';
 import EnvironmentalDailyReportDrafts from './components/disciplines/environmental/daily/EnvironmentalDailyReportDrafts';
 import EnvironmentalDailyReportForm from './components/disciplines/environmental/daily/EnvironmentalDailyReportForm';
+import SWPPPReportReview from './components/disciplines/environmental/swppp/SWPPPReportReview';
 
 // Welding Components
 import WeldingMain from './components/disciplines/welding/main/WeldingMain';
@@ -515,6 +516,14 @@ function App() {
             element={
               <PrivateRoute>
                 <EnvironmentalDailyReportDrafts />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/swppp/review/:draftId"
+            element={
+              <PrivateRoute>
+                <SWPPPReportReview />
               </PrivateRoute>
             }
           />

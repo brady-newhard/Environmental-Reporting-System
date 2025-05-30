@@ -2,18 +2,19 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReportTemplate from '../../../templates/ReportTemplate';
 import swpppReportConfig from './swpppReportConfig';
-import api from '../../../../services/api';
+import { saveDraft } from '../../../../utils/draftUtils';
 
 const NewSWPPP = () => {
   const navigate = useNavigate();
 
   const handleSave = async (formData) => {
     try {
-      const response = await api.post('/api/reports/swppp/', formData);
-      navigate(`/environmental/reports/swppp/review/${response.data.id}`);
-      return response.data.id;
+      // Save as a draft using the same utility as environmental daily
+      const draftId = await saveDraft('swppp', formData);
+      navigate(`/swppp/review/${draftId}`);
+      return draftId;
     } catch (error) {
-      console.error('Error creating SWPPP report:', error);
+      console.error('Error saving SWPPP draft:', error);
       throw error;
     }
   };
