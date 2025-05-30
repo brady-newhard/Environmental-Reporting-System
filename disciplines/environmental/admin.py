@@ -1,5 +1,5 @@
 from django.contrib import admin
-from disciplines.environmental.punchlist.models import PunchlistReport, PunchlistItem
+from disciplines.environmental.punchlists.models import PunchlistReport, PunchlistItem
 from disciplines.environmental.swppp.models import SWPPPReport, SWPPPItem, SWPPPPhoto
 
 class PunchlistItemInline(admin.TabularInline):
