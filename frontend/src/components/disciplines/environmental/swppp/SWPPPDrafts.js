@@ -3,26 +3,27 @@ import { Box, Paper, Typography, Button, Table, TableBody, TableCell, TableConta
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
 
 const SWPPPDrafts = () => {
   const [drafts, setDrafts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedDrafts = Object.keys(localStorage)
-      .filter(key => key.startsWith('swppp_draft_'))
-      .map(key => JSON.parse(localStorage.getItem(key)))
-      .sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
-    setDrafts(savedDrafts);
+    async function loadDrafts() {
+      const drafts = await getAllDrafts('swppp');
+      setDrafts(drafts.sort((a, b) => new Date(b.lastModified || 0) - new Date(a.lastModified || 0)));
+    }
+    loadDrafts();
   }, []);
 
   const handleResume = (draftId) => {
     navigate(`/swppp/new?draftId=${draftId}`);
   };
 
-  const handleDelete = (draftId) => {
+  const handleDelete = async (draftId) => {
     if (window.confirm('Delete this draft?')) {
-      localStorage.removeItem(`swppp_draft_${draftId}`);
+      await deleteDraft('swppp', draftId);
       setDrafts(drafts.filter(d => d.id !== draftId));
     }
   };

@@ -12,36 +12,29 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
 
 const PunchlistDrafts = () => {
   const navigate = useNavigate();
   const [drafts, setDrafts] = useState([]);
 
   useEffect(() => {
-    // Load all punchlist drafts from localStorage
-    const keys = Object.keys(localStorage).filter(key => key.startsWith('punchlist_draft_'));
-    const loadedDrafts = keys.map(key => {
-      const data = JSON.parse(localStorage.getItem(key));
-      return {
-        key,
-        ...data,
-      };
-    });
-    // Sort by lastModified desc
-    loadedDrafts.sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
-    setDrafts(loadedDrafts);
+    async function loadDrafts() {
+      const drafts = await getAllDrafts('punchlist');
+      setDrafts(drafts.sort((a, b) => new Date(b.lastModified || 0) - new Date(a.lastModified || 0)));
+    }
+    loadDrafts();
   }, []);
 
-  const handleResume = (key) => {
-    // Set current draft id and navigate to new punchlist
-    localStorage.setItem('punchlist_current_draftId', key.replace('punchlist_draft_', ''));
+  const handleResume = (draftId) => {
+    localStorage.setItem('punchlist_current_draftId', draftId);
     navigate('/new-punchlist');
   };
 
-  const handleDelete = (key) => {
+  const handleDelete = async (draftId) => {
     if (window.confirm('Delete this draft?')) {
-      localStorage.removeItem(key);
-      setDrafts(drafts.filter(d => d.key !== key));
+      await deleteDraft('punchlist', draftId);
+      setDrafts(drafts.filter(d => d.id !== draftId));
     }
   };
 
@@ -69,7 +62,7 @@ const PunchlistDrafts = () => {
       ) : (
         <Stack spacing={2}>
           {drafts.map(draft => (
-            <Paper key={draft.key} sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Paper key={draft.id} sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
                 <Typography variant="subtitle1" fontWeight={600}>
                   Spread: {draft.spread || '-'}
@@ -85,13 +78,13 @@ const PunchlistDrafts = () => {
                 </Typography>
               </Box>
               <Box>
-                <IconButton color="primary" onClick={() => handleResume(draft.key)}>
+                <IconButton color="primary" onClick={() => handleResume(draft.id)}>
                   <EditIcon />
                 </IconButton>
-                <IconButton color="info" onClick={() => navigate(`/punchlist-draft/${draft.key.replace('punchlist_draft_', '')}`)}>
+                <IconButton color="info" onClick={() => navigate(`/punchlist-draft/${draft.id}`)}>
                   <VisibilityIcon />
                 </IconButton>
-                <IconButton color="error" onClick={() => handleDelete(draft.key)}>
+                <IconButton color="error" onClick={() => handleDelete(draft.id)}>
                   <DeleteIcon />
                 </IconButton>
               </Box>
