@@ -7,6 +7,6 @@ router.register(r'progress-charts', ProgressChartViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('punchlist/', include('disciplines.environmental.punchlist.urls')),
+    path('punchlists/', include('disciplines.environmental.punchlists.urls')),
     path('swppp/', include('disciplines.environmental.swppp.urls')),
 ] 

@@ -24,9 +24,9 @@ import NewReport from './components/common/NewReport';
 // Environmental Components
 import EnvironmentalMain from './components/disciplines/environmental/main/EnvironmentalMain';
 import EnvironmentalReports from './components/disciplines/environmental/main/EnvironmentalDashboard';
-import NewPunchlistReport from './components/disciplines/environmental/punchlist/NewPunchlistReport';
-import PunchlistDrafts from './components/disciplines/environmental/punchlist/PunchlistDrafts';
-import PunchlistDraftView from './components/disciplines/environmental/punchlist/PunchlistDraftView';
+import NewPunchlistReport from './components/disciplines/environmental/punchlists/NewPunchlistReport';
+import PunchlistDrafts from './components/disciplines/environmental/punchlists/PunchlistDrafts';
+import PunchlistDraftView from './components/disciplines/environmental/punchlists/PunchlistDraftView';
 import NewSWPPP from './components/disciplines/environmental/swppp/NewSWPPP';
 import SWPPPReport from './components/disciplines/environmental/swppp/SWPPPReport';
 import SWPPPPhotoPage from './components/disciplines/environmental/swppp/SWPPPPhotoPage';
