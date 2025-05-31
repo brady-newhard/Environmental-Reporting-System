@@ -72,13 +72,17 @@ export const indexedDBStorage = {
    */
   async deleteDraft(reportType, draftId) {
     try {
+      if (!draftId || typeof draftId !== 'string') {
+        console.error('deleteDraft: invalid draftId', draftId);
+        return false;
+      }
       const store = this.getStore(reportType);
       // Add draft_ prefix if it's not already there
       const key = draftId.startsWith('draft_') ? draftId : `draft_${draftId}`;
       await store.removeItem(key);
       return true;
     } catch (error) {
-      console.error('Error deleting draft:', error);
+      console.error('Error deleting draft:', error, 'draftId:', draftId);
       throw error;
     }
   },

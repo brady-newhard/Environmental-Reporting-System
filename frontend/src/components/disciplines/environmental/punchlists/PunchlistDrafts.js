@@ -13,8 +13,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const PunchlistDrafts = () => {
+  const { isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const [drafts, setDrafts] = useState([]);
 
@@ -23,8 +25,10 @@ const PunchlistDrafts = () => {
       const drafts = await getAllDrafts('punchlist');
       setDrafts(drafts.sort((a, b) => new Date(b.lastModified || 0) - new Date(a.lastModified || 0)));
     }
-    loadDrafts();
-  }, []);
+    if (!loading && isAuthenticated) {
+      loadDrafts();
+    }
+  }, [loading, isAuthenticated]);
 
   const handleResume = (draftId) => {
     localStorage.setItem('punchlist_current_draftId', draftId);

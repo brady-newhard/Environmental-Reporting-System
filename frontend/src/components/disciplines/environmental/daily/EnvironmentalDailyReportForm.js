@@ -6,7 +6,7 @@ import { saveDraft, normalizeDraft, loadDraft } from '../../../../utils/draftUti
 import AddIcon from '@mui/icons-material/Add';
 import environmentalDailyReportConfig from './environmentalDailyReportConfig';
 
-console.log('EnvironmentalDailyReportForm loaded');
+// console.log('EnvironmentalDailyReportForm loaded');
 
 export default function EnvironmentalDailyReportForm() {
   const { id } = useParams();

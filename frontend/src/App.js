@@ -1,9 +1,9 @@
-import 'antd/dist/reset.css';
+// import 'antd/dist/reset.css';
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { syncDrafts } from './utils/draftUtils';
 
 // Common Components
@@ -221,326 +221,338 @@ const theme = createTheme({
   },
 });
 
-function App() {
-  useEffect(() => {
-    // Sync drafts on app load
-    syncDrafts('environmental');
-    // Sync drafts when coming back online
-    const handleOnline = () => syncDrafts('environmental');
-    window.addEventListener('online', handleOnline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-    };
-  }, []);
+function AppContent() {
+  const { isAuthenticated } = useAuth();
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Sync drafts on app load only if authenticated
+      syncDrafts('environmental');
+      // Sync drafts when coming back online
+      const handleOnline = () => syncDrafts('environmental');
+      window.addEventListener('online', handleOnline);
+      return () => {
+        window.removeEventListener('online', handleOnline);
+      };
+    }
+  }, [isAuthenticated]);
+
+  return (
+    <>
+      <Navigation />
+      <Routes>
+        <Route path="/login" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/success-signup" element={<SuccessSignUp />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <HomePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental"
+          element={
+            <PrivateRoute>
+              <EnvironmentalMain />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports"
+          element={
+            <PrivateRoute>
+              <EnvironmentalReports />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/daily/new"
+          element={
+            <PrivateRoute>
+              <EnvironmentalDailyReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/daily/edit/:id"
+          element={
+            <PrivateRoute>
+              <EnvironmentalDailyReportForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/daily/review/:id"
+          element={
+            <PrivateRoute>
+              <EnvironmentalDailyReportReview />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding"
+          element={
+            <PrivateRoute>
+              <WeldingMain />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding/reports/daily"
+          element={
+            <PrivateRoute>
+              <DailyWeldingReportForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding/reports"
+          element={
+            <PrivateRoute>
+              <WeldingReports />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding/reports/drafts"
+          element={
+            <PrivateRoute>
+              <DailyWeldingReportDrafts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding/reports/station-drafts"
+          element={
+            <PrivateRoute>
+              <DailyWeldingReportStationDrafts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding/reports/daily-station"
+          element={
+            <PrivateRoute>
+              <DailyWeldingReportStationForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding/reports/daily/review/:draftId"
+          element={
+            <PrivateRoute>
+              <DailyWeldingReportReview />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/welding/reports/daily-station/review/:draftId"
+          element={
+            <PrivateRoute>
+              <DailyWeldingReportStationReview />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/project-documents"
+          element={
+            <PrivateRoute>
+              <ProjectDocuments />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/variance/new"
+          element={
+            <PrivateRoute>
+              <NewVarianceReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/new-report/*"
+          element={
+            <PrivateRoute>
+              <NewReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/new-punchlist"
+          element={
+            <PrivateRoute>
+              <NewPunchlistReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <PrivateRoute>
+              <SearchReports />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/contacts"
+          element={
+            <PrivateRoute>
+              <ContactList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/photos"
+          element={
+            <PrivateRoute>
+              <PhotosPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/review-report/:id"
+          element={
+            <PrivateRoute>
+              <ReviewReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/punchlist-report/:id"
+          element={
+            <PrivateRoute>
+              <NewPunchlistReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/swppp/new"
+          element={
+            <PrivateRoute>
+              <NewSWPPP />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/swppp-report/:reportId"
+          element={
+            <PrivateRoute>
+              <SWPPPReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/swppp-report/:reportId/photos"
+          element={
+            <PrivateRoute>
+              <SWPPPPhotoPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/new-progress-report"
+          element={
+            <PrivateRoute>
+              <NewProgressReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/coating"
+          element={
+            <PrivateRoute>
+              <CoatingMain />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/coating/*"
+          element={
+            <PrivateRoute>
+              <CoatingRoutes />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/swppp-drafts"
+          element={
+            <PrivateRoute>
+              <SWPPPDrafts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/punchlist-drafts"
+          element={
+            <PrivateRoute>
+              <PunchlistDrafts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/punchlist-draft/:draftId"
+          element={
+            <PrivateRoute>
+              <PunchlistDraftView />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/utility" element={<UtilityDashboard />} />
+        <Route path="/utility/reports" element={<UtilityReports />} />
+        <Route path="/utility/reports/daily/new" element={<DailyUtilityReport />} />
+        <Route path="/utility/reports/daily/review" element={<PrivateRoute><DailyUtilityReportReview /></PrivateRoute>} />
+        <Route path="/utility/reports/daily/drafts" element={<PrivateRoute><DailyUtilityReportDrafts /></PrivateRoute>} />
+        <Route path="/utility/reports/daily/draft/:draftId" element={<PrivateRoute><DailyUtilityReportDraftView /></PrivateRoute>} />
+        <Route path="/utility/reports/daily/i3" element={<I3DailyUtilityReport />} />
+        <Route path="/utility/reports/daily/i3/review/:draftId" element={<I3DailyUtilityReportReview />} />
+        <Route path="/utility/reports/daily/i3/drafts" element={<PrivateRoute><I3DailyUtilityReportDrafts /></PrivateRoute>} />
+        <Route
+          path="/environmental/reports/daily/review/:draftId"
+          element={
+            <PrivateRoute>
+              <EnvironmentalDailyReportReview />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/daily/drafts"
+          element={
+            <PrivateRoute>
+              <EnvironmentalDailyReportDrafts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/swppp/review/:draftId"
+          element={
+            <PrivateRoute>
+              <SWPPPReportReview />
+            </PrivateRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
+  );
+}
+
+function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Navigation />
-        <Routes>
-          <Route path="/login" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/success-signup" element={<SuccessSignUp />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <HomePage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/environmental"
-            element={
-              <PrivateRoute>
-                <EnvironmentalMain />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/environmental/reports"
-            element={
-              <PrivateRoute>
-                <EnvironmentalReports />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/environmental/reports/daily/new"
-            element={
-              <PrivateRoute>
-                <EnvironmentalDailyReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/environmental/reports/daily/edit/:id"
-            element={
-              <PrivateRoute>
-                <EnvironmentalDailyReportForm />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/environmental/reports/daily/review/:id"
-            element={
-              <PrivateRoute>
-                <EnvironmentalDailyReportReview />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding"
-            element={
-              <PrivateRoute>
-                <WeldingMain />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding/reports/daily"
-            element={
-              <PrivateRoute>
-                <DailyWeldingReportForm />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding/reports"
-            element={
-              <PrivateRoute>
-                <WeldingReports />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding/reports/drafts"
-            element={
-              <PrivateRoute>
-                <DailyWeldingReportDrafts />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding/reports/station-drafts"
-            element={
-              <PrivateRoute>
-                <DailyWeldingReportStationDrafts />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding/reports/daily-station"
-            element={
-              <PrivateRoute>
-                <DailyWeldingReportStationForm />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding/reports/daily/review/:draftId"
-            element={
-              <PrivateRoute>
-                <DailyWeldingReportReview />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/welding/reports/daily-station/review/:draftId"
-            element={
-              <PrivateRoute>
-                <DailyWeldingReportStationReview />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/project-documents"
-            element={
-              <PrivateRoute>
-                <ProjectDocuments />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/variance/new"
-            element={
-              <PrivateRoute>
-                <NewVarianceReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/new-report/*"
-            element={
-              <PrivateRoute>
-                <NewReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/new-punchlist"
-            element={
-              <PrivateRoute>
-                <NewPunchlistReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/search"
-            element={
-              <PrivateRoute>
-                <SearchReports />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/contacts"
-            element={
-              <PrivateRoute>
-                <ContactList />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/photos"
-            element={
-              <PrivateRoute>
-                <PhotosPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/review-report/:id"
-            element={
-              <PrivateRoute>
-                <ReviewReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <PrivateRoute>
-                <Profile />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/punchlist-report/:id"
-            element={
-              <PrivateRoute>
-                <NewPunchlistReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/swppp/new"
-            element={
-              <PrivateRoute>
-                <NewSWPPP />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/swppp-report/:reportId"
-            element={
-              <PrivateRoute>
-                <SWPPPReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/swppp-report/:reportId/photos"
-            element={
-              <PrivateRoute>
-                <SWPPPPhotoPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/new-progress-report"
-            element={
-              <PrivateRoute>
-                <NewProgressReport />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/coating"
-            element={
-              <PrivateRoute>
-                <CoatingMain />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/coating/*"
-            element={
-              <PrivateRoute>
-                <CoatingRoutes />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/swppp-drafts"
-            element={
-              <PrivateRoute>
-                <SWPPPDrafts />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/punchlist-drafts"
-            element={
-              <PrivateRoute>
-                <PunchlistDrafts />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/punchlist-draft/:draftId"
-            element={
-              <PrivateRoute>
-                <PunchlistDraftView />
-              </PrivateRoute>
-            }
-          />
-          <Route path="/utility" element={<UtilityDashboard />} />
-          <Route path="/utility/reports" element={<UtilityReports />} />
-          <Route path="/utility/reports/daily/new" element={<DailyUtilityReport />} />
-          <Route path="/utility/reports/daily/review" element={<PrivateRoute><DailyUtilityReportReview /></PrivateRoute>} />
-          <Route path="/utility/reports/daily/drafts" element={<PrivateRoute><DailyUtilityReportDrafts /></PrivateRoute>} />
-          <Route path="/utility/reports/daily/draft/:draftId" element={<PrivateRoute><DailyUtilityReportDraftView /></PrivateRoute>} />
-          <Route path="/utility/reports/daily/i3" element={<I3DailyUtilityReport />} />
-          <Route path="/utility/reports/daily/i3/review/:draftId" element={<I3DailyUtilityReportReview />} />
-          <Route path="/utility/reports/daily/i3/drafts" element={<PrivateRoute><I3DailyUtilityReportDrafts /></PrivateRoute>} />
-          <Route
-            path="/environmental/reports/daily/review/:draftId"
-            element={
-              <PrivateRoute>
-                <EnvironmentalDailyReportReview />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/environmental/reports/daily/drafts"
-            element={
-              <PrivateRoute>
-                <EnvironmentalDailyReportDrafts />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/swppp/review/:draftId"
-            element={
-              <PrivateRoute>
-                <SWPPPReportReview />
-              </PrivateRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AppContent />
       </AuthProvider>
     </ThemeProvider>
   );

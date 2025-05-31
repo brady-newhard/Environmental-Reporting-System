@@ -47,7 +47,7 @@ import { uploadPhoto } from '../../utils/photoUtils';
 import { getDraft, saveDraft } from '../../utils/draftUtils';
 import { useAuth } from '../../contexts/AuthContext';
 
-console.log('ReportTemplate loaded');
+// console.log('ReportTemplate loaded');
 
 // Template configuration
 const defaultConfig = {
