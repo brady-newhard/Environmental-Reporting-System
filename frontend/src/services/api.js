@@ -1,9 +1,6 @@
 import axios from 'axios';
 
-const API_URL =
-  process.env.NODE_ENV === 'production'
-    ? 'https://environmental-reporting-system-febba9464fe7.herokuapp.com/api'
-    : 'http://localhost:8000/api';
+const API_URL = '/api';
 
 console.log('API_URL:', API_URL);
 
@@ -42,9 +39,9 @@ api.interceptors.response.use(
       if (error.response.status === 401) {
         const isLogoutRequest = error.config.url.includes('/logout/');
         const isLoginRequest = error.config.url.includes('/login/');
-        
-        // Don't redirect for logout or login requests
-        if (!isLogoutRequest && !isLoginRequest) {
+        const isOnLoginPage = window.location.pathname === '/login';
+        // Don't redirect for logout or login requests, or if already on login page
+        if (!isLogoutRequest && !isLoginRequest && !isOnLoginPage) {
           localStorage.removeItem('token');
           window.location.href = '/login';
         }

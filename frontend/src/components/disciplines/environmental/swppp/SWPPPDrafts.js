@@ -4,8 +4,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const SWPPPDrafts = () => {
+  const { isAuthenticated, loading } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const navigate = useNavigate();
 
@@ -14,8 +16,10 @@ const SWPPPDrafts = () => {
       const drafts = await getAllDrafts('swppp');
       setDrafts(drafts.sort((a, b) => new Date(b.lastModified || 0) - new Date(a.lastModified || 0)));
     }
-    loadDrafts();
-  }, []);
+    if (!loading && isAuthenticated) {
+      loadDrafts();
+    }
+  }, [loading, isAuthenticated]);
 
   const handleResume = (draftId) => {
     navigate(`/swppp/new?draftId=${draftId}`);

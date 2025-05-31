@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { getAllDrafts, saveDraft, deleteDraft } from '../utils/draftStorage';
+import { useAuth } from './AuthContext';
 
 const DraftContext = createContext();
 
@@ -12,12 +13,14 @@ export const useDrafts = () => {
 };
 
 export const DraftProvider = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const loadingRef = useRef(false);
 
   const loadDrafts = useCallback(async (reportType) => {
     if (loadingRef.current) return;
+    if (loading || !isAuthenticated) return;
     loadingRef.current = true;
     setIsLoading(true);
 
@@ -63,7 +66,7 @@ export const DraftProvider = ({ children }) => {
       setIsLoading(false);
       loadingRef.current = false;
     }
-  }, []);
+  }, [loading, isAuthenticated]);
 
   const saveDraftAndUpdate = useCallback(async (reportType, draft) => {
     try {

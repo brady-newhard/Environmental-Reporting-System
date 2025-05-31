@@ -9,13 +9,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
     const token = localStorage.getItem('token');
-    console.log('AuthContext useEffect: token in localStorage:', token);
+    console.log('[AuthContext] useEffect: token in localStorage:', token);
     if (token) {
       api.post('/api/verify-token/', { token })
         .then((response) => {
-          console.log('Token verified, user:', response.data);
+          console.log('[AuthContext] Token verified, user:', response.data);
           setIsAuthenticated(true);
           setUser({
             username: response.data.user,
@@ -23,23 +22,29 @@ export const AuthProvider = ({ children }) => {
           });
         })
         .catch((error) => {
-          console.error('Token verification failed:', error);
+          console.error('[AuthContext] Token verification failed:', error);
           localStorage.removeItem('token');
           setIsAuthenticated(false);
           setUser(null);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setLoading(false);
+          console.log('[AuthContext] Loading set to false (verify-token finally)');
+        });
     } else {
       setLoading(false);
+      console.log('[AuthContext] Loading set to false (no token)');
     }
   }, []);
 
   const login = async (token, username, first_name) => {
-    console.log('Login called with token:', token);
+    console.log('[AuthContext] Login called with token:', token);
     localStorage.setItem('token', token);
-    console.log('Token stored in localStorage:', localStorage.getItem('token'));
+    console.log('[AuthContext] Token stored in localStorage:', localStorage.getItem('token'));
     setUser({ username, first_name });
     setIsAuthenticated(true);
+    setLoading(false);
+    console.log('[AuthContext] Login: setIsAuthenticated(true), setLoading(false)');
   };
 
   const logout = async () => {
