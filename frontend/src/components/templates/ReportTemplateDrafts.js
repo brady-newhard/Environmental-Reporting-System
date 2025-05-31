@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
   Typography,
@@ -12,24 +13,27 @@ import PageHeader from '../common/PageHeader';
 
 const ReportTemplateDrafts = ({ config }) => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const [drafts, setDrafts] = useState([]);
 
   useEffect(() => {
-    // Load all drafts from localStorage with the correct prefix
-    const draftKeys = Object.keys(localStorage).filter(key => key.startsWith(`${config.reportType}_draft_`));
-    const draftData = draftKeys.map(key => {
-      const data = JSON.parse(localStorage.getItem(key));
-      return {
-        id: key,
-        ...data,
-        date: data.header?.date ? new Date(data.header.date).toLocaleDateString() : '-',
-        lastModified: data.savedAt || null,
-      };
-    });
-    // Sort by lastModified desc
-    draftData.sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
-    setDrafts(draftData);
-  }, [config.reportType]);
+    if (!loading && isAuthenticated) {
+      // Load all drafts from localStorage with the correct prefix
+      const draftKeys = Object.keys(localStorage).filter(key => key.startsWith(`${config.reportType}_draft_`));
+      const draftData = draftKeys.map(key => {
+        const data = JSON.parse(localStorage.getItem(key));
+        return {
+          id: key,
+          ...data,
+          date: data.header?.date ? new Date(data.header.date).toLocaleDateString() : '-',
+          lastModified: data.savedAt || null,
+        };
+      });
+      // Sort by lastModified desc
+      draftData.sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
+      setDrafts(draftData);
+    }
+  }, [config.reportType, loading, isAuthenticated]);
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this draft?')) {

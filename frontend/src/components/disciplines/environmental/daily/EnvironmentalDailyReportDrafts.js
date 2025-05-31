@@ -6,8 +6,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PageHeader from '../../../../components/common/PageHeader';
 import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 export default function EnvironmentalDailyReportDrafts() {
+  const { isAuthenticated, loading } = useAuth();
   const [drafts, setDrafts] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [draftToDelete, setDraftToDelete] = useState(null);
@@ -42,8 +44,10 @@ export default function EnvironmentalDailyReportDrafts() {
       }
     };
 
-    loadDrafts();
-  }, []);
+    if (!loading && isAuthenticated) {
+      loadDrafts();
+    }
+  }, [loading, isAuthenticated]);
 
   const handleDeleteClick = (draft) => {
     if (!draft || !draft.id) {
