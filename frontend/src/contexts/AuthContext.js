@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     console.log('[AuthContext] useEffect: token in localStorage:', token);
     if (token) {
-      api.post('/api/verify-token/', { token })
+      api.post('/users/verify-token/', { token })
         .then((response) => {
           console.log('[AuthContext] Token verified, user:', response.data);
           setIsAuthenticated(true);

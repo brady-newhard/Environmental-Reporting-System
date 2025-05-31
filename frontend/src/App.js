@@ -222,10 +222,10 @@ const theme = createTheme({
 });
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!loading && isAuthenticated) {
       // Sync drafts on app load only if authenticated
       syncDrafts('environmental');
       // Sync drafts when coming back online
@@ -235,7 +235,7 @@ function AppContent() {
         window.removeEventListener('online', handleOnline);
       };
     }
-  }, [isAuthenticated]);
+  }, [loading, isAuthenticated]);
 
   return (
     <>

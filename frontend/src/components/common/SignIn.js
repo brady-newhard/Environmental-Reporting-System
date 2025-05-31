@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -17,13 +17,19 @@ import api from '../../services/api';
 
 const SignIn = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, loading } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   const handleChange = (e) => {
     setFormData({
