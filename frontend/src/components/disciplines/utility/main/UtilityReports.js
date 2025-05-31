@@ -11,9 +11,11 @@ import { Add as AddIcon } from '@mui/icons-material';
 import PageHeader from '../../../../components/common/PageHeader';
 import Badge from '@mui/material/Badge';
 import { getDraftCount } from '../../../../utils/draftUtils';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const UtilityReports = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const [payloadDraftCount, setPayloadDraftCount] = React.useState(0);
   const [i3DraftCount, setI3DraftCount] = React.useState(0);
 
@@ -22,8 +24,10 @@ const UtilityReports = () => {
       setPayloadDraftCount(await getDraftCount('utility'));
       setI3DraftCount(await getDraftCount('i3_utility'));
     };
-    loadDraftCounts();
-  }, []);
+    if (!loading && isAuthenticated) {
+      loadDraftCounts();
+    }
+  }, [loading, isAuthenticated]);
 
   return (
     <Box sx={{ 

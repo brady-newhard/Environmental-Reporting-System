@@ -5,16 +5,18 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../common/PageHeader';
 import Badge from '@mui/material/Badge';
 import { getDraftCount } from '../../../../utils/draftUtils';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const ReportCard = ({ title, icon: Icon, description, path, secondaryAction, reportType }) => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const [draftCount, setDraftCount] = React.useState(0);
 
   React.useEffect(() => {
-    if (secondaryAction && reportType) {
+    if (secondaryAction && reportType && !loading && isAuthenticated) {
       getDraftCount(reportType).then(setDraftCount);
     }
-  }, [secondaryAction, reportType]);
+  }, [secondaryAction, reportType, loading, isAuthenticated]);
 
   const handleFillOut = () => {
     // Clear any existing draft ID from URL

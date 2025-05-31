@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../../common/PageHeader';
 import { indexedDBStorage } from '../../../../utils/indexedDBConfig';
 import { getDraftCount } from '../../../../utils/draftUtils';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount, onCreate }) => {
   const navigate = useNavigate();
@@ -157,6 +158,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draft
 
 const EnvironmentalReports = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const [swpppDraftCount, setSwpppDraftCount] = useState(0);
   const [dailyDraftCount, setDailyDraftCount] = useState(0);
   const [punchlistDraftCount, setPunchlistDraftCount] = useState(0);
@@ -171,8 +173,10 @@ const EnvironmentalReports = () => {
         console.error('Error loading draft counts:', error);
       }
     };
-    loadDraftCounts();
-  }, []);
+    if (!loading && isAuthenticated) {
+      loadDraftCounts();
+    }
+  }, [loading, isAuthenticated]);
 
   const handleCreateNewPunchlist = () => {
     localStorage.removeItem('punchlist_current_draftId');
