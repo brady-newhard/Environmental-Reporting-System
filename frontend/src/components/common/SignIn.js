@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { User, Lock } from 'lucide-react';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -59,65 +60,62 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center md:items-start justify-center relative overflow-hidden bg-neutral-100 dark:bg-black">
-      {/* Mobile background */}
-      <img src="/pipeline-bg.jpg" alt="Pipeline background mobile" className="absolute inset-0 w-full h-full object-cover z-0 block md:hidden" />
-      {/* Desktop background */}
-      <img src="/pipeline-bg2.jpeg" alt="Pipeline background desktop" className="absolute inset-0 w-full h-full object-cover z-0 hidden md:block" />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60 z-10" />
-      {/* Card */}
-      <div className="relative z-20 w-full max-w-[400px] md:w-1/4 mx-auto p-8 flex flex-col gap-6 rounded-xl border border-neutral-200 dark:border-white/20 shadow-lg bg-gray-700/70 backdrop-blur-md mt-0 md:mt-24">
-        <h2 className="text-2xl font-heading font-bold text-center text-white mb-2">Sign In</h2>
+    <div className="min-h-screen w-full flex items-center justify-center md:justify-end bg-cover bg-center bg-no-repeat"
+         style={{
+           backgroundImage: `url(${window.innerWidth <= 768 
+             ? '/pipeline-bg2.jpg' 
+             : '/pipeline-bg.jpg'})`
+         }}>
+      <div className="absolute inset-0 bg-black/50" />
+      
+      <div className="relative w-full max-w-md p-8 space-y-8 bg-card/95 backdrop-blur-sm rounded-lg shadow-xl md:mr-16">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
+          <p className="mt-2 text-white/80">Sign in to your account</p>
+        </div>
+
         {error && (
-          <div className="p-2 text-sm text-error bg-error/10 rounded-md text-center mb-2 font-medium">
+          <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="flex flex-col">
-          <Input
-            id="username"
-            name="username"
-            type="text"
-            required
-            placeholder="Username or Email"
-            value={formData.username}
-            onChange={handleChange}
-            className="w-11/12 mx-auto px-4 py-3 mb-4 bg-white/90 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 border border-neutral-300 dark:border-neutral-700 focus:ring-2 focus:ring-accent rounded-lg shadow-sm text-base transition-all"
-            autoComplete="username"
-          />
-          <Input
-            id="password"
-            name="password"
-            type={showPassword ? 'text' : 'password'}
-            required
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-11/12 mx-auto px-4 py-3 mb-6 bg-white/90 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 border border-neutral-300 dark:border-neutral-700 focus:ring-2 focus:ring-accent rounded-lg shadow-sm text-base transition-all"
-            autoComplete="current-password"
-          />
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60" />
+              <Input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="Username"
+                required
+                className="pl-10 w-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60" />
+              <Input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Password"
+                required
+                className="pl-10 w-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
+              />
+            </div>
+          </div>
+
           <Button
             type="submit"
-            className="bg-accent hover:bg-accent-dark text-white font-semibold text-sm py-2 px-4 rounded shadow w-auto mx-auto mt-2"
+            disabled={loading}
+            className="w-full bg-black hover:bg-black/90 text-white font-semibold"
           >
-            Log in
+            {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
-        <div className="flex flex-col gap-2 mt-2">
-          <RouterLink
-            to="/forgot-password"
-            className="text-sm text-accent hover:underline text-center font-medium"
-          >
-            Forgot password?
-          </RouterLink>
-          <RouterLink
-            to="/signup"
-            className="text-sm text-accent hover:underline text-center font-medium"
-          >
-            Click here to create an account
-          </RouterLink>
-        </div>
       </div>
     </div>
   );
