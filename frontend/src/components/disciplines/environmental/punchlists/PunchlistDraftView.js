@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, IconButton, Dialog, DialogTitle, DialogContent, TextField } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
-import { PhotoPreviewDialog } from '../../../common/PhotoPreviewDialog';
+import PhotoPreviewDialog from '../../../common/PhotoPreviewDialog';
 
 const PunchlistDraftView = () => {
   const { draftId } = useParams();

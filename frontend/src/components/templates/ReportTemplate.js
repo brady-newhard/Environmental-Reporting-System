@@ -44,7 +44,7 @@ import ReportPhotoSection from '../common/ReportPhotoSection';
 import axios from '../../utils/axios';
 import { message } from 'antd';
 import { uploadPhoto } from '../../utils/photoUtils';
-import { getDraft, saveDraft } from '../../utils/draftUtils';
+import { loadDraft, saveDraft } from '../../utils/draftUtils';
 import { useAuth } from '../../contexts/AuthContext';
 
 // console.log('ReportTemplate loaded');
