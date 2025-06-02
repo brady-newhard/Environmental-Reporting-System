@@ -1,19 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Paper,
-  Container,
-  Link as MuiLink,
-  InputAdornment,
-  IconButton,
-} from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -45,23 +35,14 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Attempting login with:', { username: formData.username });
       const response = await api.post('/login/', {
         username: formData.username,
         password: formData.password
       });
-      console.log('Login response:', response.data);
       await login(response.data.token, response.data.username, response.data.first_name);
       navigate('/');
     } catch (err) {
       if (err.response) {
-        console.error('Login error details:', {
-          status: err.response.status,
-          data: err.response.data,
-          headers: err.response.headers
-        });
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         if (err.response.status === 401) {
           setError('Invalid username or password');
         } else if (err.response.status === 400) {
@@ -70,167 +51,75 @@ const SignIn = () => {
           setError('An error occurred. Please try again.');
         }
       } else if (err.request) {
-        // The request was made but no response was received
-        console.error('No response received:', err.request);
         setError('Unable to connect to the server. Please try again.');
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Request setup error:', err.message);
         setError('An unexpected error occurred. Please try again.');
       }
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-            bgcolor: '#ffffff',
-            borderRadius: '8px',
-          }}
-        >
-          <Typography 
-            component="h1" 
-            variant="h5" 
-            sx={{ 
-              mb: 3,
-              color: '#000000',
-              fontWeight: 600,
-            }}
+    <div className="min-h-screen w-full flex items-center md:items-start justify-center relative overflow-hidden bg-neutral-100 dark:bg-black">
+      {/* Mobile background */}
+      <img src="/pipeline-bg.jpg" alt="Pipeline background mobile" className="absolute inset-0 w-full h-full object-cover z-0 block md:hidden" />
+      {/* Desktop background */}
+      <img src="/pipeline-bg2.jpeg" alt="Pipeline background desktop" className="absolute inset-0 w-full h-full object-cover z-0 hidden md:block" />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/60 z-10" />
+      {/* Card */}
+      <div className="relative z-20 w-full max-w-[400px] md:w-1/4 mx-auto p-8 flex flex-col gap-6 rounded-xl border border-neutral-200 dark:border-white/20 shadow-lg bg-gray-700/70 backdrop-blur-md mt-0 md:mt-24">
+        <h2 className="text-2xl font-heading font-bold text-center text-white mb-2">Sign In</h2>
+        {error && (
+          <div className="p-2 text-sm text-error bg-error/10 rounded-md text-center mb-2 font-medium">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <Input
+            id="username"
+            name="username"
+            type="text"
+            required
+            placeholder="Username or Email"
+            value={formData.username}
+            onChange={handleChange}
+            className="w-11/12 mx-auto px-4 py-3 mb-4 bg-white/90 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 border border-neutral-300 dark:border-neutral-700 focus:ring-2 focus:ring-accent rounded-lg shadow-sm text-base transition-all"
+            autoComplete="username"
+          />
+          <Input
+            id="password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            required
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-11/12 mx-auto px-4 py-3 mb-6 bg-white/90 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 border border-neutral-300 dark:border-neutral-700 focus:ring-2 focus:ring-accent rounded-lg shadow-sm text-base transition-all"
+            autoComplete="current-password"
+          />
+          <Button
+            type="submit"
+            className="bg-accent hover:bg-accent-dark text-white font-semibold text-sm py-2 px-4 rounded shadow w-auto mx-auto mt-2"
           >
-            Sign In
-          </Typography>
-          {error && (
-            <Typography 
-              color="error" 
-              sx={{ 
-                mb: 2,
-                textAlign: 'center',
-                width: '100%',
-              }}
-            >
-              {error}
-            </Typography>
-          )}
-          <Box 
-            component="form" 
-            onSubmit={handleSubmit} 
-            sx={{ 
-              width: '100%',
-              '& .MuiTextField-root': {
-                mb: 2,
-              },
-            }}
+            Log in
+          </Button>
+        </form>
+        <div className="flex flex-col gap-2 mt-2">
+          <RouterLink
+            to="/forgot-password"
+            className="text-sm text-accent hover:underline text-center font-medium"
           >
-            <TextField
-              required
-              fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
-              autoFocus
-              value={formData.username}
-              onChange={handleChange}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#666666',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#000000',
-                  },
-                },
-              }}
-            />
-            <TextField
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              id="password"
-              autoComplete="current-password"
-              value={formData.password}
-              onChange={handleChange}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword}
-                      edge="end"
-                      sx={{ color: '#666666' }}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: '#666666',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#000000',
-                  },
-                },
-              }}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ 
-                mt: 3, 
-                mb: 2, 
-                bgcolor: '#000000',
-                '&:hover': {
-                  bgcolor: '#333333',
-                },
-                height: '48px',
-                textTransform: 'none',
-                fontSize: '1rem',
-                fontWeight: 600,
-              }}
-            >
-              Sign In
-            </Button>
-            <Box sx={{ textAlign: 'center' }}>
-              <MuiLink
-                component={RouterLink}
-                to="/signup"
-                variant="body2"
-                sx={{
-                  color: '#666666',
-                  textDecoration: 'none',
-                  '&:hover': {
-                    color: '#000000',
-                  },
-                }}
-              >
-                {"Don't have an account? Sign Up"}
-              </MuiLink>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+            Forgot password?
+          </RouterLink>
+          <RouterLink
+            to="/signup"
+            className="text-sm text-accent hover:underline text-center font-medium"
+          >
+            Click here to create an account
+          </RouterLink>
+        </div>
+      </div>
+    </div>
   );
 };
 
