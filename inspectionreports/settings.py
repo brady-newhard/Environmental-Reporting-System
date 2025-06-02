@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'core',  # Core functionality
     'users',  # User management
     'disciplines.environmental',  # Environmental base app
-    'disciplines.environmental.punchlists',  # Punchlist reports (plural, uniform)
+    'disciplines.environmental.punchlists',  # Punchlist reports
     'disciplines.environmental.swppp',  # SWPPP reports
     'disciplines.coating',  # Coating reports
     'disciplines.welding',  # Welding reports
