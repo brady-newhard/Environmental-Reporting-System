@@ -4,3 +4,5 @@ from django.apps import AppConfig
 class UtilityConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'disciplines.utility'
+    label = 'utility'
+    verbose_name = 'Utility'

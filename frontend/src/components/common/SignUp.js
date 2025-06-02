@@ -15,11 +15,6 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import api from '../../services/api';
 
-const API_BASE_URL =
-  process.env.NODE_ENV === 'production'
-    ? 'https://environmental-reporting-system-febba9464fe7.herokuapp.com/api/'
-    : 'http://localhost:8000/api/';
-
 const SignUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
