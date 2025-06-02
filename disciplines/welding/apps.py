@@ -4,3 +4,5 @@ from django.apps import AppConfig
 class WeldingConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'disciplines.welding'
+    label = 'welding'
+    verbose_name = 'Welding'

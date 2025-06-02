@@ -4,3 +4,5 @@ from django.apps import AppConfig
 class CoatingConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'disciplines.coating'
+    label = 'coating'
+    verbose_name = 'Coating'

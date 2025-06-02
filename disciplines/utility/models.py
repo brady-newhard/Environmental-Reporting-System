@@ -18,7 +18,7 @@ class DailyUtilityReport(models.Model):
         ordering = ['-date']
         verbose_name = 'Daily Utility Report'
         verbose_name_plural = 'Daily Utility Reports'
-        app_label = 'disciplines.utility'
+        app_label = 'utility'
 
     def __str__(self):
         return f"Utility Report - {self.date} - {self.location}"
@@ -49,7 +49,7 @@ class UtilityInspection(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Utility Inspection'
         verbose_name_plural = 'Utility Inspections'
-        app_label = 'disciplines.utility'
+        app_label = 'utility'
 
     def __str__(self):
         return f"Utility Inspection - {self.utility_type} - {self.location}"
@@ -64,7 +64,7 @@ class UtilityPhoto(models.Model):
         ordering = ['-uploaded_at']
         verbose_name = 'Utility Photo'
         verbose_name_plural = 'Utility Photos'
-        app_label = 'disciplines.utility'
+        app_label = 'utility'
 
     def __str__(self):
         return f"Photo - {self.inspection} - {self.uploaded_at}"

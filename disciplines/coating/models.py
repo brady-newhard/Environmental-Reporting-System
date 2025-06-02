@@ -23,7 +23,7 @@ class DailyCoatingReport(models.Model):
         ordering = ['-date']
         verbose_name = 'Daily Coating Report'
         verbose_name_plural = 'Daily Coating Reports'
-        app_label = 'disciplines.coating'
+        app_label = 'coating'
 
     def __str__(self):
         return f"Coating Report - {self.date} - {self.location}"
@@ -82,7 +82,7 @@ class CoatingInspection(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Coating Inspection'
         verbose_name_plural = 'Coating Inspections'
-        app_label = 'disciplines.coating'
+        app_label = 'coating'
 
     def __str__(self):
         return f"Coating Inspection - {self.surface_type} - {self.coating_type}"
@@ -97,7 +97,7 @@ class CoatingPhoto(models.Model):
         ordering = ['-uploaded_at']
         verbose_name = 'Coating Photo'
         verbose_name_plural = 'Coating Photos'
-        app_label = 'disciplines.coating'
+        app_label = 'coating'
 
     def __str__(self):
         return f"Photo - {self.inspection} - {self.uploaded_at}"
@@ -121,7 +121,7 @@ class CoatingOversightItem(models.Model):
         ordering = ['item_number']
         verbose_name = 'Coating Oversight Item'
         verbose_name_plural = 'Coating Oversight Items'
-        app_label = 'disciplines.coating'
+        app_label = 'coating'
 
     def __str__(self):
         return f"Item {self.item_number} - {self.description}"

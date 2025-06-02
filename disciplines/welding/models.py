@@ -113,7 +113,7 @@ class DailyWeldReport(models.Model):
         ordering = ['-date', '-created_at']
         verbose_name = 'Daily Weld Report'
         verbose_name_plural = 'Daily Weld Reports'
-        app_label = 'disciplines.welding'
+        app_label = 'welding'
 
     def __str__(self):
         return f"Weld Report - {self.date} - {self.project}"
@@ -158,7 +158,7 @@ class WeldInspection(models.Model):
         ordering = ['weld_number']
         verbose_name = 'Weld Inspection'
         verbose_name_plural = 'Weld Inspections'
-        app_label = 'disciplines.welding'
+        app_label = 'welding'
 
     def __str__(self):
         return f"Weld {self.weld_number} - {self.get_weld_type_display()}"
@@ -173,7 +173,7 @@ class WeldPhoto(models.Model):
         ordering = ['-uploaded_at']
         verbose_name = 'Weld Photo'
         verbose_name_plural = 'Weld Photos'
-        app_label = 'disciplines.welding'
+        app_label = 'welding'
 
     def __str__(self):
         return f"Photo for Weld {self.inspection.weld_number} - {self.uploaded_at}"
