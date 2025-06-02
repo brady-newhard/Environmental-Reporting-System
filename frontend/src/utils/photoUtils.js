@@ -47,5 +47,5 @@ export const deletePhoto = async (photoUrl) => {
 export const formatPhotoUrl = (url) => {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  return `${process.env.REACT_APP_API_URL || ''}${url}`;
+  return `${import.meta.env.VITE_API_URL || ''}${url}`;
 }; 

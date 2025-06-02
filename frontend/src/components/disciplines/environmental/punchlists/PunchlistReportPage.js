@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TextField, Box, Typography } from '@mui/material';
-import { PhotoPreviewDialog } from '../../../common/PhotoPreviewDialog';
+import PhotoPreviewDialog from '../../../common/PhotoPreviewDialog';
 
 const PunchlistReportPage = () => {
   const [previewPhotos, setPreviewPhotos] = useState([]);
