@@ -223,6 +223,10 @@ const theme = createTheme({
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
+  const location = window.location;
+
+  // Hide Navigation on login and signup pages
+  const hideNav = location.pathname === '/login' || location.pathname === '/signup';
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -239,7 +243,7 @@ function AppContent() {
 
   return (
     <>
-      <Navigation />
+      {!hideNav && <Navigation />}
       <Routes>
         <Route path="/login" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
