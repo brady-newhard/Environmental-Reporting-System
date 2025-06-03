@@ -1,302 +1,144 @@
 import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  useMediaQuery,
-  useTheme,
-  Button,
-  Avatar,
-  Menu,
-  MenuItem,
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import PersonIcon from '@mui/icons-material/Person';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '../../contexts/AuthContext';
+import { Menu, User } from 'lucide-react';
+
+const menuItems = [
+  { text: 'Home', path: '/' },
+  { text: 'Project Documents', path: '/project-documents' },
+  { text: 'Search Reports', path: '/search' },
+  { text: 'Contacts', path: '/contacts' },
+];
 
 const Navigation = () => {
   const { isAuthenticated, logout, user } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
+      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
-    }
-    setDrawerOpen(open);
-  };
-
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleProfileMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const menuItems = [
-    { text: 'Home', path: '/' },
-    { text: 'Project Documents', path: '/project-documents' },
-    { text: 'Search Reports', path: '/search' },
-    { text: 'Contacts', path: '/contacts' },
-  ];
-
-  const drawer = (
-    <Box
-      sx={{ width: 250 }}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
-    >
-      <List>
-        {menuItems.map((item) => (
-          <ListItem 
-            button 
-            key={item.text} 
-            component={RouterLink} 
-            to={item.path}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              },
-            }}
-          >
-            <ListItemText 
-              primary={item.text} 
-              sx={{ 
-                color: '#000000',
-                '& .MuiTypography-root': {
-                  fontWeight: 500,
-                },
-              }} 
-            />
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-      {isAuthenticated ? (
-        <List>
-          <ListItem 
-            button 
-            onClick={handleLogout}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              },
-            }}
-          >
-            <ListItemText 
-              primary="Logout" 
-              sx={{ 
-                color: '#000000',
-                '& .MuiTypography-root': {
-                  fontWeight: 500,
-                },
-              }} 
-            />
-          </ListItem>
-        </List>
-      ) : (
-        <List>
-          <ListItem 
-            button 
-            component={RouterLink} 
-            to="/login"
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              },
-            }}
-          >
-            <ListItemText 
-              primary="Login" 
-              sx={{ 
-                color: '#000000',
-                '& .MuiTypography-root': {
-                  fontWeight: 500,
-                },
-              }} 
-            />
-          </ListItem>
-          <ListItem 
-            button 
-            component={RouterLink} 
-            to="/signup"
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              },
-            }}
-          >
-            <ListItemText 
-              primary="Sign Up" 
-              sx={{ 
-                color: '#000000',
-                '& .MuiTypography-root': {
-                  fontWeight: 500,
-                },
-              }} 
-            />
-          </ListItem>
-        </List>
-      )}
-    </Box>
-  );
-
   return (
     <>
-      <AppBar position="fixed" sx={{ 
-        backgroundColor: '#000000', 
-        boxShadow: 'none', 
-        borderBottom: '1px solid #000000',
-        '& .MuiTypography-root': {
-          color: '#ffffff',
-        },
-        '& .MuiIconButton-root': {
-          color: '#ffffff',
-        },
-        '& .MuiSelect-select': {
-          color: '#ffffff',
-        },
-        '& .MuiSelect-icon': {
-          color: '#ffffff',
-        },
-        '& .MuiOutlinedInput-notchedOutline': {
-          borderColor: '#ffffff',
-        },
-        '&:hover .MuiOutlinedInput-notchedOutline': {
-          borderColor: '#ffffff',
-        },
-        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-          borderColor: '#ffffff',
-        },
-      }}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={toggleDrawer(true)}
-            sx={{ 
-              color: '#ffffff',
-              mr: 2,
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none' }} component={RouterLink} to="/">
-            <Typography
-              variant="h5"
-              sx={{
-                color: '#ffffff',
-                fontWeight: 700,
-                letterSpacing: 2,
-                lineHeight: 1,
-                textDecoration: 'none',
-              }}
-            >
-              PIPE
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: '#ffffff',
-                opacity: 0.8,
-                fontWeight: 400,
-                fontSize: '0.75rem',
-                lineHeight: 1,
-                textDecoration: 'none',
-                mt: 0.5,
-              }}
-            >
-              Pipeline Information & Project Evaluation
-            </Typography>
-          </Box>
+      <nav className="fixed top-0 left-0 w-full bg-black border-b border-black z-50">
+        <div className="flex items-center justify-between px-4 h-16">
+          {/* Mobile Hamburger */}
+          <div className="flex items-center md:hidden">
+            <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <div className="flex flex-col h-full">
+                  <div className="px-6 py-4 border-b">
+                    <span className="font-bold text-lg tracking-wider">PIPE</span>
+                    <div className="text-xs text-muted-foreground opacity-80">Pipeline Information & Project Evaluation</div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <ul className="flex flex-col gap-y-1 mt-2">
+                      {menuItems.map((item) => (
+                        <li key={item.text}>
+                          <RouterLink
+                            to={item.path}
+                            className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium"
+                            onClick={() => setDrawerOpen(false)}
+                          >
+                            {item.text}
+                          </RouterLink>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="border-t mt-2" />
+                    {isAuthenticated ? (
+                      <Button variant="ghost" className="w-full justify-start px-6 py-2 text-black font-medium" onClick={handleLogout}>
+                        Logout
+                      </Button>
+                    ) : (
+                      <>
+                        <RouterLink to="/login" className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium" onClick={() => setDrawerOpen(false)}>
+                          Login
+                        </RouterLink>
+                        <RouterLink to="/signup" className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium" onClick={() => setDrawerOpen(false)}>
+                          Sign Up
+                        </RouterLink>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
 
-          {isAuthenticated && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                {user?.first_name || user?.username || 'User'}
-              </Typography>
-              <IconButton
-                onClick={handleProfileMenuOpen}
-                sx={{ color: '#ffffff' }}
-              >
-                <Avatar sx={{ bgcolor: '#ffffff', color: '#000000' }}>
-                  <PersonIcon />
-                </Avatar>
-              </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleProfileMenuClose}
-              >
-                <MenuItem 
-                  component={RouterLink} 
-                  to="/profile"
-                  onClick={handleProfileMenuClose}
-                >
-                  Profile
-                </MenuItem>
-                <MenuItem 
-                  component={RouterLink} 
-                  to="/settings"
-                  onClick={handleProfileMenuClose}
-                >
-                  Settings
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
-              </Menu>
-            </Box>
-          )}
+          {/* Logo and Title */}
+          <RouterLink to="/" className="flex flex-col items-start text-white no-underline">
+            <span className="font-bold text-xl tracking-wider">PIPE</span>
+            <span className="text-xs opacity-80 font-normal">Pipeline Information & Project Evaluation</span>
+          </RouterLink>
 
-          {!isAuthenticated && !isMobile && (
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Button
-                component={RouterLink}
-                to="/login"
-                sx={{ color: '#ffffff' }}
-              >
-                Login
-              </Button>
-              <Button
-                component={RouterLink}
-                to="/signup"
-                sx={{ color: '#ffffff' }}
-              >
-                Sign Up
-              </Button>
-            </Box>
-          )}
-        </Toolbar>
-        <Drawer
-          anchor="left"
-          open={drawerOpen}
-          onClose={toggleDrawer(false)}
-        >
-          {drawer}
-        </Drawer>
-      </AppBar>
-      <Box sx={{ height: { xs: '56px', sm: '64px' } }} />
+          {/* Desktop Nav Links (moved to right) */}
+          <div className="flex-1 flex items-center justify-end">
+            <div className="hidden md:flex items-center gap-x-6">
+              {menuItems.map((item) => (
+                <RouterLink
+                  key={item.text}
+                  to={item.path}
+                  className="text-white font-medium hover:underline underline-offset-4 transition-colors"
+                >
+                  {item.text}
+                </RouterLink>
+              ))}
+            </div>
+          </div>
+
+          {/* User/Profile or Auth Buttons */}
+          <div className="flex items-center gap-x-2">
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-white">
+                    <User className="w-6 h-6" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-3 py-2">
+                    <div className="font-medium text-sm">{user?.first_name || user?.username || 'User'}</div>
+                  </div>
+                  <DropdownMenuItem asChild>
+                    <RouterLink to="/profile">Profile</RouterLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <RouterLink to="/settings">Settings</RouterLink>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:flex gap-x-2">
+                <Button asChild variant="ghost" className="text-white">
+                  <RouterLink to="/login">Login</RouterLink>
+                </Button>
+                <Button asChild variant="ghost" className="text-white">
+                  <RouterLink to="/signup">Sign Up</RouterLink>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
     </>
   );
 };

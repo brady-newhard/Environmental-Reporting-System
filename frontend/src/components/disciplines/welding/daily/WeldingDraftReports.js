@@ -1,132 +1,107 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Button,
-  Divider,
-} from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { ArrowLeft, Eye, Edit, Delete } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import PageHeader from '../../../common/PageHeader';
+import Footer from '../../../common/Footer';
+import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
+import { useAuth } from '../../../../contexts/AuthContext';
 
 const WeldingDraftReports = () => {
-  const [drafts, setDrafts] = useState([]);
   const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
+  const [drafts, setDrafts] = useState([]);
 
   useEffect(() => {
-    const savedDrafts = JSON.parse(localStorage.getItem('dailyWeldingReportDrafts') || '[]');
-    setDrafts(savedDrafts);
-  }, []);
+    const loadDrafts = async () => {
+      const drafts = await getAllDrafts('welding');
+      setDrafts(drafts.sort((a, b) => new Date(b.lastModified || 0) - new Date(a.lastModified || 0)));
+    };
+    if (!loading && isAuthenticated) {
+      loadDrafts();
+    }
+  }, [loading, isAuthenticated]);
 
-  const handleContinueDraft = (draftId) => {
-    navigate(`/welding/reports/daily?draftId=${draftId}`);
+  const handleResume = (draftId) => {
+    localStorage.setItem('welding_current_draftId', draftId);
+    navigate('/welding/reports/daily');
   };
 
-  const handleDeleteDraft = (draftId) => {
-    const updatedDrafts = drafts.filter(draft => draft.draftId !== draftId);
-    localStorage.setItem('dailyWeldingReportDrafts', JSON.stringify(updatedDrafts));
-    setDrafts(updatedDrafts);
+  const handleDelete = async (draftId) => {
+    if (window.confirm('Delete this draft?')) {
+      await deleteDraft('welding', draftId);
+      setDrafts(drafts.filter(d => d.id !== draftId));
+    }
   };
 
   return (
-    <Box sx={{ p: 3, bgcolor: '#f5f5f5', minHeight: 'calc(100vh - 64px)' }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Button
-          onClick={() => navigate('/welding/reports')}
-          sx={{
-            minWidth: 0,
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            bgcolor: '#000',
-            color: '#fff',
-            mr: 2,
-            '&:hover': { bgcolor: '#222' },
-            boxShadow: 1
+    <div className="relative min-h-[calc(100vh-64px)] overflow-auto">
+      <div className="absolute inset-0 bg-[url('/pipeline-bg.jpg')] bg-cover bg-center z-0" />
+      <div className="absolute inset-0 bg-black/60 z-10" />
+      <div className="relative z-20 p-4 sm:p-6">
+        <PageHeader 
+          title={<span className="text-white">Draft Welding Reports</span>}
+          backPath="/welding/reports"
+          backButtonStyle={{
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            '&:hover': { backgroundColor: '#333333' }
           }}
-        >
-          <ArrowBackIcon />
-        </Button>
-        <Typography variant="h5" sx={{ fontWeight: 600 }}>
-          Draft Welding Reports
-        </Typography>
-      </Box>
-      <TableContainer component={Paper} sx={{ width: '100%' }}>
-        <Box component="table" sx={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
-          <TableHead component="thead">
-            <TableRow>
-              <TableCell sx={{ width: { xs: '22%', sm: '25%' }, fontWeight: 600, fontSize: { xs: '0.85rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>Project</TableCell>
-              <TableCell sx={{ width: { xs: '22%', sm: '25%' }, fontWeight: 600, fontSize: { xs: '0.85rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>Work Date</TableCell>
-              <TableCell sx={{ width: { xs: '32%', sm: '25%' }, fontWeight: 600, fontSize: { xs: '0.85rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>Saved At</TableCell>
-              <TableCell sx={{ width: { xs: '24%', sm: '25%' }, fontWeight: 600, fontSize: { xs: '0.85rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <tbody>
-            {drafts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>No draft reports found.</TableCell>
-              </TableRow>
-            ) : (
-              drafts.map((draft, idx) => (
-                <React.Fragment key={draft.draftId}>
-                  <TableRow>
-                    <TableCell sx={{ width: { xs: '22%', sm: '25%' }, fontSize: { xs: '0.9rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>{draft.project}</TableCell>
-                    <TableCell sx={{ width: { xs: '22%', sm: '25%' }, fontSize: { xs: '0.9rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>{draft.workDate}</TableCell>
-                    <TableCell sx={{ width: { xs: '32%', sm: '25%' }, fontSize: { xs: '0.9rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>{new Date(draft.savedAt).toLocaleString()}</TableCell>
-                    <TableCell sx={{ width: { xs: '24%', sm: '25%' }, fontSize: { xs: '0.9rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}>
-                      <Box sx={{
-                        display: 'flex',
-                        flexDirection: { xs: 'column', sm: 'row' },
-                        gap: { xs: 1, sm: 1 },
-                        alignItems: { xs: 'stretch', sm: 'center' }
-                      }}>
+        />
+        <div className="bg-gray-800/40 backdrop-blur rounded-lg shadow border border-gray-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left p-4 text-white font-semibold">Project</th>
+                  <th className="text-left p-4 text-white font-semibold">Work Date</th>
+                  <th className="text-left p-4 text-white font-semibold">Saved At</th>
+                  <th className="text-left p-4 text-white font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {drafts.map((draft) => (
+                  <tr key={draft.id} className="border-b border-gray-700 last:border-0">
+                    <td className="p-4 text-white/80">{draft.project}</td>
+                    <td className="p-4 text-white/80">{new Date(draft.workDate).toLocaleDateString()}</td>
+                    <td className="p-4 text-white/80">{new Date(draft.lastModified).toLocaleString()}</td>
+                    <td className="p-4">
+                      <div className="flex gap-2">
                         <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => handleContinueDraft(draft.draftId)}
-                          sx={{ mr: { xs: 0, sm: 1 }, mb: { xs: 1, sm: 0 }, fontSize: { xs: '0.8rem', sm: '1rem' }, px: { xs: 1, sm: 2 }, py: { xs: 0.5, sm: 1 } }}
+                          variant="ghost"
+                          size="icon"
+                          className="text-white/80 hover:text-white hover:bg-white/10"
+                          onClick={() => handleResume(draft.id)}
                         >
-                          Continue
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="contained"
-                          onClick={() => handleDeleteDraft(draft.draftId)}
-                          sx={{
-                            fontSize: { xs: '0.8rem', sm: '1rem' },
-                            px: { xs: 1, sm: 2 },
-                            py: { xs: 0.5, sm: 1 },
-                            bgcolor: '#ff1744',
-                            color: '#fff',
-                            '&:hover': { bgcolor: '#b2102f' }
-                          }}
+                          variant="ghost"
+                          size="icon"
+                          className="text-white/80 hover:text-white hover:bg-white/10"
+                          onClick={() => navigate(`/welding/reports/daily/review/${draft.id}`)}
                         >
-                          Delete
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                  {idx < drafts.length - 1 && (
-                    <tr>
-                      <td colSpan={4} style={{ padding: 0 }}>
-                        <Box sx={{ my: 1 }} />
-                        <Divider />
-                        <Box sx={{ my: 1 }} />
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))
-            )}
-          </tbody>
-        </Box>
-      </TableContainer>
-    </Box>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500/80 hover:text-red-500 hover:bg-red-500/10"
+                          onClick={() => handleDelete(draft.id)}
+                        >
+                          <Delete className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
   );
 };
 

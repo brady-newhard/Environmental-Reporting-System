@@ -1,106 +1,83 @@
 import React from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Description as DescriptionIcon } from '@mui/icons-material';
-import PageHeader from '../../../../components/common/PageHeader';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FileText, Book, Wrench } from 'lucide-react';
+import PageHeader from '../../../common/PageHeader';
+import Footer from '../../../common/Footer';
 
-const UtilityDashboard = () => {
+const CategoryCard = ({ title, icon: Icon, description, path }) => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ 
-      bgcolor: '#f5f5f5', 
-      minHeight: 'calc(100vh - 64px)',
-      overflow: 'auto'
-    }}>
-      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+    <Card className="h-52 w-full flex flex-col bg-gray-800/40 backdrop-blur rounded-lg shadow hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray-700">
+      <CardContent className="flex-1 flex flex-col gap-4 p-6">
+        <div className="flex items-center gap-3">
+          <Icon className="text-white w-8 h-8" />
+          <span className="text-lg font-semibold text-white">{title}</span>
+        </div>
+        <span className="text-sm text-white/80 flex-1">{description}</span>
+        <Button
+          className="bg-black hover:bg-zinc-800 text-white font-medium h-10 text-sm w-full mt-auto"
+          onClick={() => navigate(path)}
+        >
+          View {title}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+const UtilityDashboard = () => {
+  const categories = [
+    {
+      title: "Reports",
+      icon: FileText,
+      description: "Create and manage utility reports, inspections, and quality control documentation.",
+      path: "/utility/reports"
+    },
+    {
+      title: "Specifications",
+      icon: Book,
+      description: "Access utility specifications, standards, and technical requirements.",
+      path: "/utility/specifications"
+    },
+    {
+      title: "Procedures",
+      icon: Wrench,
+      description: "View and manage Utility Procedure Specifications and related documents.",
+      path: "/utility/procedures"
+    }
+  ];
+
+  return (
+    <div className="relative min-h-[calc(100vh-64px)] overflow-auto">
+      <div className="absolute inset-0 bg-[url('/pipeline-bg.jpg')] bg-cover bg-center z-0" />
+      <div className="absolute inset-0 bg-black/60 z-10" />
+      <div className="relative z-20 p-4 sm:p-6">
         <PageHeader 
-          title="Utility Dashboard"
-          backPath="/disciplines"
+          title={<span className="text-white">Utility Management</span>}
+          backPath="/"
           backButtonStyle={{
             backgroundColor: '#000000',
             color: '#ffffff',
-            '&:hover': {
-              backgroundColor: '#333333'
-            }
+            '&:hover': { backgroundColor: '#333333' }
           }}
         />
-        <Card sx={{ 
-          mt: 2,
-          bgcolor: '#fff',
-          borderRadius: '8px',
-          '&:hover': {
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            transform: 'translateY(-2px)',
-            transition: 'all 0.3s ease',
-          },
-        }}>
-          <CardContent sx={{ 
-            p: 3,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-          }}>
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              gap: 2,
-            }}>
-              <DescriptionIcon sx={{ 
-                color: '#000000',
-                fontSize: '2rem',
-              }} />
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  color: '#000000', 
-                  fontWeight: 600,
-                  fontSize: '1.25rem',
-                }}
-              >
-                Reports
-              </Typography>
-            </Box>
-            
-            <Typography 
-              variant="body2" 
-              sx={{ 
-                color: '#666666',
-              }}
-            >
-              Access and manage all utility reports including Payload and I3 Daily Utility Reports.
-            </Typography>
-
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={() => navigate('/utility/reports')}
-              sx={{
-                backgroundColor: '#000000',
-                '&:hover': { 
-                  backgroundColor: '#333333',
-                  transform: 'scale(1.02)',
-                  transition: 'all 0.2s ease',
-                },
-                color: '#ffffff',
-                fontWeight: 500,
-                height: 40,
-                fontSize: '0.875rem',
-                textTransform: 'none',
-              }}
-            >
-              View Reports
-            </Button>
-          </CardContent>
-        </Card>
-      </Box>
-    </Box>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {categories.map((category, index) => (
+            <CategoryCard
+              key={index}
+              title={category.title}
+              icon={category.icon}
+              description={category.description}
+              path={category.path}
+            />
+          ))}
+        </div>
+      </div>
+      <Footer />
+    </div>
   );
 };
 
