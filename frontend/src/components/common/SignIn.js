@@ -63,8 +63,8 @@ const SignIn = () => {
     <div className="min-h-screen w-full flex items-center justify-center md:justify-end bg-cover bg-center bg-no-repeat"
          style={{
            backgroundImage: `url(${window.innerWidth <= 768 
-             ? '/pipeline-bg2.jpg' 
-             : '/pipeline-bg.jpg'})`
+             ? '/pipeline-bg.jpg' 
+             : '/pipeline-bg2.jpg'})`
          }}>
       <div className="absolute inset-0 bg-black/50" />
       
