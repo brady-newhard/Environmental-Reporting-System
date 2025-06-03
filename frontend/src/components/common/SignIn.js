@@ -60,62 +60,61 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center md:justify-end bg-cover bg-center bg-no-repeat"
-         style={{
-           backgroundImage: `url(${window.innerWidth <= 768 
-             ? '/pipeline-bg.jpg' 
-             : '/pipeline-bg2.jpg'})`
-         }}>
-      <div className="absolute inset-0 bg-black/50" />
-      
-      <div className="relative w-full max-w-md p-8 space-y-8 bg-card/95 backdrop-blur-sm rounded-lg shadow-xl md:mr-16">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
-          <p className="mt-2 text-white/80">Sign in to your account</p>
+    <div className="min-h-screen w-full flex flex-col md:flex-row items-center justify-center bg-cover bg-center bg-no-repeat relative" style={{ backgroundImage: `url('/pipeline-bg.jpg')` }}>
+      <div className="absolute inset-0 bg-black/50 z-0" />
+      {/* Left: Logo and Quote */}
+      <div className="flex flex-col items-center justify-start flex-1 z-10 px-4 md:px-0 md:pl-12 mb-4 md:mb-0">
+        <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-80 md:h-80 lg:h-80 w-auto object-contain mb-[-4rem]" />
+        <span className="text-center text-base md:text-lg lg:text-lg text-zinc-200 italic font-medium w-full whitespace-nowrap">"Streamline the report. Elevate the result."</span>
+      </div>
+      {/* Right: Sign In Card */}
+      <div className="flex flex-col items-center justify-center flex-1 z-10 px-4 md:px-0 md:pr-16">
+        <div className="relative w-full max-w-md p-8 space-y-8 bg-card/95 backdrop-blur-sm rounded-lg shadow-xl">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-white">Welcome Back!</h1>
+            <p className="mt-2 text-white/80">Sign in to your account</p>
+          </div>
+          {error && (
+            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60" />
+                <Input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Username"
+                  required
+                  className="pl-10 w-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Password"
+                  required
+                  className="pl-10 w-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
+                />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black hover:bg-black/90 text-white font-semibold"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
         </div>
-
-        {error && (
-          <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60" />
-              <Input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Username"
-                required
-                className="pl-10 w-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
-              />
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/60" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Password"
-                required
-                className="pl-10 w-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20"
-              />
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black hover:bg-black/90 text-white font-semibold"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </form>
       </div>
     </div>
   );

@@ -11,10 +11,10 @@ const PageHeader = ({ title, backPath }) => {
       {backPath && (
         <Button
           onClick={() => navigate(backPath)}
-          className="bg-white hover:bg-zinc-200 text-black rounded-full p-2 h-12 w-12 shadow border border-zinc-300 flex items-center justify-center"
+          className="!p-0 bg-white hover:bg-zinc-200 text-black rounded-full h-12 w-12 shadow border border-zinc-300 flex items-center justify-center"
           style={{}}
         >
-          <ArrowLeft className="h-9 w-9 text-black" />
+          <ArrowLeft className="h-11 w-11 max-w-full max-h-full text-black" />
         </Button>
       )}
       <h1 className="text-2xl font-semibold">{title}</h1>
