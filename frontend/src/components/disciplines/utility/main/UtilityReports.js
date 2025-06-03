@@ -1,238 +1,109 @@
 import React from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Add as AddIcon } from '@mui/icons-material';
-import PageHeader from '../../../../components/common/PageHeader';
-import Badge from '@mui/material/Badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FileText, ClipboardList } from 'lucide-react';
+import PageHeader from '../../../common/PageHeader';
+import Footer from '../../../common/Footer';
 import { getDraftCount } from '../../../../utils/draftUtils';
 import { useAuth } from '../../../../contexts/AuthContext';
 
-const UtilityReports = () => {
+const ReportCard = ({ title, icon: Icon, description, path, secondaryAction, reportType }) => {
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useAuth();
-  const [payloadDraftCount, setPayloadDraftCount] = React.useState(0);
-  const [i3DraftCount, setI3DraftCount] = React.useState(0);
+  const [draftCount, setDraftCount] = React.useState(0);
 
   React.useEffect(() => {
-    const loadDraftCounts = async () => {
-      setPayloadDraftCount(await getDraftCount('utility'));
-      setI3DraftCount(await getDraftCount('i3_utility'));
-    };
-    if (!loading && isAuthenticated) {
-      loadDraftCounts();
+    if (secondaryAction && reportType && !loading && isAuthenticated) {
+      getDraftCount(reportType).then(setDraftCount);
     }
-  }, [loading, isAuthenticated]);
+  }, [secondaryAction, reportType, loading, isAuthenticated]);
+
+  const handleFillOut = () => {
+    navigate(path);
+  };
+
+  const handleViewDrafts = () => {
+    navigate(secondaryAction.path);
+  };
 
   return (
-    <Box sx={{ 
-      bgcolor: '#f5f5f5', 
-      minHeight: 'calc(100vh - 64px)',
-      overflow: 'auto'
-    }}>
-      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+    <Card className="h-52 w-full flex flex-col bg-gray-800/40 backdrop-blur rounded-lg shadow hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray-700">
+      <CardContent className="flex-1 flex flex-col gap-4 p-6">
+        <div className="flex items-center gap-3">
+          <Icon className="text-white w-8 h-8" />
+          <span className="text-lg font-semibold text-white">{title}</span>
+        </div>
+        <span className="text-sm text-white/80 flex-1">{description}</span>
+        <div className="flex flex-col gap-2">
+          <Button
+            className="bg-black hover:bg-zinc-800 text-white font-medium h-10 text-sm w-full"
+            onClick={handleFillOut}
+          >
+            Fill Out Report
+          </Button>
+          {secondaryAction && (
+            <Button
+              variant="ghost"
+              className="text-white/80 hover:text-white hover:bg-white/10 h-8 text-sm w-full"
+              onClick={handleViewDrafts}
+            >
+              {secondaryAction.text}
+              {draftCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {draftCount}
+                </span>
+              )}
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const UtilityReports = () => {
+  return (
+    <div className="relative min-h-[calc(100vh-64px)] overflow-auto">
+      <div className="absolute inset-0 bg-[url('/pipeline-bg.jpg')] bg-cover bg-center z-0" />
+      <div className="absolute inset-0 bg-black/60 z-10" />
+      <div className="relative z-20 p-4 sm:p-6">
         <PageHeader 
-          title="Utility Reports"
+          title={<span className="text-white">Utility Reports</span>}
           backPath="/utility"
           backButtonStyle={{
             backgroundColor: '#000000',
             color: '#ffffff',
-            '&:hover': {
-              backgroundColor: '#333333'
-            }
+            '&:hover': { backgroundColor: '#333333' }
           }}
         />
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mt: 2 }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Card sx={{ 
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              bgcolor: '#fff',
-              borderRadius: '8px',
-              '&:hover': {
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                transform: 'translateY(-2px)',
-                transition: 'all 0.3s ease',
-              },
-            }}>
-              <CardContent sx={{ 
-                flex: 1,
-                p: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                '&:last-child': { pb: 2 }
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  gap: 2,
-                }}>
-                  <AddIcon sx={{ 
-                    color: '#000000',
-                    fontSize: '2rem',
-                  }} />
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      color: '#000000', 
-                      fontWeight: 600,
-                      fontSize: '1.25rem',
-                    }}
-                  >
-                    New Pay Item Report
-                  </Typography>
-                </Box>
-                
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    color: '#666666',
-                    flex: 1,
-                  }}
-                >
-                  Create a new pay item report to document daily expenses.
-                </Typography>
-
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() => navigate('/utility/reports/daily/new')}
-                  sx={{
-                    backgroundColor: '#000000',
-                    '&:hover': { 
-                      backgroundColor: '#333333',
-                      transform: 'scale(1.02)',
-                      transition: 'all 0.2s ease',
-                    },
-                    color: '#ffffff',
-                    fontWeight: 500,
-                    height: 40,
-                    fontSize: '0.875rem',
-                    textTransform: 'none',
-                  }}
-                >
-                  Create New Report
-                </Button>
-                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
-                  <Button
-                    variant="text"
-                    onClick={() => navigate('/utility/reports/daily/drafts')}
-                    sx={{
-                      color: '#000',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      textTransform: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      '&:hover': { textDecoration: 'underline', background: 'none' },
-                    }}
-                  >
-                    <Badge badgeContent={payloadDraftCount} color="error" overlap="circular" sx={{ '& .MuiBadge-badge': { right: -12, top: 6 } }}>
-                      View Draft Reports
-                    </Badge>
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 0, mt: { xs: 3, md: 0 } }}>
-            <Card sx={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              bgcolor: '#fff',
-              borderRadius: '8px',
-              '&:hover': {
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                transform: 'translateY(-2px)',
-                transition: 'all 0.3s ease',
-              },
-            }}>
-              <CardContent sx={{
-                flex: 1,
-                p: 3,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                '&:last-child': { pb: 2 }
-              }}>
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                }}>
-                  <AddIcon sx={{
-                    color: '#000000',
-                    fontSize: '2rem',
-                  }} />
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: '#000000',
-                      fontWeight: 600,
-                      fontSize: '1.25rem',
-                    }}
-                  >
-                    New I3 Daily Utility Report
-                  </Typography>
-                </Box>
-                <Typography variant="body2" sx={{ color: '#666666', flex: 1 }}>
-                  Create a new I3 daily utility report for detailed construction tracking.
-                </Typography>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() => navigate('/utility/reports/daily/i3')}
-                  sx={{
-                    backgroundColor: '#000000',
-                    '&:hover': {
-                      backgroundColor: '#333333',
-                      transform: 'scale(1.02)',
-                      transition: 'all 0.2s ease',
-                    },
-                    color: '#ffffff',
-                    fontWeight: 500,
-                    height: 40,
-                    fontSize: '0.875rem',
-                    textTransform: 'none',
-                  }}
-                >
-                  Create I3 Report
-                </Button>
-                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
-                  <Button
-                    variant="text"
-                    onClick={() => navigate('/utility/reports/daily/i3/drafts')}
-                    sx={{
-                      color: '#000',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      textTransform: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      '&:hover': { textDecoration: 'underline', background: 'none' },
-                    }}
-                  >
-                    <Badge badgeContent={i3DraftCount} color="error" overlap="circular" sx={{ '& .MuiBadge-badge': { right: -12, top: 6 } }}>
-                      View Draft Reports
-                    </Badge>
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <ReportCard
+            title="Payload Report"
+            icon={FileText}
+            description="Complete the daily payload report for utility work."
+            path="/utility/reports/payload"
+            secondaryAction={{
+              text: "View Draft Reports",
+              path: "/utility/reports/drafts"
+            }}
+            reportType="utility_payload"
+          />
+          <ReportCard
+            title="I3 Daily Report"
+            icon={ClipboardList}
+            description="Complete the I3 daily report for utility work."
+            path="/utility/reports/i3"
+            secondaryAction={{
+              text: "View Draft Reports",
+              path: "/utility/reports/i3-drafts"
+            }}
+            reportType="utility_i3"
+          />
+        </div>
+      </div>
+      <Footer />
+    </div>
   );
 };
 

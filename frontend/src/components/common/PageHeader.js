@@ -1,32 +1,24 @@
 import React from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-const PageHeader = ({ title, backPath, backButtonStyle }) => {
+const PageHeader = ({ title, backPath }) => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+    <div className="mb-6 flex items-center gap-4">
       {backPath && (
-        <IconButton
+        <Button
           onClick={() => navigate(backPath)}
-          sx={{
-            backgroundColor: '#000000',
-            color: '#ffffff',
-            '&:hover': {
-              backgroundColor: '#333333',
-            },
-            ...backButtonStyle
-          }}
+          className="bg-white hover:bg-zinc-200 text-black rounded-full p-2 h-12 w-12 shadow border border-zinc-300 flex items-center justify-center"
+          style={{}}
         >
-          <ArrowBack />
-        </IconButton>
+          <ArrowLeft className="h-9 w-9 text-black" />
+        </Button>
       )}
-      <Typography variant="h4" sx={{ fontWeight: 600 }}>
-        {title}
-      </Typography>
-    </Box>
+      <h1 className="text-2xl font-semibold">{title}</h1>
+    </div>
   );
 };
 

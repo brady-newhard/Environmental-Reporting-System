@@ -1,162 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  IconButton,
-  Badge,
-} from '@mui/material';
-import {
-  Assignment as ReportIcon,
-  WaterDrop as SWPPPIcon,
-  ListAlt as PunchlistIcon,
-  Timeline as ProgressIcon,
-  Report as VarianceIcon,
-  ArrowBack as ArrowBackIcon,
-} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { FileText, ClipboardList, AlertCircle, BarChart2, FileWarning } from 'lucide-react';
 import PageHeader from '../../../common/PageHeader';
-import { indexedDBStorage } from '../../../../utils/indexedDBConfig';
+import Footer from '../../../common/Footer';
 import { getDraftCount } from '../../../../utils/draftUtils';
 import { useAuth } from '../../../../contexts/AuthContext';
 
 const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount, onCreate }) => {
   const navigate = useNavigate();
-
   return (
-    <Card sx={{
-      height: 200,
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      bgcolor: '#fff',
-      borderRadius: '8px',
-      '&:hover': {
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        transform: 'translateY(-2px)',
-        transition: 'all 0.3s ease',
-      },
-      pb: 3,
-    }}>
-      <CardContent sx={{ 
-        flex: 1,
-        p: 3,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
-        '&:last-child': { pb: 2 }
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          gap: 2,
-        }}>
-          <Icon sx={{ 
-            color: '#000000',
-            fontSize: '2rem',
-          }} />
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              color: '#000000', 
-              fontWeight: 600,
-              fontSize: '1.25rem',
-            }}
-          >
-            {title}
-          </Typography>
-        </Box>
-        
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            color: '#666666',
-            flex: 1,
-            mb: 0.5,
-          }}
-        >
-          {description}
-        </Typography>
-
+    <Card className="h-52 w-full flex flex-col bg-gray-800/40 backdrop-blur rounded-lg shadow hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray-700">
+      <CardContent className="flex-1 flex flex-col gap-4 p-6">
+        <div className="flex items-center gap-3">
+          <Icon className="text-white w-8 h-8" />
+          <span className="text-lg font-semibold text-white">{title}</span>
+        </div>
+        <span className="text-sm text-white/80 flex-1">{description}</span>
         <Button
-          variant="contained"
-          fullWidth
+          className="bg-black hover:bg-zinc-800 text-white font-medium h-10 text-sm w-full mt-auto"
           onClick={onCreate ? onCreate : () => navigate(path)}
-          sx={{
-            backgroundColor: '#000000',
-            '&:hover': { 
-              backgroundColor: '#333333',
-              transform: 'scale(1.02)',
-              transition: 'all 0.2s ease',
-            },
-            color: '#ffffff',
-            fontWeight: 500,
-            height: 40,
-            fontSize: '0.875rem',
-            textTransform: 'none',
-            mb: 0.1,
-          }}
         >
           Create New Report
         </Button>
         {draftPath && (
-          <Box
+          <div
             onClick={() => navigate(draftPath)}
-            sx={{
-              cursor: 'pointer',
-              textAlign: 'center',
-              mt: 0.5,
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            className="cursor-pointer text-center mt-2 w-full flex items-center justify-center"
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: 'primary.main',
-                  fontWeight: 500,
-                }}
-              >
-                View Draft Reports
-              </Typography>
-              <Badge
-                badgeContent={draftCount}
-                color="error"
-                overlap="circular"
-                sx={{
-                  '& .MuiBadge-badge': {
-                    right: 0,
-                    top: 0,
-                    minWidth: 20,
-                    height: 20,
-                    fontSize: '0.75rem',
-                  }
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    bgcolor: 'transparent',
-                    display: 'inline-block',
-                  }}
-                />
-              </Badge>
-            </Box>
-          </Box>
+            <span className="text-blue-400 font-medium text-sm flex items-center gap-2">
+              View Draft Reports
+              {draftCount > 0 && (
+                <span className="ml-1 bg-red-600/80 text-white px-2 py-0.5 rounded-full text-xs">
+                  {draftCount}
+                </span>
+              )}
+            </span>
+          </div>
         )}
       </CardContent>
     </Card>
   );
 };
 
-const EnvironmentalReports = () => {
+const EnvironmentalDashboard = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useAuth();
   const [swpppDraftCount, setSwpppDraftCount] = useState(0);
@@ -186,7 +74,7 @@ const EnvironmentalReports = () => {
   const reportTypes = [
     {
       title: "Daily Report",
-      icon: ReportIcon,
+      icon: FileText,
       description: "Activities and Compliance.",
       path: "/environmental/reports/daily/new",
       draftPath: "/environmental/reports/daily/drafts",
@@ -194,7 +82,7 @@ const EnvironmentalReports = () => {
     },
     {
       title: "SWPPP Report",
-      icon: SWPPPIcon,
+      icon: ClipboardList,
       description: "State SWPPP Inspection",
       path: "/swppp/new",
       draftPath: "/swppp-drafts",
@@ -202,7 +90,7 @@ const EnvironmentalReports = () => {
     },
     {
       title: "Environmental Punchlist",
-      icon: PunchlistIcon,
+      icon: AlertCircle,
       description: "Environmental Compliance Items",
       path: "/new-punchlist",
       draftPath: "/punchlist-drafts",
@@ -211,53 +99,50 @@ const EnvironmentalReports = () => {
     },
     {
       title: "Progress Report",
-      icon: ProgressIcon,
+      icon: BarChart2,
       description: "Project Progress Chart",
       path: "/new-progress-report"
     },
     {
       title: "Variance Report",
-      icon: VarianceIcon,
+      icon: FileWarning,
       description: "Plan Deviations & Requests",
       path: "/variance/new"
     }
   ];
 
   return (
-    <Box sx={{ 
-      p: { xs: 2, sm: 3 }, 
-      bgcolor: '#f5f5f5', 
-      minHeight: 'calc(100vh - 64px)',
-      overflow: 'auto'
-    }}>
-      <PageHeader 
-        title="Create Environmental Report" 
-        backPath="/environmental"
-      />
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          sm: 'repeat(2, 1fr)',
-          lg: 'repeat(3, 1fr)',
-        },
-        gap: 3,
-      }}>
-        {reportTypes.map((type, index) => (
-          <ReportTypeCard
-            key={index}
-            title={type.title}
-            icon={type.icon}
-            description={type.description}
-            path={type.path}
-            draftPath={type.draftPath}
-            draftCount={type.draftCount}
-            onCreate={type.onCreate}
-          />
-        ))}
-      </Box>
-    </Box>
+    <div className="relative min-h-[calc(100vh-64px)] overflow-auto">
+      <div className="absolute inset-0 bg-[url('/pipeline-bg.jpg')] bg-cover bg-center z-0" />
+      <div className="absolute inset-0 bg-black/60 z-10" />
+      <div className="relative z-20 p-4 sm:p-6">
+        <PageHeader 
+          title={<span className="text-white">Create Environmental Report</span>}
+          backPath="/environmental"
+          backButtonStyle={{
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            '&:hover': { backgroundColor: '#333333' }
+          }}
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reportTypes.map((type, index) => (
+            <ReportTypeCard
+              key={index}
+              title={type.title}
+              icon={type.icon}
+              description={type.description}
+              path={type.path}
+              draftPath={type.draftPath}
+              draftCount={type.draftCount}
+              onCreate={type.onCreate}
+            />
+          ))}
+        </div>
+      </div>
+      <Footer />
+    </div>
   );
 };
 
-export default EnvironmentalReports; 
+export default EnvironmentalDashboard; 
