@@ -30,20 +30,27 @@ const Navigation = () => {
   return (
     <>
       <nav className="fixed top-0 left-0 w-full bg-black border-b border-black z-50">
-        <div className="flex items-center justify-between px-4 h-16">
-          {/* Mobile Hamburger */}
-          <div className="flex items-center md:hidden">
+        <div className="flex items-center justify-between px-0.5 h-16 relative">
+          {/* Mobile Logo (left) */}
+          <div className="flex items-center flex-shrink-0">
+            <RouterLink to="/" className="flex items-center no-underline">
+              <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain" />
+            </RouterLink>
+          </div>
+
+          {/* Mobile Hamburger (center) */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:hidden z-10">
             <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-white">
-                  <Menu className="w-6 h-6" />
+                  <Menu className="w-15 h-15" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-64">
                 <div className="flex flex-col h-full">
-                  <div className="px-6 py-4 border-b">
-                    <span className="font-bold text-lg tracking-wider">PIPE</span>
-                    <div className="text-xs text-muted-foreground opacity-80">Pipeline Information & Project Evaluation</div>
+                  <div className="px-6 py-4 border-b flex flex-col items-start">
+                    <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto object-contain mb-2" />
+                    <span className="text-left text-sm text-zinc-400 italic font-medium">"Streamline the report. Elevate the result."</span>
                   </div>
                   <div className="flex-1 overflow-y-auto">
                     <ul className="flex flex-col gap-y-1 mt-2">
@@ -80,14 +87,8 @@ const Navigation = () => {
             </Sheet>
           </div>
 
-          {/* Logo and Title */}
-          <RouterLink to="/" className="flex flex-col items-start text-white no-underline">
-            <span className="font-bold text-xl tracking-wider">PIPE</span>
-            <span className="text-xs opacity-80 font-normal">Pipeline Information & Project Evaluation</span>
-          </RouterLink>
-
-          {/* Desktop Nav Links (moved to right) */}
-          <div className="flex-1 flex items-center justify-end">
+          {/* Desktop Nav Links and Profile (right) */}
+          <div className="flex-1 flex items-center justify-end gap-x-6">
             <div className="hidden md:flex items-center gap-x-6">
               {menuItems.map((item) => (
                 <RouterLink
@@ -99,41 +100,38 @@ const Navigation = () => {
                 </RouterLink>
               ))}
             </div>
-          </div>
-
-          {/* User/Profile or Auth Buttons */}
-          <div className="flex items-center gap-x-2">
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-white">
-                    <User className="w-6 h-6" />
+            {/* User/Profile or Auth Buttons */}
+            <div className="flex items-center gap-x-2">
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-2 border border-white rounded-full px-3 py-1 cursor-pointer hover:bg-white/10 transition-colors">
+                      <span className="text-white font-medium text-base">{user?.first_name || user?.username || 'User'}</span>
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <RouterLink to="/profile">Profile</RouterLink>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <RouterLink to="/settings">Settings</RouterLink>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="hidden md:flex gap-x-2">
+                  <Button asChild variant="ghost" className="text-white">
+                    <RouterLink to="/login">Login</RouterLink>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <div className="px-3 py-2">
-                    <div className="font-medium text-sm">{user?.first_name || user?.username || 'User'}</div>
-                  </div>
-                  <DropdownMenuItem asChild>
-                    <RouterLink to="/profile">Profile</RouterLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <RouterLink to="/settings">Settings</RouterLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="hidden md:flex gap-x-2">
-                <Button asChild variant="ghost" className="text-white">
-                  <RouterLink to="/login">Login</RouterLink>
-                </Button>
-                <Button asChild variant="ghost" className="text-white">
-                  <RouterLink to="/signup">Sign Up</RouterLink>
-                </Button>
-              </div>
-            )}
+                  <Button asChild variant="ghost" className="text-white">
+                    <RouterLink to="/signup">Sign Up</RouterLink>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>
