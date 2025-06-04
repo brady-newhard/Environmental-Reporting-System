@@ -33,12 +33,6 @@ urlpatterns = [
     path('api/login/', CustomAuthToken.as_view(), name='api_token_auth'),
 ]
 
-# Serve static files in production
-if not settings.DEBUG:
-    urlpatterns += [
-        re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-    ]
-
 # Add static and media URLs in development
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
