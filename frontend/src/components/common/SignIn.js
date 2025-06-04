@@ -63,14 +63,14 @@ const SignIn = () => {
     <div 
       className="min-h-screen w-full flex flex-col md:flex-row items-center justify-center bg-cover bg-center bg-no-repeat relative" 
       style={{ 
-        backgroundImage: `url('${window.location.origin}/static/pipeline-bg.jpg')`,
+        backgroundImage: `url('/static/pipeline-bg.jpg')`,
       }}
     >
       <div className="absolute inset-0 bg-black/50 z-0" />
       {/* Left: Logo and Quote */}
       <div className="flex flex-col items-center justify-start flex-1 z-10 px-4 md:px-0 md:pl-12 mb-4 md:mb-0">
         <img 
-          src={`${window.location.origin}/static/PIPE-Logo.png`} 
+          src="/static/PIPE-Logo.png" 
           alt="PIPE Logo" 
           className="h-80 md:h-80 lg:h-80 w-auto object-contain mb-[-4rem]"
           onError={(e) => {
