@@ -35,6 +35,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "cp -r public/* dist/",
     "preview": "vite preview"
   },
   "eslintConfig": {
