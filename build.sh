@@ -12,7 +12,7 @@ echo "Setting up static files..."
 # Create staticfiles directory if it doesn't exist
 mkdir -p staticfiles
 
-# Copy frontend build files
+# Copy frontend build files to staticfiles
 echo "Copying frontend build files..."
 cp -r frontend/dist/* staticfiles/
 
