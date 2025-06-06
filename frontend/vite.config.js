@@ -14,6 +14,16 @@ export default defineConfig({
     },
     extensions: ['.js', '.jsx', '.json']
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
+    },
+  },
+  publicDir: 'public',
   esbuild: {
     loader: 'jsx',
     include: /src\/.*\.[tj]sx?$/,
