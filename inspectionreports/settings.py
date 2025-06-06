@@ -74,7 +74,10 @@ ROOT_URLCONF = 'inspectionreports.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',
+            BASE_DIR / 'frontend' / 'dist',  # Frontend build directory
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,8 +139,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'frontend' / 'public',  # This will include the static directory
-    BASE_DIR / 'frontend' / 'dist',
+    BASE_DIR / 'frontend' / 'dist' / 'assets',  # Frontend build assets
+    BASE_DIR / 'frontend' / 'public' / 'static',  # Public static files
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
