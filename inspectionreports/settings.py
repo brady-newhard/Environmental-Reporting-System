@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_framework_nested',
+    'drf_nested_routers',
     'corsheaders',
     'core',  # Core functionality
     'users',  # User management
