@@ -1,1 +1,1 @@
-web: gunicorn inspectionreports.wsgi --log-file - 
+web: ./build.sh && gunicorn inspectionreports.wsgi:application --log-file - 

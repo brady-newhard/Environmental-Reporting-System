@@ -76,7 +76,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             BASE_DIR / 'templates',
-            BASE_DIR / 'staticfiles',  # Frontend build directory
+            BASE_DIR / 'frontend' / 'dist',  # Frontend build directory
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -139,9 +139,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'staticfiles',  # Main static files directory
+    BASE_DIR / 'frontend' / 'dist',  # Frontend build directory
+    BASE_DIR / 'frontend' / 'public' / 'static',  # Public static files
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # This is where collectstatic will put files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploaded files)
