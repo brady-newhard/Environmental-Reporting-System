@@ -5,7 +5,8 @@ set -e
 
 echo "Building frontend..."
 cd frontend
-npm run build
+# Use production build with reduced memory usage
+NODE_OPTIONS="--max-old-space-size=512" npm run build
 cd ..
 
 echo "Setting up static files..."

@@ -1,0 +1,27 @@
+{
+  "name": "Environmental Reporting System",
+  "description": "A system for managing environmental pipeline reports",
+  "repository": "https://github.com/yourusername/environmental-reporting-system",
+  "keywords": ["python", "django", "react"],
+  "env": {
+    "SECRET_KEY": {
+      "description": "A secret key for verifying the integrity of signed cookies.",
+      "generator": "secret"
+    },
+    "DISABLE_COLLECTSTATIC": {
+      "description": "Disable collectstatic during build",
+      "value": "1"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "addons": [
+    "heroku-postgresql"
+  ]
+} 
