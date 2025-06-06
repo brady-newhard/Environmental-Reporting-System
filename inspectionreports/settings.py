@@ -136,7 +136,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'frontend' / 'public' / 'static',
+    BASE_DIR / 'frontend' / 'public',  # This will include the static directory
     BASE_DIR / 'frontend' / 'dist',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
