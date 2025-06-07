@@ -6,20 +6,39 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 
 console.log('Starting React application...');
-const rootElement = document.getElementById('root');
-console.log('Root element:', rootElement);
 
-const root = ReactDOM.createRoot(rootElement);
-console.log('Created root:', root);
+try {
+  const rootElement = document.getElementById('root');
+  console.log('Root element:', rootElement);
 
-root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
-);
-console.log('Rendered application');
+  if (!rootElement) {
+    throw new Error('Root element not found');
+  }
+
+  const root = ReactDOM.createRoot(rootElement);
+  console.log('Created root:', root);
+
+  root.render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+  console.log('Rendered application');
+} catch (error) {
+  console.error('Error mounting React application:', error);
+  // Display error in the DOM
+  const rootElement = document.getElementById('root');
+  if (rootElement) {
+    rootElement.innerHTML = `
+      <div style="color: red; padding: 20px;">
+        <h2>Error Loading Application</h2>
+        <pre>${error.message}</pre>
+      </div>
+    `;
+  }
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
