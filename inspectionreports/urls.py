@@ -41,8 +41,14 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('core.urls')),
-    path('api/users/', include('users.urls')),
+    path('api/', include('reports.urls')),
+    path('api/', include('users.urls')),
+    path('api/', include('notifications.urls')),
+    path('api/', include('audit.urls')),
+    path('api/', include('dashboard.urls')),
+    path('api/', include('export.urls')),
+    path('api/', include('import.urls')),
+    path('api/', include('settings.urls')),
     path('api/environmental/', include('disciplines.environmental.urls')),
     path('api/coating/', include('disciplines.coating.urls')),
     path('api/welding/', include('disciplines.welding.urls')),
@@ -54,27 +60,26 @@ urlpatterns = [
 
 # Serve static files in production
 if not settings.DEBUG:
+    # Serve static files from STATIC_ROOT
     urlpatterns += [
         re_path(r'^staticfiles/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-        re_path(r'^staticfiles/assets/(?P<path>.*)$', serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'assets')}),
-        re_path(r'^staticfiles/favicon.ico$', serve, {'path': 'favicon.ico', 'document_root': settings.STATIC_ROOT}),
-        re_path(r'^staticfiles/manifest.json$', serve, {'path': 'manifest.json', 'document_root': settings.STATIC_ROOT}),
-        re_path(r'^staticfiles/logo192.png$', serve, {'path': 'logo192.png', 'document_root': settings.STATIC_ROOT}),
-        re_path(r'^staticfiles/logo512.png$', serve, {'path': 'logo512.png', 'document_root': settings.STATIC_ROOT}),
-        re_path(r'^staticfiles/robots.txt$', serve, {'path': 'robots.txt', 'document_root': settings.STATIC_ROOT}),
     ]
     
+    # Serve media files
     urlpatterns += [
         re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     ]
     
+    # Serve React frontend
     urlpatterns += [
         re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
     ]
 else:
+    # Serve static files in development
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     
+    # Serve React frontend in development
     urlpatterns += [
         re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
     ]
