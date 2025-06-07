@@ -139,7 +139,8 @@ USE_TZ = True
 
 STATIC_URL = '/staticfiles/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend', 'public'),
+    os.path.join(BASE_DIR, 'frontend', 'dist'),  # Frontend build directory
+    os.path.join(BASE_DIR, 'frontend', 'public'),  # Public static files
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
