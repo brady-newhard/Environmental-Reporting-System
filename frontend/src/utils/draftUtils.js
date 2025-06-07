@@ -228,14 +228,20 @@ export async function syncDrafts(reportType) {
     if (!isOnline()) return;
     const token = localStorage.getItem('token');
     if (!token) return; // Exit early if not authenticated
+
     // Get all drafts (local and backend)
     const indexedDrafts = await indexedDBStorage.getAllDrafts(reportType);
     const response = await api.get(`/drafts/?report_type=${mapReportType(reportType)}`);
-    const backendDrafts = response.data.map(d => ({ ...d.data, id: String(d.id) }));
-    const backendIds = new Set(backendDrafts.map(d => d.id));
+    
+    // Ensure response.data is an array
+    const backendDrafts = Array.isArray(response.data) ? response.data : [];
+    const backendIds = new Set(backendDrafts.map(d => String(d.id)));
 
     // Find local drafts not in backend
-    const unsyncedLocalDrafts = indexedDrafts.filter(draft => !backendIds.has(String(draft.id)));
+    const unsyncedLocalDrafts = indexedDrafts.filter(draft => {
+      const draftId = String(draft.id);
+      return draftId && !backendIds.has(draftId);
+    });
 
     for (const draft of unsyncedLocalDrafts) {
       if (!draft.id) {
@@ -251,7 +257,9 @@ export async function syncDrafts(reportType) {
         // Remove from local after successful sync
         await indexedDBStorage.deleteDraft(reportType, draft.id);
         // Optionally, save the backend version to local for offline access
-        await indexedDBStorage.saveDraft(reportType, res.data.id, draft);
+        if (res.data && res.data.id) {
+          await indexedDBStorage.saveDraft(reportType, res.data.id, draft);
+        }
       } catch (err) {
         console.error('Error syncing draft to backend:', err);
       }

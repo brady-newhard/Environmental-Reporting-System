@@ -22,22 +22,22 @@ from users.views_auth import CustomAuthToken
 from django.views.generic import TemplateView
 from django.views.static import serve
 from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+# from drf_yasg.views import get_schema_view
+# from drf_yasg import openapi
 import os
 
-schema_view = get_schema_view(
-    openapi.Info(
-        title="Environmental Reporting API",
-        default_version='v1',
-        description="API for Environmental Reporting System",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@example.com"),
-        license=openapi.License(name="BSD License"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+# schema_view = get_schema_view(
+#     openapi.Info(
+#         title="Environmental Reporting API",
+#         default_version='v1',
+#         description="API for Environmental Reporting System",
+#         terms_of_service="https://www.google.com/policies/terms/",
+#         contact=openapi.Contact(email="contact@example.com"),
+#         license=openapi.License(name="BSD License"),
+#     ),
+#     public=True,
+#     permission_classes=(permissions.AllowAny,),
+# )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -47,8 +47,8 @@ urlpatterns = [
     path('api/welding/', include('disciplines.welding.urls')),
     path('api/utility/', include('disciplines.utility.urls')),
     path('api/login/', CustomAuthToken.as_view(), name='api_token_auth'),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
 
 # Serve static files in production
