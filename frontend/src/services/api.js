@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8000/api' : `${window.location.origin}/api`);
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 console.log('API_URL:', API_URL);
 
@@ -8,6 +8,7 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
   withCredentials: true, // This is important for CSRF
 });
@@ -32,8 +33,12 @@ api.interceptors.request.use((config) => {
 
 // Add response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Response interceptor - response:', response);
+    return response;
+  },
   (error) => {
+    console.error('Response interceptor - error:', error);
     if (error.response) {
       // Handle 401 Unauthorized errors
       if (error.response.status === 401) {
