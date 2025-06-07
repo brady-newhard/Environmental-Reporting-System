@@ -155,18 +155,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-    CORS_ALLOW_CREDENTIALS = True
-else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://192.168.1.203:3000",
-        "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
-    ]
-    CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
+]
 
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -186,8 +180,6 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'cache-control',
-    'pragma',
 ]
 
 # CSRF trusted origins for production
@@ -209,28 +201,34 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
 }
 
-# Security settings
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-else:
+# Security settings for development
+if DEBUG:
     SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
     SECURE_PROXY_SSL_HEADER = None
     SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    SECURE_BROWSER_XSS_FILTER = False
+    SECURE_REFERRER_POLICY = None
+    SECURE_PROXY_SSL_HEADER = None
+    USE_X_FORWARDED_HOST = False
+    USE_X_FORWARDED_PORT = False
+    USE_X_FORWARDED_PROTO = False
 
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_REFERRER_POLICY = 'same-origin'
+# CSP settings
+CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+
+# Disable CSP in development
+if DEBUG:
+    CSP_ENABLED = False
 
 # Configure whitenoise
 WHITENOISE_USE_FINDERS = True
