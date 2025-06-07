@@ -139,10 +139,9 @@ USE_TZ = True
 
 STATIC_URL = '/staticfiles/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'frontend' / 'dist',  # Frontend build directory
-    BASE_DIR / 'frontend' / 'public' / 'static',  # Public static files
+    os.path.join(BASE_DIR, 'frontend', 'public'),
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # This is where collectstatic will put files
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploaded files)
