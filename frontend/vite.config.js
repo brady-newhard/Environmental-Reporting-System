@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/staticfiles/' : '/',
+  base: '/staticfiles/',
   server: {
     port: 3000,
     proxy: {
@@ -30,13 +30,13 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       output: {
-        entryFileNames: 'assets/index.js',
-        chunkFileNames: 'assets/index.js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
-            return 'assets/index.css';
+            return 'assets/[name]-[hash].css';
           }
-          return 'assets/[name][extname]';
+          return 'assets/[name]-[hash][extname]';
         }
       }
     },
