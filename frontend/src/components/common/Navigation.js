@@ -34,7 +34,7 @@ const Navigation = () => {
           {/* Mobile Logo (left) */}
           <div className="flex items-center flex-shrink-0">
             <RouterLink to="/" className="flex items-center no-underline">
-              <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain" />
+              <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain" />
             </RouterLink>
           </div>
 
@@ -49,7 +49,7 @@ const Navigation = () => {
               <SheetContent side="left" className="p-0 w-64">
                 <div className="flex flex-col h-full">
                   <div className="px-6 py-4 border-b flex flex-col items-start">
-                    <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto object-contain mb-2" />
+                    <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto object-contain mb-2" />
                     <span className="text-left text-sm text-zinc-400 italic font-medium">"Streamline the report. Elevate the result."</span>
                   </div>
                   <div className="flex-1 overflow-y-auto">
