@@ -41,14 +41,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('reports.urls')),
     path('api/', include('users.urls')),
-    path('api/', include('notifications.urls')),
-    path('api/', include('audit.urls')),
-    path('api/', include('dashboard.urls')),
-    path('api/', include('export.urls')),
-    path('api/', include('import.urls')),
-    path('api/', include('settings.urls')),
     path('api/environmental/', include('disciplines.environmental.urls')),
     path('api/coating/', include('disciplines.coating.urls')),
     path('api/welding/', include('disciplines.welding.urls')),
