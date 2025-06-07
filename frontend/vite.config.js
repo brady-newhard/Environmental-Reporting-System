@@ -36,7 +36,8 @@ export default defineConfig({
       }
     },
     emptyOutDir: true,
-    sourcemap: true
+    sourcemap: true,
+    copyPublicDir: true
   },
   publicDir: 'public',
   esbuild: {
