@@ -30,13 +30,13 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       output: {
-        entryFileNames: 'assets/index-[hash].js',
-        chunkFileNames: 'assets/index-[hash].js',
+        entryFileNames: 'assets/index.js',
+        chunkFileNames: 'assets/index.js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
-            return 'assets/index-[hash].css';
+            return 'assets/index.css';
           }
-          return 'assets/[name]-[hash][extname]';
+          return 'assets/[name][extname]';
         }
       }
     },
