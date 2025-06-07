@@ -36,7 +36,7 @@ urlpatterns = [
 # Serve static files in production
 if not settings.DEBUG:
     urlpatterns += [
-        re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+        re_path(r'^staticfiles/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
         re_path(r'^assets/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
         re_path(r'^favicon\.ico$', serve, {'path': 'favicon.ico', 'document_root': settings.STATIC_ROOT}),
         re_path(r'^manifest\.json$', serve, {'path': 'manifest.json', 'document_root': settings.STATIC_ROOT}),
