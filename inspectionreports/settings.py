@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-nnb6$&aupre_w8s3h0sgahlz)-j3@saidvu0m_yvjmo4+c!vb^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.203', 'environmental-reporting-system-febba9464fe7.herokuapp.com']
 

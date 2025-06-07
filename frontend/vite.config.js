@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/static/',
+  base: '/staticfiles/',
   server: {
     port: 3000
   },
