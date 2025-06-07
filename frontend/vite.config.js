@@ -1,18 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import fs from 'fs-extra'
-
-// Custom plugin to copy static files
-const copyStaticFiles = () => ({
-  name: 'copy-static-files',
-  closeBundle: async () => {
-    await fs.copy('public/static', 'dist/staticfiles')
-  }
-})
 
 export default defineConfig({
-  plugins: [react(), copyStaticFiles()],
+  plugins: [react()],
   base: process.env.NODE_ENV === 'production' ? '/staticfiles/' : '/',
   server: {
     port: 3000,
