@@ -4,9 +4,19 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/staticfiles/',
+  base: process.env.NODE_ENV === 'production' ? '/staticfiles/' : '/',
   server: {
-    port: 3000
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/staticfiles': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      }
+    }
   },
   resolve: {
     alias: {
@@ -25,6 +35,8 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
+    emptyOutDir: true,
+    sourcemap: true
   },
   publicDir: 'public',
   esbuild: {
