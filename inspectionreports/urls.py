@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from users.views_auth import CustomAuthToken
 from django.views.generic import TemplateView
 from django.views.static import serve
+import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -37,7 +38,7 @@ urlpatterns = [
 if not settings.DEBUG:
     urlpatterns += [
         re_path(r'^staticfiles/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
-        re_path(r'^assets/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+        re_path(r'^assets/(?P<path>.*)$', serve, {'document_root': os.path.join(settings.STATIC_ROOT, 'assets')}),
         re_path(r'^favicon\.ico$', serve, {'path': 'favicon.ico', 'document_root': settings.STATIC_ROOT}),
         re_path(r'^manifest\.json$', serve, {'path': 'manifest.json', 'document_root': settings.STATIC_ROOT}),
         re_path(r'^logo192\.png$', serve, {'path': 'logo192.png', 'document_root': settings.STATIC_ROOT}),
