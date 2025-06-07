@@ -29,9 +29,9 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat relative" style={{ backgroundImage: `url('/pipeline-bg.jpg')` }}>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat relative" style={{ backgroundImage: `url('/staticfiles/pipeline-bg.jpg')` }}>
       <div className="flex flex-col items-center z-20 mt-8 mb-4">
-        <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain mb-2" />
+        <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain mb-2" />
         <span className="text-center text-sm text-zinc-200 italic font-medium">"Streamline the report. Elevate the result."</span>
       </div>
       <div className="absolute inset-0 bg-black/50" />
