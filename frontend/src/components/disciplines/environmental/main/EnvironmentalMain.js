@@ -31,7 +31,7 @@ const CategoryCard = ({ title, icon: Icon, description, path }) => {
 const EnvironmentalMain = () => {
   const categories = [
     {
-      title: "Create Report",
+      title: "Reports",
       icon: FileText,
       description: "Create and manage environmental reports including daily reports, SWPPP inspections, and more.",
       path: "/environmental/reports"
