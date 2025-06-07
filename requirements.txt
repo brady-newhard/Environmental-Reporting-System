@@ -6,6 +6,7 @@ Django==5.2
 django-cors-headers==4.7.0
 djangorestframework==3.16.0
 drf-nested-routers==0.94.2
+drf-yasg==1.21.7
 filelock==3.18.0
 gunicorn==23.0.0
 packaging==24.2
