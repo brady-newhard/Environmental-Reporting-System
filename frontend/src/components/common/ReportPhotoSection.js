@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Box, Button, IconButton, TextField, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Paper, Snackbar, Alert } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
-import heic2any from 'heic2any';
+// import heic2any from 'heic2any';
 
 const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) => {
   const fileInputRef = useRef();
