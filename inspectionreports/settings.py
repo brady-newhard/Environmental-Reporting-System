@@ -203,32 +203,30 @@ REST_FRAMEWORK = {
 
 # Security settings for development
 if DEBUG:
+    # Development settings
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    SECURE_PROXY_SSL_HEADER = None
-    SECURE_HSTS_SECONDS = 0
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
-    SECURE_CONTENT_TYPE_NOSNIFF = False
-    SECURE_BROWSER_XSS_FILTER = False
-    SECURE_REFERRER_POLICY = None
     SECURE_PROXY_SSL_HEADER = None
     USE_X_FORWARDED_HOST = False
     USE_X_FORWARDED_PORT = False
     USE_X_FORWARDED_PROTO = False
 
-# CSP settings
-CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
-CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+    # CORS settings
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    CORS_ALLOW_CREDENTIALS = True
 
-# Disable CSP in development
-if DEBUG:
-    CSP_ENABLED = False
+    # CSP settings
+    CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "http://localhost:3000")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http://localhost:8000", "http://localhost:3000")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:8000", "http://localhost:3000")
+    CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "http://localhost:3000")
+    CSP_FONT_SRC = ("'self'", "data:", "http://localhost:8000", "http://localhost:3000")
+    CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "http://localhost:3000")
+    CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "http://localhost:3000")
 
 # Configure whitenoise
 WHITENOISE_USE_FINDERS = True
