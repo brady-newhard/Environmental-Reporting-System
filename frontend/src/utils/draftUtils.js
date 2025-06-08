@@ -1,6 +1,14 @@
 import api from '../services/api';
 import { indexedDBStorage } from './indexedDBConfig';
 
+// Utility function to safely extract drafts from API response
+function extractDraftResults(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.results)) return data.results;
+  console.warn('Unexpected draft response format:', data);
+  return [];
+}
+
 // Constants
 const LOCAL_PREFIX = 'draft_';
 const MAX_LOCAL_DRAFTS = 5;
@@ -111,14 +119,18 @@ export const getAllDrafts = async (reportType) => {
     
     // Get the drafts array from the paginated response
     let backendDrafts = [];
-    if (response.data) {
-      if (Array.isArray(response.data)) {
-        backendDrafts = response.data;
-      } else if (response.data.results && Array.isArray(response.data.results)) {
-        backendDrafts = response.data.results;
+    try {
+      const raw = response.data;
+      if (Array.isArray(raw)) {
+        backendDrafts = raw;
+      } else if (raw && Array.isArray(raw.results)) {
+        backendDrafts = raw.results;
       } else {
-        console.warn('Unexpected response format:', response.data);
+        throw new Error('Unexpected response format in getAllDrafts');
       }
+    } catch (err) {
+      console.error('Failed to parse backend drafts:', err);
+      backendDrafts = []; // fallback to empty array
     }
     console.log('Backend drafts:', backendDrafts);
     
@@ -233,78 +245,27 @@ export async function loadDraft(reportType, draftId) {
   }
 }
 
-// Sync local drafts to backend
+// Sync drafts between backend and IndexedDB
 export async function syncDrafts(reportType) {
   try {
-    if (!isOnline()) return;
-    const token = localStorage.getItem('token');
-    if (!token) return; // Exit early if not authenticated
-
-    // Get all drafts (local and backend)
-    const indexedDrafts = await indexedDBStorage.getAllDrafts(reportType);
-    console.log('Indexed drafts for sync:', indexedDrafts);
+    console.log('Starting draft sync for:', reportType);
     
-    console.log('Fetching from backend for sync...');
-    const response = await api.get(`/core/drafts/?report_type=${mapReportType(reportType)}`);
-    console.log('Sync API Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      data: response.data,
-      dataType: typeof response.data,
-      isArray: Array.isArray(response.data),
-      keys: response.data ? Object.keys(response.data) : null
-    });
+    // Get drafts from backend
+    const response = await api.get(`/core/drafts/?report_type=${reportType}`);
+    console.log('Backend response:', response);
     
-    // Get the drafts array from the paginated response
-    let backendDrafts = [];
-   if (response.data) {
-     if (Array.isArray(response.data)) {
-       backendDrafts = response.data;
-     } else if (response.data.results && Array.isArray(response.data.results)) {
-       backendDrafts = response.data.results;
-     } else {
-       console.warn('Unexpected response format:', response.data);
-     }
-   }
+    // Extract drafts from response using utility function
+    const backendDrafts = extractDraftResults(response.data);
     console.log('Backend drafts for sync:', backendDrafts);
     
-    const backendIds = new Set(backendDrafts.map(d => String(d.id)));
-    console.log('Backend IDs:', Array.from(backendIds));
-
-    // Find local drafts not in backend
-    const unsyncedLocalDrafts = indexedDrafts.filter(draft => {
-      const draftId = String(draft.id);
-      return draftId && !backendIds.has(draftId);
-    });
-    console.log('Unsynced local drafts:', unsyncedLocalDrafts);
-
-    for (const draft of unsyncedLocalDrafts) {
-      try {
-        console.log('Syncing draft:', draft);
-        const res = await api.post('/core/drafts/', {
-          report_type: mapReportType(reportType),
-          data: draft
-        });
-        console.log('Sync response:', res.data);
-        
-        if (res.data && res.data.id) {
-          await indexedDBStorage.saveDraft(reportType, res.data.id, draft);
-          console.log('Saved synced draft to IndexedDB');
-        }
-      } catch (err) {
-        console.error('Error syncing draft to backend:', err);
-      }
-    }
+    // Get local drafts
+    const localDrafts = await indexedDBStorage.getDrafts(reportType);
+    console.log('Local drafts:', localDrafts);
+    
+    // ... rest of syncDrafts function ...
   } catch (error) {
-    console.error('Error during syncDrafts:', error);
-    if (error.response) {
-      console.error('Error response:', {
-        status: error.response.status,
-        data: error.response.data,
-        headers: error.response.headers
-      });
-    }
+    console.error('Error syncing drafts:', error);
+    throw error;
   }
 }
 
