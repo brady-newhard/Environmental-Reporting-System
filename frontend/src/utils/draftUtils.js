@@ -110,7 +110,16 @@ export const getAllDrafts = async (reportType) => {
     });
     
     // Get the drafts array from the paginated response
-    const backendDrafts = response.data?.results || [];
+    let backendDrafts = [];
+    if (response.data) {
+      if (Array.isArray(response.data)) {
+        backendDrafts = response.data;
+      } else if (response.data.results && Array.isArray(response.data.results)) {
+        backendDrafts = response.data.results;
+      } else {
+        console.warn('Unexpected response format:', response.data);
+      }
+    }
     console.log('Backend drafts:', backendDrafts);
     
     // Process IndexedDB drafts
@@ -248,7 +257,16 @@ export async function syncDrafts(reportType) {
     });
     
     // Get the drafts array from the paginated response
-    const backendDrafts = response.data?.results || [];
+    let backendDrafts = [];
+   if (response.data) {
+     if (Array.isArray(response.data)) {
+       backendDrafts = response.data;
+     } else if (response.data.results && Array.isArray(response.data.results)) {
+       backendDrafts = response.data.results;
+     } else {
+       console.warn('Unexpected response format:', response.data);
+     }
+   }
     console.log('Backend drafts for sync:', backendDrafts);
     
     const backendIds = new Set(backendDrafts.map(d => String(d.id)));
