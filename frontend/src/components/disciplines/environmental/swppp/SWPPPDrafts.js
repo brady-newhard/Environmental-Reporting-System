@@ -3,7 +3,7 @@ import { Box, Paper, Typography, Button, Table, TableBody, TableCell, TableConta
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
+import { getAllDrafts, deleteDraft, cleanupInvalidLocalDrafts } from '../../../../utils/draftUtils';
 import { useAuth } from '../../../../contexts/AuthContext';
 
 const SWPPPDrafts = () => {
@@ -13,6 +13,7 @@ const SWPPPDrafts = () => {
 
   useEffect(() => {
     async function loadDrafts() {
+      await cleanupInvalidLocalDrafts('swppp');
       const drafts = await getAllDrafts('swppp');
       setDrafts(drafts.sort((a, b) => new Date(b.lastModified || 0) - new Date(a.lastModified || 0)));
     }

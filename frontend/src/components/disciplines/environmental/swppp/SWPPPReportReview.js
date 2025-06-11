@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import ReportTemplateReview from '../../../templates/ReportTemplateReview';
 import swpppReportConfig from './swpppReportConfig';
+import { loadDraft } from '../../../../utils/draftUtils';
 
 const SWPPPReportReview = () => {
-  return <ReportTemplateReview config={swpppReportConfig} />;
+  const { draftId } = useParams();
+  const [formData, setFormData] = useState(null);
+
+  useEffect(() => {
+    async function fetchDraft() {
+      if (draftId) {
+        const draft = await loadDraft('swppp', draftId);
+        setFormData(draft);
+      }
+    }
+    fetchDraft();
+  }, [draftId]);
+
+  if (!formData) {
+    return <div>Loading...</div>;
+  }
+
+  return <ReportTemplateReview config={swpppReportConfig} formData={formData} />;
 };
 
 export default SWPPPReportReview; 

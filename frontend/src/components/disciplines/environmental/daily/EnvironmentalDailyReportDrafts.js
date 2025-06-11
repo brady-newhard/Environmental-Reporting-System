@@ -5,7 +5,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PageHeader from '../../../../components/common/PageHeader';
-import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
+import { getAllDrafts, deleteDraft, cleanupInvalidLocalDrafts } from '../../../../utils/draftUtils';
 import { useAuth } from '../../../../contexts/AuthContext';
 
 export default function EnvironmentalDailyReportDrafts() {
@@ -20,7 +20,8 @@ export default function EnvironmentalDailyReportDrafts() {
   const backPath = location.state?.from || '/environmental/reports';
 
   useEffect(() => {
-    const loadDrafts = async () => {
+    async function loadDrafts() {
+      await cleanupInvalidLocalDrafts('environmental');
       try {
         const allDrafts = await getAllDrafts(reportType);
         console.log('Loaded drafts:', allDrafts);
@@ -42,7 +43,7 @@ export default function EnvironmentalDailyReportDrafts() {
           severity: 'error'
         });
       }
-    };
+    }
 
     if (!loading && isAuthenticated) {
       loadDrafts();
