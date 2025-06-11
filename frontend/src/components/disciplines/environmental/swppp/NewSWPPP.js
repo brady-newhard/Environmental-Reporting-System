@@ -2,17 +2,26 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReportTemplate from '../../../templates/ReportTemplate';
 import swpppReportConfig from './swpppReportConfig';
-import { saveDraft } from '../../../../utils/draftUtils';
+import { saveDraft, normalizeDraft } from '../../../../utils/draftUtils';
 
 const NewSWPPP = () => {
   const navigate = useNavigate();
 
   const handleSave = async (formData) => {
     try {
-      // Save as a draft using the same utility as environmental daily
-      const draftId = await saveDraft('swppp', formData);
-      navigate(`/swppp/review/${draftId}`);
-      return draftId;
+      // Normalize and save the draft
+      const dataToSave = normalizeDraft(formData);
+      const savedDraft = await saveDraft('swppp', dataToSave);
+      
+      // Update URL with new ID if this was a new draft
+      if (!formData.id) {
+        navigate(`/swppp/edit/${savedDraft.id}`, { 
+          state: { formData: { ...savedDraft.data, id: savedDraft.id } },
+          replace: false 
+        });
+      }
+      
+      return savedDraft.id;
     } catch (error) {
       console.error('Error saving SWPPP draft:', error);
       throw error;
