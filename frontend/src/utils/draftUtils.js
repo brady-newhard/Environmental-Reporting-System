@@ -248,12 +248,21 @@ export async function syncDrafts(reportType) {
   }
 }
 
-// Get the count of unique drafts for a report type (backend + unsynced local)
+// Get the count of unique drafts for a report type (backend only)
 export async function getDraftCount(reportType) {
-  const allDrafts = await getAllDrafts(reportType);
-  // Use a Set to ensure unique IDs
-  const uniqueIds = Array.isArray(allDrafts) ? new Set(allDrafts.map(d => d.id)) : new Set();
-  return uniqueIds.size;
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return 0;
+    }
+
+    const response = await api.get(`/drafts/?report_type=${mapReportType(reportType)}`);
+    const backendDrafts = extractDraftResults(response.data);
+    return Array.isArray(backendDrafts) ? backendDrafts.length : 0;
+  } catch (error) {
+    console.error('Error getting draft count:', error);
+    return 0;
+  }
 }
 
 // Utility: Cleanup all local drafts with id null or undefined for a report type
