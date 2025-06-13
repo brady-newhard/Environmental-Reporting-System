@@ -16,12 +16,19 @@ class CustomAuthToken(ObtainAuthToken):
             'first_name': user.first_name,
         })
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 def verify_token(request):
-    token_key = request.data.get('token')
+    if request.method == 'GET':
+        token_key = request.headers.get('Authorization', '').replace('Token ', '')
+    else:
+        token_key = request.data.get('token')
+    
     try:
         token = Token.objects.get(key=token_key)
         user = token.user
-        return Response({'user': user.username, 'first_name': user.first_name}, status=status.HTTP_200_OK)
+        return Response({
+            'username': user.username,
+            'first_name': user.first_name
+        }, status=status.HTTP_200_OK)
     except Token.DoesNotExist:
         return Response({'detail': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED) 

@@ -49,12 +49,6 @@ export async function saveDraft(reportType, data) {
   const normalizedData = normalizeDraft(data);
   let savedId = data.id;
 
-  // Guard: Don't save drafts with id: null, 'null', undefined, or missing
-  if (!savedId || savedId === 'null' || savedId === null || savedId === undefined) {
-    console.warn('Attempted to save draft with invalid id:', savedId, normalizedData);
-    return;
-  }
-
   try {
     // Use a temp ID for new drafts
     const tempId = savedId && savedId !== 'null' && savedId !== null && savedId !== undefined ? savedId : `temp_${Date.now()}`;
@@ -67,17 +61,17 @@ export async function saveDraft(reportType, data) {
       if (token) {
         try {
           let response;
-          const isValidId = savedId && savedId !== 'null' && savedId !== null && savedId !== undefined;
+          const isValidId = savedId && savedId !== 'null' && savedId !== null && savedId !== undefined && !savedId.startsWith('temp_');
           if (isValidId) {
             // Update existing draft
-            response = await api.put(`/api/drafts/${savedId}/`, {
-              report_type: mapReportType(reportType), // mapped for backend
+            response = await api.put(`/drafts/${savedId}/`, {
+              report_type: mapReportType(reportType),
               data: normalizedData
             });
           } else {
             // Create new draft
-            response = await api.post('/api/drafts/', {
-              report_type: mapReportType(reportType), // mapped for backend
+            response = await api.post('/drafts/', {
+              report_type: mapReportType(reportType),
               data: normalizedData
             });
             savedId = response.data.id;
@@ -92,7 +86,7 @@ export async function saveDraft(reportType, data) {
       }
     }
 
-    return { id: savedId, data: normalizedData };
+    return { id: savedId || tempId, data: normalizedData };
   } catch (error) {
     console.error('Error saving draft:', error);
     throw error;
@@ -110,7 +104,7 @@ export const getAllDrafts = async (reportType) => {
     
     // Then fetch from backend (mapped type)
     console.log('Fetching from backend...');
-    const response = await api.get(`/api/drafts/?report_type=${mapReportType(reportType)}`);
+    const response = await api.get(`/drafts/?report_type=${mapReportType(reportType)}`);
     console.log('API response for', reportType, ':', response.data);
     const backendDrafts = extractDraftResults(response.data);
     console.log('backendDrafts:', backendDrafts);
@@ -141,7 +135,11 @@ export const getAllDrafts = async (reportType) => {
     });
     
     // Filter out drafts with invalid IDs
-    const filteredDrafts = mergedDrafts.filter(d => d.id && d.id !== 'null' && d.id !== undefined);
+    const filteredDrafts = mergedDrafts.filter(d => {
+      const id = d.id;
+      return id && id !== 'null' && id !== undefined && 
+             (typeof id !== 'string' || !id.toLowerCase().includes('null'));
+    });
     console.log('Final filtered drafts:', filteredDrafts);
     return filteredDrafts;
   } catch (error) {
@@ -154,10 +152,15 @@ export const getAllDrafts = async (reportType) => {
       });
     }
     // If backend fetch fails, return IndexedDB drafts (filtered)
-    return Array.isArray(indexedDBDrafts) ? indexedDBDrafts.filter(d => d.id && d.id !== 'null' && d.id !== undefined).map(draft => ({
+    const localDrafts = Array.isArray(indexedDBDrafts) ? indexedDBDrafts : [];
+    return localDrafts.filter(d => {
+      const id = d.id;
+      return id && id !== 'null' && id !== undefined && 
+             (typeof id !== 'string' || !id.toLowerCase().includes('null'));
+    }).map(draft => ({
       ...draft,
       source: 'indexeddb'
-    })) : [];
+    }));
   }
 };
 

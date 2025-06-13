@@ -91,7 +91,12 @@ export default function EnvironmentalDailyReportReview() {
       }
     };
 
-    loadDraftData();
+    if (id && id !== 'null' && id !== undefined && !id.toLowerCase().includes('null')) {
+      loadDraftData();
+    } else {
+      setError('Invalid draft ID');
+      setIsLoading(false);
+    }
   }, [id]);
 
   if (isLoading) {
