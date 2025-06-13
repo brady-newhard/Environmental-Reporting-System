@@ -50,6 +50,12 @@ export default function EnvironmentalDailyReportDrafts() {
     }
   }, [loading, isAuthenticated]);
 
+  useEffect(() => {
+    cleanupInvalidLocalDrafts('environmental').then((count) => {
+      console.log(`Cleaned up ${count} invalid local environmental drafts`);
+    });
+  }, []);
+
   const handleDeleteClick = (draft) => {
     if (!draft || !draft.id) {
       setSnackbar({
@@ -116,6 +122,17 @@ export default function EnvironmentalDailyReportDrafts() {
     });
   };
 
+  const handleReview = (draft) => {
+    const id = draft?.id || draft?.header?.id || '';
+    if (!id || id === 'null' || id === undefined || id.startsWith('temp_') || id.toLowerCase().includes('null')) {
+      // Optionally show a warning/snackbar
+      return;
+    }
+    navigate(`/environmental/reports/daily/review/${id}`);
+  };
+
+  console.log('All drafts before filtering:', drafts);
+
   return (
     <Box sx={{ p: 3 }}>
       <PageHeader 
@@ -129,43 +146,36 @@ export default function EnvironmentalDailyReportDrafts() {
           }
         }}
       />
-      {drafts.map((draft, index) => (
-        <Card key={`draft-${draft.id || index}`} sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'nowrap' }}>
-          <CardContent sx={{ flex: 1 }}>
-            <Typography variant="h6">Project: {draft.header?.project || 'N/A'}</Typography>
-            <Typography>Date: {draft.header?.date ? new Date(draft.header.date).toLocaleDateString() : 'N/A'}</Typography>
-            <Typography>Inspector: {draft.header?.inspector || 'N/A'}</Typography>
-            <Typography>Spread: {draft.header?.spread || 'N/A'}</Typography>
-            <Typography>Report ID: {draft.id || 'N/A'}</Typography>
-          </CardContent>
-          <CardActions sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <IconButton onClick={() => handleEdit(draft)} color="primary">
-              <EditIcon />
-            </IconButton>
-            <IconButton 
-              onClick={() => {
-                console.log('Navigating to review with draft:', draft);
-                navigate(`/environmental/reports/daily/review/${draft.id}`, {
-                  state: { 
-                    draft: {
-                      ...draft,
-                      id: draft.id,
-                      photos: draft.photos || []
-                    },
-                    from: '/environmental/reports/daily/drafts'
-                  }
-                });
-              }} 
-              color="primary"
-            >
-              <VisibilityIcon />
-            </IconButton>
-            <IconButton onClick={() => handleDeleteClick(draft)} color="error">
-              <DeleteIcon />
-            </IconButton>
-          </CardActions>
-        </Card>
-      ))}
+      {drafts
+        .filter(draft => {
+          const id = draft?.id || draft?.header?.id || '';
+          return id && id !== 'null' && id !== undefined && !id.startsWith('temp_') && !id.toLowerCase().includes('null');
+        })
+        .map((draft, index) => (
+          <Card key={`draft-${draft.id || index}`} sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'nowrap' }}>
+            <CardContent sx={{ flex: 1 }}>
+              <Typography variant="h6">Project: {draft.header?.project || 'N/A'}</Typography>
+              <Typography>Date: {draft.header?.date ? new Date(draft.header.date).toLocaleDateString() : 'N/A'}</Typography>
+              <Typography>Inspector: {draft.header?.inspector || 'N/A'}</Typography>
+              <Typography>Spread: {draft.header?.spread || 'N/A'}</Typography>
+              <Typography>Report ID: {draft.id || 'N/A'}</Typography>
+            </CardContent>
+            <CardActions sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+              <IconButton onClick={() => handleEdit(draft)} color="primary">
+                <EditIcon />
+              </IconButton>
+              <IconButton 
+                onClick={() => handleReview(draft)} 
+                color="primary"
+              >
+                <VisibilityIcon />
+              </IconButton>
+              <IconButton onClick={() => handleDeleteClick(draft)} color="error">
+                <DeleteIcon />
+              </IconButton>
+            </CardActions>
+          </Card>
+        ))}
 
       <Dialog
         open={deleteDialogOpen}

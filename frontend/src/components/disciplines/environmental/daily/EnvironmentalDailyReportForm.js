@@ -12,68 +12,55 @@ export default function EnvironmentalDailyReportForm() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const [draft, setDraft] = useState(() => {
-    // Initialize with empty draft immediately
-    const emptyDraft = {
-      header: {},
-      sections: [
-        {
-          name: 'Crew Daily Summaries',
-          rows: [{ Crew: '', CustomCrew: '', 'Start Station': '', 'End Station': '', Notes: '' }]
-        },
-        {
-          name: 'Daily Progress',
-          rows: [{ Phase: '', 'Start Station': '', 'End Station': '' }]
-        }
-      ],
-      summaries: {},
-      photos: [],
-      signature: '',
-      sigDate: '',
-      preparedBy: '',
-      id: id || null
-    };
-    console.log('Initial draft state:', emptyDraft);
-    return emptyDraft;
-  });
+  const [draft, setDraft] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const reportType = 'environmental';
 
   useEffect(() => {
-    const loadDraftData = async () => {
-      setIsLoading(true);
+    const initializeDraft = async () => {
       try {
-        let draftData = null;
-        
-        // First try to get from location state
-        if (location.state?.formData) {
-          console.log('Loading draft from location state formData:', location.state.formData);
-          draftData = location.state.formData;
-        } else if (location.state?.draft) {
-          console.log('Loading draft from location state draft:', location.state.draft);
-          draftData = {
-            ...location.state.draft,
-            id: location.state.draft.id || id
+        if (id) {
+          // Load existing draft
+          const loadedDraft = await loadDraft(reportType, id);
+          if (loadedDraft) {
+            setDraft(loadedDraft);
+          } else {
+            console.error('Failed to load draft with ID:', id);
+            setSnackbar({
+              open: true,
+              message: 'Failed to load draft',
+              severity: 'error'
+            });
+          }
+        } else {
+          // Create new draft only if we don't have an ID
+          const emptyDraft = {
+            header: {},
+            sections: [
+              {
+                name: 'Crew Daily Summaries',
+                rows: [{ Crew: '', CustomCrew: '', 'Start Station': '', 'End Station': '', Notes: '' }]
+              },
+              {
+                name: 'Daily Progress',
+                rows: [{ Phase: '', 'Start Station': '', 'End Station': '' }]
+              }
+            ],
+            summaries: {},
+            photos: [],
+            signature: '',
+            sigDate: '',
+            preparedBy: '',
+            id: `temp_${Date.now()}`
           };
-        }
-        // Then try to load from IndexedDB/backend
-        else if (id) {
-          console.log('Loading draft from storage with ID:', id);
-          draftData = await loadDraft(reportType, id);
-        }
-
-        if (draftData) {
-          // Normalize and set the draft data
-          const normalizedDraft = normalizeDraft(draftData);
-          console.log('Normalized draft:', normalizedDraft);
-          setDraft(normalizedDraft);
+          setDraft(emptyDraft);
         }
       } catch (error) {
-        console.error('Error loading draft:', error);
+        console.error('Error initializing draft:', error);
         setSnackbar({
           open: true,
-          message: 'Error loading draft',
+          message: 'Error initializing draft',
           severity: 'error'
         });
       } finally {
@@ -81,8 +68,8 @@ export default function EnvironmentalDailyReportForm() {
       }
     };
 
-    loadDraftData();
-  }, [id, location.state]);
+    initializeDraft();
+  }, [id, reportType]);
 
   const handleSave = async (formData) => {
     console.log('EnvironmentalDailyReportForm handleSave called with:', formData);

@@ -69,21 +69,26 @@ const SWPPPDrafts = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {drafts.map(draft => (
-                <TableRow key={draft.id}>
-                  <TableCell>{draft.header?.project || '-'}</TableCell>
-                  <TableCell>{draft.header?.inspector || '-'}</TableCell>
-                  <TableCell>{new Date(draft.lastModified).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Button variant="contained" size="small" onClick={() => handleResume(draft.id)} sx={{ mr: 1 }}>
-                      Resume
-                    </Button>
-                    <IconButton color="error" onClick={() => handleDelete(draft.id)} size="small">
-                      <DeleteIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {drafts
+                .filter(draft => {
+                  const id = draft.id || (draft.header && draft.header.id) || '';
+                  return id && id !== 'null' && id !== undefined && !id.startsWith('temp_') && !id.toLowerCase().includes('null');
+                })
+                .map(draft => (
+                  <TableRow key={draft.id}>
+                    <TableCell>{draft.header?.project || '-'}</TableCell>
+                    <TableCell>{draft.header?.inspector || '-'}</TableCell>
+                    <TableCell>{new Date(draft.lastModified).toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Button variant="contained" size="small" onClick={() => handleResume(draft.id)} sx={{ mr: 1 }}>
+                        Resume
+                      </Button>
+                      <IconButton color="error" onClick={() => handleDelete(draft.id)} size="small">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
