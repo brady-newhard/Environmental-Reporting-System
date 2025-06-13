@@ -46,47 +46,37 @@ export function normalizeDraft(data) {
 
 // Save a draft (both online and offline)
 export async function saveDraft(reportType, data) {
-  const normalizedData = normalizeDraft(data);
-  let savedId = data.id;
-
   try {
-    // Use a temp ID for new drafts
-    const tempId = savedId && savedId !== 'null' && savedId !== null && savedId !== undefined ? savedId : `temp_${Date.now()}`;
-    // Always use the raw reportType for local storage
-    await indexedDBStorage.saveDraft(reportType, tempId, normalizedData);
+    const normalizedData = normalizeDraft(data);
+    const savedId = data.id;
+    const isValidId = savedId && savedId !== 'null' && savedId !== undefined && !savedId.startsWith('temp_');
+    
+    // Save to IndexedDB first (raw type)
+    await indexedDBStorage.saveDraft(reportType, savedId, normalizedData);
     console.log('Successfully saved to IndexedDB');
 
+    // If online and authenticated, save to backend (mapped type)
     if (isOnline()) {
       const token = localStorage.getItem('token');
       if (token) {
-        try {
-          let response;
-          const isValidId = savedId && savedId !== 'null' && savedId !== null && savedId !== undefined && !savedId.startsWith('temp_');
-          if (isValidId) {
-            // Update existing draft
-            response = await api.put(`/drafts/${savedId}/`, {
-              report_type: mapReportType(reportType),
-              data: normalizedData
-            });
-          } else {
-            // Create new draft
-            response = await api.post('/drafts/', {
-              report_type: mapReportType(reportType),
-              data: normalizedData
-            });
-            savedId = response.data.id;
-            // Update local draft with backend ID
-            await indexedDBStorage.deleteDraft(reportType, tempId);
-            await indexedDBStorage.saveDraft(reportType, savedId, normalizedData);
-          }
-          console.log('Successfully saved to backend:', savedId);
-        } catch (error) {
-          console.error('Error saving to backend:', error);
+        let response;
+        if (isValidId) {
+          // Update existing draft
+          response = await api.put(`/drafts/${savedId}/`, {
+            report_type: mapReportType(reportType),
+            data: normalizedData
+          });
+        } else {
+          // Create new draft
+          response = await api.post('/drafts/', {
+            report_type: mapReportType(reportType),
+            data: normalizedData
+          });
         }
+        return response.data;
       }
     }
-
-    return { id: savedId || tempId, data: normalizedData };
+    return { id: savedId, data: normalizedData };
   } catch (error) {
     console.error('Error saving draft:', error);
     throw error;
@@ -178,7 +168,7 @@ export async function deleteDraft(reportType, draftId) {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          await api.delete(`/api/drafts/${draftId}/`);
+          await api.delete(`/drafts/${draftId}/`);
           console.log('Successfully deleted from backend');
         } catch (error) {
           console.error('Error deleting from backend:', error);
@@ -235,8 +225,14 @@ export async function loadDraft(reportType, draftId) {
 export async function syncDrafts(reportType) {
   try {
     console.log('Starting draft sync for:', reportType);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No token found, skipping draft sync');
+      return [];
+    }
+
     // Get drafts from backend
-    const response = await api.get(`/api/drafts/?report_type=${reportType}`);
+    const response = await api.get(`/drafts/?report_type=${mapReportType(reportType)}`);
     console.log('API response for', reportType, 'in syncDrafts:', response.data);
     const backendDrafts = extractDraftResults(response.data);
     console.log('backendDrafts in syncDrafts:', backendDrafts);
