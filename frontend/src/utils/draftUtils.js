@@ -248,17 +248,47 @@ export async function syncDrafts(reportType) {
   }
 }
 
-// Get the count of unique drafts for a report type (backend only)
+// Get the count of unique drafts for a report type (both local and backend)
 export async function getDraftCount(reportType) {
   try {
+    // Get local drafts first
+    const localDrafts = await indexedDBStorage.getAllDrafts(reportType);
+    const localDraftIds = new Set(
+      Array.isArray(localDrafts) 
+        ? localDrafts
+            .filter(d => {
+              const id = d?.id;
+              return id && 
+                     id !== 'null' && 
+                     id !== null && 
+                     id !== undefined && 
+                     (typeof id !== 'string' || !id.startsWith('temp_'));
+            })
+            .map(d => d.id)
+        : []
+    );
+
+    // If online and authenticated, get backend drafts
     const token = localStorage.getItem('token');
-    if (!token) {
-      return 0;
+    if (token && isOnline()) {
+      try {
+        const response = await api.get(`/drafts/?report_type=${mapReportType(reportType)}`);
+        const backendDrafts = extractDraftResults(response.data);
+        if (Array.isArray(backendDrafts)) {
+          // Add backend draft IDs to the set (automatically handles duplicates)
+          backendDrafts.forEach(draft => {
+            if (draft?.id) {
+              localDraftIds.add(draft.id);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching backend drafts:', error);
+        // Continue with local count if backend fetch fails
+      }
     }
 
-    const response = await api.get(`/drafts/?report_type=${mapReportType(reportType)}`);
-    const backendDrafts = extractDraftResults(response.data);
-    return Array.isArray(backendDrafts) ? backendDrafts.length : 0;
+    return localDraftIds.size;
   } catch (error) {
     console.error('Error getting draft count:', error);
     return 0;
