@@ -49,6 +49,12 @@ export async function saveDraft(reportType, data) {
   const normalizedData = normalizeDraft(data);
   let savedId = data.id;
 
+  // Guard: Don't save drafts with id: null, 'null', undefined, or missing
+  if (!savedId || savedId === 'null' || savedId === null || savedId === undefined) {
+    console.warn('Attempted to save draft with invalid id:', savedId, normalizedData);
+    return;
+  }
+
   try {
     // Use a temp ID for new drafts
     const tempId = savedId && savedId !== 'null' && savedId !== null && savedId !== undefined ? savedId : `temp_${Date.now()}`;
@@ -98,7 +104,7 @@ export const getAllDrafts = async (reportType) => {
   try {
     console.log('Getting all drafts for:', reportType);
     // First try to get drafts from IndexedDB (raw type)
-    const indexedDBDrafts = await indexedDBStorage.getDrafts(reportType);
+    const indexedDBDrafts = await indexedDBStorage.getAllDrafts(reportType);
     console.log('Fetching from IndexedDB...');
     console.log('IndexedDB drafts:', indexedDBDrafts);
     
@@ -233,7 +239,7 @@ export async function syncDrafts(reportType) {
     console.log('backendDrafts in syncDrafts:', backendDrafts);
     
     // Get local drafts
-    const localDrafts = await indexedDBStorage.getDrafts(reportType);
+    const localDrafts = await indexedDBStorage.getAllDrafts(reportType);
     console.log('Local drafts:', localDrafts);
     
     // ... rest of syncDrafts function ...
@@ -252,23 +258,35 @@ export async function getDraftCount(reportType) {
 }
 
 // Utility: Cleanup all local drafts with id null or undefined for a report type
-export async function cleanupInvalidLocalDrafts(reportType) {
+export const cleanupInvalidLocalDrafts = async (reportType) => {
   try {
-    const drafts = await indexedDBStorage.getDrafts(reportType);
-    const invalidDrafts = drafts.filter(d => !d.id || d.id === 'null' || d.id === undefined);
-    for (const draft of invalidDrafts) {
-      // Try to find the key used in IndexedDB
-      // If the draft was saved with a temp id, it may be in the header or elsewhere
-      if (draft.id) {
-        await indexedDBStorage.deleteDraft(reportType, draft.id);
-      } else if (draft.header && draft.header.id) {
-        await indexedDBStorage.deleteDraft(reportType, draft.header.id);
+    const store = indexedDBStorage.getStore(reportType);
+    const keys = await store.keys();
+    let deletedCount = 0;
+
+    for (const key of keys) {
+      const draft = await store.getItem(key);
+      
+      // Check for invalid drafts
+      const isInvalid = !draft || 
+                       !draft.id || 
+                       draft.id === 'null' || 
+                       draft.id === null || 
+                       draft.id === undefined ||
+                       (typeof draft.id === 'string' && draft.id.toLowerCase().includes('null')) ||
+                       (typeof draft.id === 'string' && draft.id.startsWith('temp_') && Date.now() - parseInt(draft.id.split('_')[1]) > 24 * 60 * 60 * 1000); // Delete temp drafts older than 24 hours
+
+      if (isInvalid) {
+        console.log('Cleaning up invalid draft:', draft);
+        await store.removeItem(key);
+        deletedCount++;
       }
     }
-    console.log(`Cleaned up ${invalidDrafts.length} invalid drafts for reportType: ${reportType}`);
-    return invalidDrafts.length;
+
+    console.log(`Cleaned up ${deletedCount} invalid drafts for ${reportType}`);
+    return deletedCount;
   } catch (error) {
     console.error('Error cleaning up invalid drafts:', error);
-    throw error;
+    return 0;
   }
-} 
+}; 

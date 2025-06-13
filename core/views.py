@@ -19,6 +19,8 @@ class ReportDraftViewSet(viewsets.ModelViewSet):
         report_type = self.request.query_params.get('report_type')
         if report_type:
             queryset = queryset.filter(report_type=report_type)
+        # Filter out drafts where the id in the data JSON is missing, null, or 'null'
+        queryset = queryset.exclude(data__id__isnull=True).exclude(data__id='null')
         return queryset
 
     def perform_create(self, serializer):
