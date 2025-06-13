@@ -15,11 +15,18 @@ export const AuthProvider = ({ children }) => {
       api.get('/users/verify-token/')
         .then((response) => {
           console.log('[AuthContext] Token verified, user:', response.data);
-          setIsAuthenticated(true);
-          setUser({
-            username: response.data.user,
-            first_name: response.data.first_name
-          });
+          if (response.data && typeof response.data === 'object') {
+            setIsAuthenticated(true);
+            setUser({
+              username: response.data.username || response.data.user,
+              first_name: response.data.first_name || response.data.user
+            });
+          } else {
+            console.error('[AuthContext] Invalid user data format:', response.data);
+            localStorage.removeItem('token');
+            setIsAuthenticated(false);
+            setUser(null);
+          }
         })
         .catch((error) => {
           console.error('[AuthContext] Token verification failed:', error);

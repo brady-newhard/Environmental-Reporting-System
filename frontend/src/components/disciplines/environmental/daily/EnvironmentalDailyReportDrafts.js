@@ -27,11 +27,15 @@ export default function EnvironmentalDailyReportDrafts() {
         console.log('Loaded drafts:', allDrafts);
         
         // Format drafts for display
-        const formattedDrafts = allDrafts.map(draft => ({
-          ...draft,
-          id: draft.id,
-          photos: draft.photos || []
-        }));
+        const formattedDrafts = allDrafts.map(draft => {
+          console.log('Processing draft:', draft);
+          return {
+            ...draft,
+            id: draft.id,
+            photos: draft.photos || [],
+            header: draft.data?.header || draft.header || {}
+          };
+        });
         
         console.log('Formatted drafts:', formattedDrafts);
         setDrafts(formattedDrafts);
@@ -81,13 +85,10 @@ export default function EnvironmentalDailyReportDrafts() {
       const updatedDrafts = await getAllDrafts(reportType);
       console.log('Updated drafts after deletion:', updatedDrafts);
       
-      const formattedDrafts = updatedDrafts.map(draft => ({
-        ...draft,
-        id: draft.id,
-        photos: draft.photos || []
-      }));
+      // Filter out any drafts that were supposed to be deleted
+      const filteredDrafts = updatedDrafts.filter(draft => draft.id !== draftToDelete.id);
       
-      setDrafts(formattedDrafts);
+      setDrafts(filteredDrafts);
       setSnackbar({
         open: true,
         message: 'Draft deleted successfully',
@@ -97,7 +98,7 @@ export default function EnvironmentalDailyReportDrafts() {
       console.error('Error deleting draft:', error);
       setSnackbar({
         open: true,
-        message: 'Failed to delete draft',
+        message: 'Failed to delete draft. Please try again.',
         severity: 'error'
       });
     } finally {
@@ -124,7 +125,10 @@ export default function EnvironmentalDailyReportDrafts() {
 
   const handleReview = (draft) => {
     const id = draft?.id || draft?.header?.id || '';
-    if (!id || id === 'null' || id === undefined || id.startsWith('temp_') || id.toLowerCase().includes('null')) {
+    if (!id || 
+        id === 'null' || 
+        id === undefined || 
+        (typeof id === 'string' && (id.startsWith('temp_') || id.toLowerCase().includes('null')))) {
       // Optionally show a warning/snackbar
       return;
     }
@@ -149,33 +153,39 @@ export default function EnvironmentalDailyReportDrafts() {
       {drafts
         .filter(draft => {
           const id = draft?.id || draft?.header?.id || '';
-          return id && id !== 'null' && id !== undefined && !id.startsWith('temp_') && !id.toLowerCase().includes('null');
+          return id && 
+                 id !== 'null' && 
+                 id !== undefined && 
+                 (typeof id !== 'string' || (!id.startsWith('temp_') && !id.toLowerCase().includes('null')));
         })
-        .map((draft, index) => (
-          <Card key={`draft-${draft.id || index}`} sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'nowrap' }}>
-            <CardContent sx={{ flex: 1 }}>
-              <Typography variant="h6">Project: {draft.header?.project || 'N/A'}</Typography>
-              <Typography>Date: {draft.header?.date ? new Date(draft.header.date).toLocaleDateString() : 'N/A'}</Typography>
-              <Typography>Inspector: {draft.header?.inspector || 'N/A'}</Typography>
-              <Typography>Spread: {draft.header?.spread || 'N/A'}</Typography>
-              <Typography>Report ID: {draft.id || 'N/A'}</Typography>
-            </CardContent>
-            <CardActions sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-              <IconButton onClick={() => handleEdit(draft)} color="primary">
-                <EditIcon />
-              </IconButton>
-              <IconButton 
-                onClick={() => handleReview(draft)} 
-                color="primary"
-              >
-                <VisibilityIcon />
-              </IconButton>
-              <IconButton onClick={() => handleDeleteClick(draft)} color="error">
-                <DeleteIcon />
-              </IconButton>
-            </CardActions>
-          </Card>
-        ))}
+        .map((draft, index) => {
+          console.log('Rendering draft card:', draft);
+          return (
+            <Card key={`draft-${draft.id || index}`} sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'nowrap' }}>
+              <CardContent sx={{ flex: 1 }}>
+                <Typography variant="h6">Project: {draft.data?.header?.project || draft.header?.project || 'N/A'}</Typography>
+                <Typography>Date: {(draft.data?.header?.date || draft.header?.date) ? new Date(draft.data?.header?.date || draft.header?.date).toLocaleDateString() : 'N/A'}</Typography>
+                <Typography>Inspector: {draft.data?.header?.inspector || draft.header?.inspector || 'N/A'}</Typography>
+                <Typography>Spread: {draft.data?.header?.spread || draft.header?.spread || 'N/A'}</Typography>
+                <Typography>Report ID: {draft.id || 'N/A'}</Typography>
+              </CardContent>
+              <CardActions sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                <IconButton onClick={() => handleEdit(draft)} color="primary">
+                  <EditIcon />
+                </IconButton>
+                <IconButton 
+                  onClick={() => handleReview(draft)} 
+                  color="primary"
+                >
+                  <VisibilityIcon />
+                </IconButton>
+                <IconButton onClick={() => handleDeleteClick(draft)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </CardActions>
+            </Card>
+          );
+        })}
 
       <Dialog
         open={deleteDialogOpen}

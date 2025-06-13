@@ -5,18 +5,20 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import localforage from 'localforage';
+import { migrateFromLocalStorage } from './utils/draftStorage';
+
+// Configure localforage
 window.localforage = localforage;
+
+// Migrate any existing drafts from localStorage to IndexedDB
+migrateFromLocalStorage('environmental');
 
 console.log('Starting React application...');
 
-try {
-  const rootElement = document.getElementById('root');
-  console.log('Root element:', rootElement);
+const rootElement = document.getElementById('root');
+console.log('Root element:', rootElement);
 
-  if (!rootElement) {
-    throw new Error('Root element not found');
-  }
-
+if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   console.log('Created root:', root);
 
@@ -28,18 +30,8 @@ try {
     </React.StrictMode>
   );
   console.log('Rendered application');
-} catch (error) {
-  console.error('Error mounting React application:', error);
-  // Display error in the DOM
-  const rootElement = document.getElementById('root');
-  if (rootElement) {
-    rootElement.innerHTML = `
-      <div style="color: red; padding: 20px;">
-        <h2>Error Loading Application</h2>
-        <pre>${error.message}</pre>
-      </div>
-    `;
-  }
+} else {
+  console.error('Root element not found');
 }
 
 // If you want to start measuring performance in your app, pass a function

@@ -229,17 +229,31 @@ function AppContent() {
   const hideNav = location.pathname === '/login' || location.pathname === '/signup';
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      // Sync drafts on app load only if authenticated
-      syncDrafts('environmental');
-      // Sync drafts when coming back online
-      const handleOnline = () => syncDrafts('environmental');
-      window.addEventListener('online', handleOnline);
-      return () => {
-        window.removeEventListener('online', handleOnline);
-      };
-    }
-  }, [loading, isAuthenticated]);
+    const syncDraftsIfAuthenticated = async () => {
+      const token = localStorage.getItem('token');
+      if (token && isAuthenticated && !loading) {
+        try {
+          // Add a small delay to ensure token is properly set in headers
+          await new Promise(resolve => setTimeout(resolve, 100));
+          await syncDrafts('environmental');
+        } catch (error) {
+          console.error('Error syncing drafts:', error);
+          // If we get an HTML response, the token might not be set properly
+          if (error.message.includes('HTML instead of JSON')) {
+            // Wait a bit longer and try again
+            await new Promise(resolve => setTimeout(resolve, 500));
+            try {
+              await syncDrafts('environmental');
+            } catch (retryError) {
+              console.error('Error retrying draft sync:', retryError);
+            }
+          }
+        }
+      }
+    };
+
+    syncDraftsIfAuthenticated();
+  }, [isAuthenticated, loading]);
 
   return (
     <>

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 console.log('API_URL:', API_URL);
 
@@ -34,6 +34,11 @@ api.interceptors.request.use((config) => {
 // Add response interceptor to handle errors
 api.interceptors.response.use(
   (response) => {
+    // Check if response is HTML instead of JSON
+    if (typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
+      console.error('Received HTML instead of JSON response:', response.data);
+      return Promise.reject(new Error('Invalid response format: received HTML instead of JSON'));
+    }
     console.log('Response interceptor - response:', response);
     return response;
   },
