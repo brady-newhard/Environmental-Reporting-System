@@ -204,6 +204,7 @@ REST_FRAMEWORK = {
 # Security settings for development
 if DEBUG:
     # Development settings
+    SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False

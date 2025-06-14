@@ -400,7 +400,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
           </div>
 
           {/* Dynamic Sections */}
-          {(sections || []).map((section) => {
+          {(sections || []).map((section, sectionIdx) => {
             // Validate section data
             if (!section || !section.name) {
               console.warn('Invalid section data:', section);
@@ -419,6 +419,193 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
             if (!Array.isArray(fields)) {
               console.warn(`Invalid fields for section "${section.name}":`, fields);
               return null;
+            }
+
+            // Custom layout for Weather Information
+            if (section.name === 'Weather Information') {
+              const weatherFields = fields.filter(f => f.name !== 'rain_gauges');
+              const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
+              return (
+                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  {(section.rows || []).map((row, rowIndex) => (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        {weatherFields.map((field) => (
+                          <div key={field.name} className="col-span-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                              {field.label}
+                            </label>
+                            {field.type === 'dropdown' ? (
+                              <select
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="">Select {field.label}</option>
+                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                type={field.type || 'text'}
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {rainGaugeField && (
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            {rainGaugeField.label}
+                          </label>
+                          <div className="space-y-2">
+                            {(row[rainGaugeField.name] || []).map((item, idx) => (
+                              <div key={idx} className="flex gap-2">
+                                {rainGaugeField.subFields.map((subField) => (
+                                  <input
+                                    key={subField.name}
+                                    type={subField.type}
+                                    value={item[subField.name] || ''}
+                                    onChange={e =>
+                                      handleSectionChange(
+                                        section.name,
+                                        rowIndex,
+                                        rainGaugeField.name,
+                                        (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                          subIdx === idx
+                                            ? { ...subItem, [subField.name]: e.target.value }
+                                            : subItem
+                                        )
+                                      )
+                                    }
+                                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder={subField.label}
+                                  />
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleSectionChange(
+                                      section.name,
+                                      rowIndex,
+                                      rainGaugeField.name,
+                                      (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                    )
+                                  }
+                                  className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2"
+                                >
+                                  <XMarkIcon className="h-5 w-5" />
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSectionChange(
+                                  section.name,
+                                  rowIndex,
+                                  rainGaugeField.name,
+                                  [...(row[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
+                                )
+                              }
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                            >
+                              <PlusIcon className="h-5 w-5" />
+                              Add {rainGaugeField.label}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ))}
+                </div>
+              );
+            }
+
+            // Custom layout for Crew Daily Summaries
+            if (section.name === 'Crew Daily Summaries') {
+              const crewFields = fields.filter(f => f.name !== 'Summary');
+              const summaryField = fields.find(f => f.name === 'Summary');
+              return (
+                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  {(section.rows || []).map((row, rowIndex) => (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        {crewFields.map((field) => (
+                          <div key={field.name} className="col-span-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                              {field.label}
+                            </label>
+                            {field.type === 'dropdown' ? (
+                              <select
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="">Select {field.label}</option>
+                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                type={field.type || 'text'}
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {summaryField && (
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            {summaryField.label}
+                          </label>
+                          <textarea
+                            value={row[summaryField.name] || ''}
+                            onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
+                            className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows={3}
+                          />
+                        </div>
+                      )}
+                      {!sectionConfig.isStatic && (
+                        <div className="col-span-1 flex items-end">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRow(section.name, rowIndex)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-4 py-2"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ))}
+                  {!sectionConfig.isStatic && (
+                    <button
+                      type="button"
+                      onClick={() => handleAddRow(section.name)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                    >
+                      <PlusIcon className="h-5 w-5" />
+                      Add Row
+                    </button>
+                  )}
+                </div>
+              );
             }
 
             return (
