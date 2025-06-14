@@ -121,12 +121,12 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
                     onChange={e => handleEditChange('location', e.target.value)}
                     autoFocus
                   />
-                  <input
-                    type="text"
+                  <textarea
                     className="w-full border border-gray-300 rounded px-2 py-1 text-xs mb-1 focus:ring-2 focus:ring-yellow-400"
                     placeholder="Description"
                     value={editFields.description}
                     onChange={e => handleEditChange('description', e.target.value)}
+                    rows={3}
                   />
                   <div className="flex gap-2 mt-1">
                     <button

@@ -12,7 +12,8 @@ const environmentalDailyReportConfig = {
       fields: [
         { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
         { name: 'project', label: 'Project', required: true },
-        { name: 'spread', label: 'Spread', required: false },
+        { name: 'spread', label: 'Spread', type: 'dropdown', options: [] },
+        { name: 'facility', label: 'Facility', type: 'dropdown', options: [] },
         { name: 'contractor', label: 'Contractor', required: false },
         { name: 'inspector', label: 'Inspector', required: true },
         { name: 'milepost_start', label: 'Milepost Start', required: false },
