@@ -439,7 +439,71 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                           console.warn(`Invalid field data in section "${section.name}":`, field);
                           return null;
                         }
-
+                        if (field.type === 'dynamicArray') {
+                          return (
+                            <div key={field.name} className="col-span-full">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              <div className="space-y-2">
+                                {(row[field.name] || []).map((item, idx) => (
+                                  <div key={idx} className="flex gap-2">
+                                    {field.subFields.map((subField) => (
+                                      <input
+                                        key={subField.name}
+                                        type={subField.type}
+                                        value={item[subField.name] || ''}
+                                        onChange={e =>
+                                          handleSectionChange(
+                                            section.name,
+                                            rowIndex,
+                                            field.name,
+                                            (row[field.name] || []).map((subItem, subIdx) =>
+                                              subIdx === idx
+                                                ? { ...subItem, [subField.name]: e.target.value }
+                                                : subItem
+                                            )
+                                          )
+                                        }
+                                        className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder={subField.label}
+                                      />
+                                    ))}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          field.name,
+                                          (row[field.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                        )
+                                      }
+                                      className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2"
+                                    >
+                                      <XMarkIcon className="h-5 w-5" />
+                                    </button>
+                                  </div>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleSectionChange(
+                                      section.name,
+                                      rowIndex,
+                                      field.name,
+                                      [...(row[field.name] || []), Object.fromEntries(field.subFields.map(sf => [sf.name, '']))]
+                                    )
+                                  }
+                                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                                >
+                                  <PlusIcon className="h-5 w-5" />
+                                  Add {field.label}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        }
                         return (
                           <div key={field.name} className="col-span-1">
                             <label className="block text-sm font-medium text-gray-600 mb-1">
