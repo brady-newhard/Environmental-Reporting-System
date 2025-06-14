@@ -543,40 +543,142 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                         ))}
                       </div>
                       {summaryField && (
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">
-                            {summaryField.label}
-                          </label>
-                          <textarea
-                            value={row[summaryField.name] || ''}
-                            onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
-                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            rows={3}
-                          />
-                        </div>
-                      )}
-                      {!sectionConfig.isStatic && (
-                        <div className="col-span-1 flex items-end">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRow(section.name, rowIndex)}
-                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-4 py-2"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
+                        <div className="flex items-start gap-2 mb-4">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                              {summaryField.label}
+                            </label>
+                            <textarea
+                              value={row[summaryField.name] || ''}
+                              onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
+                              className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                              rows={3}
+                            />
+                          </div>
+                          {!sectionConfig.isStatic && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRow(section.name, rowIndex)}
+                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-0"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          )}
                         </div>
                       )}
                     </>
                   ))}
                   {!sectionConfig.isStatic && (
-                    <button
-                      type="button"
-                      onClick={() => handleAddRow(section.name)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                    >
-                      <PlusIcon className="h-5 w-5" />
-                      Add Row
-                    </button>
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => handleAddRow(section.name)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                      >
+                        <PlusIcon className="h-5 w-5" />
+                        Add Row
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // Custom layout for Daily Progress
+            if (section.name === 'Daily Progress') {
+              return (
+                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  {(section.rows || []).map((row, rowIndex) => (
+                    <div key={rowIndex} className="flex flex-col md:flex-row gap-4 mb-4 w-full items-end">
+                      {fields.map((field, fieldIdx) => {
+                        // For the last field, render input and trash can in a flex row
+                        if (fieldIdx === fields.length - 1) {
+                          return (
+                            <div key={field.name} className="flex flex-col md:flex-row items-end gap-2 w-full md:w-auto flex-1">
+                              <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                  {field.label}
+                                </label>
+                                {field.type === 'dropdown' ? (
+                                  <select
+                                    value={row[field.name] || ''}
+                                    onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                  >
+                                    <option value="">Select {field.label}</option>
+                                    {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
+                                      <option key={option} value={option}>
+                                        {option}
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type={field.type || 'text'}
+                                    value={row[field.name] || ''}
+                                    onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                    placeholder={field.placeholder}
+                                  />
+                                )}
+                              </div>
+                              {!sectionConfig.isStatic && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                  className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
+                                >
+                                  <TrashIcon className="h-5 w-5" />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        }
+                        // All other fields
+                        return (
+                          <div key={field.name} className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                              {field.label}
+                            </label>
+                            {field.type === 'dropdown' ? (
+                              <select
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                              >
+                                <option value="">Select {field.label}</option>
+                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                type={field.type || 'text'}
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                placeholder={field.placeholder}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                  {!sectionConfig.isStatic && (
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => handleAddRow(section.name)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                      >
+                        <PlusIcon className="h-5 w-5" />
+                        Add Row
+                      </button>
+                    </div>
                   )}
                 </div>
               );
@@ -706,7 +808,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                           <button
                             type="button"
                             onClick={() => handleRemoveRow(section.name, rowIndex)}
-                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-4 py-2"
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
                           >
                             <TrashIcon className="h-5 w-5" />
                           </button>
