@@ -43,7 +43,7 @@ const EnvironmentalDailyReport = () => {
 
   return (
     <>
-      <PageHeader title={environmentalDailyReportConfig.title} />
+      <PageHeader title={environmentalDailyReportConfig.title} backPath="/environmental/reports/daily" />
       <ReportTemplate 
         config={environmentalDailyReportConfig} 
         onSave={handleSave}
