@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'core',  # Core functionality
     'users',  # User management
+    'photos',  # Global photo handling
     'disciplines.environmental',  # Environmental base app
     'disciplines.environmental.punchlists',  # Punchlist reports
     'disciplines.environmental.swppp',  # SWPPP reports

@@ -40,6 +40,8 @@ const PhotosPage = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
+  console.log('PhotosPage loaded', photos);
+
   const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
     const newPhotos = files.map(file => ({

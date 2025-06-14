@@ -1,351 +1,140 @@
 import React, { useRef, useState } from 'react';
-import { Box, Button, IconButton, TextField, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Paper, Snackbar, Alert } from '@mui/material';
-import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import DeleteIcon from '@mui/icons-material/Delete';
-// import heic2any from 'heic2any';
+import { PlusIcon, TrashIcon, CameraIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { formatPhotoUrl } from '../../utils/photoUtils';
 
-const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true }) => {
+const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, content_type, object_id }) => {
   const fileInputRef = useRef();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [fullSizePhoto, setFullSizePhoto] = useState(null);
-  const [promptOpen, setPromptOpen] = useState(false);
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
-
-  // Handle add photo prompt
-  const handleAddPhotoClick = () => {
-    setPromptOpen(true);
-  };
-
-  const handlePromptClose = () => setPromptOpen(false);
-
-  const handlePromptSelect = (mode) => {
-    setPromptOpen(false);
-    if (mode === 'camera') {
-      fileInputRef.current.setAttribute('capture', 'environment');
-    } else {
-      fileInputRef.current.removeAttribute('capture');
-    }
-    fileInputRef.current.click();
-  };
-
-  // Utility to convert File to data URL
-  const fileToDataUrl = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  // Function to convert HEIC/HEIF to JPEG using heic2any
-  const convertHeicToJpg = async (file) => {
-    try {
-      // heic2any returns a Blob or an array of Blobs
-      const result = await heic2any({
-        blob: file,
-        toType: 'image/jpeg',
-        quality: 0.8
-      });
-      // If result is an array, take the first element
-      const jpgBlob = Array.isArray(result) ? result[0] : result;
-      // Create a new File object from the converted blob
-      const convertedFile = new File([jpgBlob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
-        type: 'image/jpeg'
-      });
-      return convertedFile;
-    } catch (error) {
-      setAlert({
-        open: true,
-        message: 'Unable to convert HEIC file. Please convert it to JPEG/PNG before uploading.',
-        severity: 'warning'
-      });
-      return null;
-    }
-  };
-
-  // Function to process each file
-  const processImage = async (file) => {
-    const isHeic = file.name.toLowerCase().endsWith('.heic') ||
-      file.name.toLowerCase().endsWith('.heif') ||
-      file.type === 'image/heic' ||
-      file.type === 'image/heif';
-    if (isHeic) {
-      const converted = await convertHeicToJpg(file);
-      return converted;
-    }
-    // For non-HEIC files, just return the original file
-    return file;
-  };
+  const [showModal, setShowModal] = useState(false);
+  const [modalPhoto, setModalPhoto] = useState(null);
+  const [alert, setAlert] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Handle file input change
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
-    const processedFiles = await Promise.all(files.map(processImage));
-    // Filter out null values (failed conversions)
-    const validFiles = processedFiles.filter(file => file !== null);
-    if (validFiles.length === 0) {
-      setAlert({
-        open: true,
-        message: 'No valid files to upload. Please convert HEIC files to JPEG/PNG before uploading.',
-        severity: 'error'
+    if (files.length === 0) return;
+    setLoading(true);
+    try {
+      const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
+      const uploadedPhotos = await uploadMultiplePhotos(files, {
+        content_type,
+        object_id,
       });
-      return;
+      onPhotosChange([...photos, ...uploadedPhotos]);
+    } catch (error) {
+      setAlert('Error uploading photos');
+    } finally {
+      setLoading(false);
+      e.target.value = '';
     }
-    // Convert files to data URLs and add to photos
-    const newPhotos = await Promise.all(validFiles.map(async file => {
-      const dataUrl = await fileToDataUrl(file);
-      return { file: dataUrl, location: '', comment: '' };
-    }));
-    onPhotosChange([...photos, ...newPhotos]);
-    e.target.value = '';
-  };
-
-  // Handle location/comment change
-  const handleMetaChange = (idx, field, value) => {
-    const updated = photos.map((p, i) => i === idx ? { ...p, [field]: value } : p);
-    onPhotosChange(updated);
   };
 
   // Remove photo
-  const handleRemove = (idx) => {
-    const updated = photos.filter((_, i) => i !== idx);
-    onPhotosChange(updated);
+  const handleRemove = async (idx) => {
+    try {
+      const { deletePhoto } = await import('../../utils/photoUtils');
+      await deletePhoto(photos[idx].id);
+      onPhotosChange(photos.filter((_, i) => i !== idx));
+    } catch {
+      setAlert('Error deleting photo');
+    }
   };
 
-  // Open full-size modal
-  const handleThumbnailClick = (photo) => setFullSizePhoto(photo);
-  const handleModalClose = () => setFullSizePhoto(null);
-
-  const handleAlertClose = () => {
-    setAlert({ ...alert, open: false });
+  // Open modal
+  const handleThumbnailClick = (photo) => {
+    setModalPhoto(photo);
+    setShowModal(true);
   };
+  const handleModalClose = () => setShowModal(false);
+
+  // Drag and drop for add box
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) {
+      fileInputRef.current.files = e.dataTransfer.files;
+      handleFileChange({ target: { files } });
+    }
+  };
+  const handleDragOver = (e) => e.preventDefault();
 
   return (
-    <Box>
-      {/* Photo grid: flexbox for review mode, Grid for editable mode */}
-      {editable ? (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, width: '100%' }}>
-          {photos.map((photo, idx) => {
-            let src = '';
-            if (photo.file instanceof File || photo.file instanceof Blob) {
-              src = URL.createObjectURL(photo.file);
-            } else if (typeof photo.file === 'string') {
-              src = photo.file;
-            }
-            const isValidSrc = typeof src === 'string' && src.length > 0 && (src.startsWith('data:image/') || src.startsWith('http'));
-            return (
-              <Paper
-                key={idx}
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1,
-                  width: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 12px)' },
-                  flex: { xs: '0 0 calc(50% - 4px)', sm: '0 0 calc(25% - 12px)' },
-                  boxSizing: 'border-box',
-                  justifyContent: 'flex-start',
-                  overflow: 'hidden',
-                  mb: 2,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: { xs: 150, sm: 180 },
-                    mb: 1,
-                    borderRadius: 1,
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    border: '1px solid #ccc',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: '#fafafa'
-                  }}
-                  onClick={() => handleThumbnailClick(photo)}
-                >
-                  {isValidSrc ? (
-                    <img
-                      src={src}
-                      alt={`Photo ${idx + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <Typography variant="caption" color="error">No image</Typography>
-                  )}
-                </Box>
-                <TextField
-                  label="Location"
-                  value={photo.location}
-                  onChange={e => handleMetaChange(idx, 'location', e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-                <TextField
-                  label="Comment"
-                  value={photo.comment}
-                  onChange={e => handleMetaChange(idx, 'comment', e.target.value)}
-                  fullWidth
-                  size="small"
-                  multiline
-                  minRows={2}
-                />
-                <IconButton onClick={() => handleRemove(idx)} color="error" sx={{ alignSelf: 'flex-end' }}>
-                  <DeleteIcon />
-                </IconButton>
-              </Paper>
-            );
-          })}
-          <Paper
-            sx={{
-              width: { xs: '90px', sm: '100px' },
-              height: { xs: '90px', sm: '100px' },
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              p: 1,
-              border: '2px dashed #ccc',
-              bgcolor: '#fafafa',
-              cursor: 'pointer',
-              mb: 2,
-              mx: 'auto'
-            }}
-            onClick={handleAddPhotoClick}
-          >
-            <CameraAltIcon sx={{ fontSize: 28, color: '#666' }} />
-            <Typography variant="caption" sx={{ mt: 0.5, color: '#666' }}>Add Photo</Typography>
-          </Paper>
-        </Box>
-      ) : (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, width: '100%' }}>
-          {photos.map((photo, idx) => {
-            let src = '';
-            if (photo.file instanceof File || photo.file instanceof Blob) {
-              src = URL.createObjectURL(photo.file);
-            } else if (typeof photo.file === 'string') {
-              src = photo.file;
-            }
-            const isValidSrc = typeof src === 'string' && src.length > 0 && (src.startsWith('data:image/') || src.startsWith('http'));
-            return (
-              <Paper
-                key={idx}
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1,
-                  width: { xs: 'calc(50% - 4px)', sm: 'calc(25% - 12px)' },
-                  flex: { xs: '0 0 calc(50% - 4px)', sm: '0 0 calc(25% - 12px)' },
-                  boxSizing: 'border-box',
-                  justifyContent: 'flex-start',
-                  overflow: 'hidden',
-                  mb: 2,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: 180,
-                    mb: 1,
-                    borderRadius: 1,
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    border: '1px solid #ccc',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: '#fafafa'
-                  }}
-                  onClick={() => handleThumbnailClick(photo)}
-                >
-                  {isValidSrc ? (
-                    <img
-                      src={src}
-                      alt={`Photo ${idx + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <Typography variant="caption" color="error">No image</Typography>
-                  )}
-                </Box>
-                <Typography variant="body2" sx={{ width: '100%', wordBreak: 'break-word', whiteSpace: 'pre-line', mb: 1 }}><b>Location:</b> {photo.location}</Typography>
-                <Typography variant="body2" sx={{ width: '100%', wordBreak: 'break-word', whiteSpace: 'pre-line' }}><b>Comment:</b> {photo.comment}</Typography>
-              </Paper>
-            );
-          })}
-        </Box>
+    <div className="mb-8">
+      <h2 className="text-lg font-bold text-gray-800 mb-2">Photos</h2>
+      {alert && (
+        <div className="mb-2 text-red-600 bg-red-100 rounded p-2">{alert}</div>
       )}
-      {/* Full-size modal */}
-      <Dialog open={!!fullSizePhoto} onClose={handleModalClose} maxWidth="md">
-        {fullSizePhoto && (
-          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {loading && <div className="text-sm text-gray-500 mb-2">Uploading...</div>}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {photos.map((photo, idx) => (
+          <div key={photo.id || idx} className="relative group bg-white border border-gray-200 rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
             <img
-              src={fullSizePhoto.file instanceof File ? URL.createObjectURL(fullSizePhoto.file) : fullSizePhoto.file}
-              alt="Full Size"
-              style={{ maxWidth: '90vw', maxHeight: '70vh', borderRadius: 8 }}
+              src={formatPhotoUrl(photo.image_url || photo.file || photo.image)}
+              alt={`Photo ${idx + 1}`}
+              className="w-full h-32 object-contain bg-gray-100 cursor-pointer"
+              onClick={() => handleThumbnailClick(photo)}
             />
-            {/* Always show location and comment */}
-            <Typography variant="body2" sx={{ mt: 2 }}><b>Location:</b> {fullSizePhoto.location}</Typography>
-            <Typography variant="body2"><b>Comment:</b> {fullSizePhoto.comment}</Typography>
-            {/* Trashcan in modal if editable */}
             {editable && (
-              <IconButton
-                color="error"
-                sx={{ mt: 2 }}
-                onClick={() => {
-                  const idx = photos.findIndex(p => p.file === fullSizePhoto.file);
-                  handleRemove(idx);
-                  handleModalClose();
-                }}
-                aria-label="Delete Photo"
+              <button
+                type="button"
+                className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full p-1 shadow hover:bg-red-100"
+                onClick={(e) => { e.stopPropagation(); handleRemove(idx); }}
+                title="Delete photo"
               >
-                <DeleteIcon />
-              </IconButton>
+                <TrashIcon className="w-5 h-5 text-red-600" />
+              </button>
             )}
-            <Button onClick={handleModalClose} sx={{ mt: 2 }}>Close</Button>
-          </Box>
+            <div className="p-2">
+              <div className="text-xs text-gray-700 truncate">{photo.location || <span className="italic text-gray-400">No location</span>}</div>
+              <div className="text-xs text-gray-500 mt-1 truncate">{photo.description || <span className="italic text-gray-300">No description</span>}</div>
+            </div>
+          </div>
+        ))}
+        {editable && (
+          <div
+            className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg shadow cursor-pointer hover:bg-gray-100 h-32 w-full min-w-0 relative"
+            onClick={() => fileInputRef.current.click()}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            tabIndex={0}
+            title="Add photo"
+          >
+            <PlusIcon className="w-8 h-8 text-gray-400 mb-1" />
+            <span className="text-xs text-gray-500 font-semibold">Add Photo</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </div>
         )}
-      </Dialog>
-      {/* Add Snackbar for alerts */}
-      <Snackbar
-        open={alert.open}
-        autoHideDuration={6000}
-        onClose={handleAlertClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={handleAlertClose} severity={alert.severity} sx={{ width: '100%' }}>
-          {alert.message}
-        </Alert>
-      </Snackbar>
-      {editable && (
-        <>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            multiple
-            onChange={handleFileChange}
-          />
-          <Dialog open={promptOpen} onClose={handlePromptClose}>
-            <DialogTitle>Add Photo</DialogTitle>
-            <DialogContent>
-              <Button fullWidth onClick={() => handlePromptSelect('camera')} sx={{ mb: 1 }}>Take Photo</Button>
-              <Button fullWidth onClick={() => handlePromptSelect('file')}>Upload from Device</Button>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handlePromptClose}>Cancel</Button>
-            </DialogActions>
-          </Dialog>
-        </>
+      </div>
+      {/* Modal for full-size preview */}
+      {showModal && modalPhoto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-4 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+              onClick={handleModalClose}
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+            <img
+              src={formatPhotoUrl(modalPhoto.image_url || modalPhoto.file || modalPhoto.image)}
+              alt="Full size"
+              className="w-full h-auto max-h-[60vh] object-contain bg-gray-100"
+            />
+            <div className="mt-2">
+              <div className="text-sm font-semibold text-gray-700">Location: <span className="font-normal">{modalPhoto.location || <span className="italic text-gray-400">No location</span>}</span></div>
+              <div className="text-sm text-gray-500 mt-1">{modalPhoto.description || <span className="italic text-gray-300">No description</span>}</div>
+            </div>
+          </div>
+        </div>
       )}
-    </Box>
+    </div>
   );
 };
 

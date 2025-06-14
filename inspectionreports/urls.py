@@ -42,6 +42,7 @@ import os
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
+    path('api/photos/', include('photos.urls')),  # Global photo endpoints
     path('api/environmental/', include('disciplines.environmental.urls')),
     path('api/coating/', include('disciplines.coating.urls')),
     path('api/welding/', include('disciplines.welding.urls')),

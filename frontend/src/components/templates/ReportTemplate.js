@@ -14,6 +14,7 @@ import {
   XMarkIcon 
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
+import ReportPhotoSection from '../common/ReportPhotoSection';
 
 // Template configuration
 const defaultConfig = {
@@ -902,54 +903,17 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
             </div>
           )}
 
-          {/* Photo Section */}
-          {config.requiresPhotos && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <CameraIcon className="w-8 h-8 mb-4 text-gray-500" />
-                      <p className="mb-2 text-sm text-gray-500">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-gray-500">PNG, JPG or JPEG</p>
-                    </div>
-                    <input
-                      type="file"
-                      className="hidden"
-                      multiple
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                    />
-                  </label>
-                </div>
-                {photos.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {photos.map((photo, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={photo.url}
-                          alt={`Photo ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPhotos(photos.filter((_, i) => i !== index));
-                          }}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                        >
-                          <XMarkIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Photo Upload Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
+            <ReportPhotoSection
+              photos={photos}
+              onPhotosChange={setPhotos}
+              content_type={config.reportType || 'template'}
+              object_id={draftId || id}
+              editable={true}
+            />
+          </div>
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 justify-end">
