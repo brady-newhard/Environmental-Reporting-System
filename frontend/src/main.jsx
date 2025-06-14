@@ -1,3 +1,8 @@
+// Dev helper: Always set the token in localStorage during development
+if (window.location.hostname === 'localhost' && import.meta.env.VITE_DEV_TOKEN) {
+  localStorage.setItem('token', import.meta.env.VITE_DEV_TOKEN);
+}
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -9,11 +14,6 @@ import { migrateFromLocalStorage } from './utils/draftStorage';
 
 // Configure localforage
 window.localforage = localforage;
-
-// Dev helper: Always set the token in localStorage during development
-if (window.location.hostname === 'localhost') {
-  localStorage.setItem('token', 'e2eafb6d54947c3b1810bacba44cb3e403901f84');
-}
 
 // Migrate any existing drafts from localStorage to IndexedDB
 migrateFromLocalStorage('environmental');

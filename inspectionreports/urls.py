@@ -41,7 +41,7 @@ import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('users.urls')),
+    path('api/users/', include('users.urls')),
     path('api/environmental/', include('disciplines.environmental.urls')),
     path('api/coating/', include('disciplines.coating.urls')),
     path('api/welding/', include('disciplines.welding.urls')),
