@@ -337,61 +337,132 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
 
             // Render first section (header/project info) with white card wrapper
             if (sectionIdx === 0) {
-              // Find the date field and other fields
-              const dateField = fields.find(f => f.name === 'inspection_date' || f.name === 'date');
-              const otherFields = fields.filter(f => f.name !== (dateField?.name || 'date'));
+              const inspectorField = fields.find(f => f.name === 'inspector');
+              const projectField = fields.find(f => f.name === 'project');
+              const contractorField = fields.find(f => f.name === 'contractor');
+              const spreadField = fields.find(f => f.name === 'spread');
+              const facilityField = fields.find(f => f.name === 'facility');
+              const milepostFields = fields.filter(f => f.name === 'milepost_start' || f.name === 'milepost_end');
+              const stationFields = fields.filter(f => f.name === 'station_start' || f.name === 'station_end');
+
               return (
                 <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800">{section.name}</h2>
-                    {dateField && (
-                      <div className="flex items-center gap-2">
-                        <label className="block text-sm font-medium text-gray-600 mb-0 mr-2 whitespace-nowrap">
-                          {dateField.label}
-                        </label>
-                        <input
-                          type="date"
-                          name={dateField.name}
-                          value={header[dateField.name] || ''}
-                          onChange={(e) => handleHeaderChange({ target: { name: dateField.name, value: e.target.value } })}
-                          className="bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  {(section.rows || []).map((row, rowIndex) => (
-                    <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      {otherFields.map((field) => (
-                        <div key={field.name} className="col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">
-                            {field.label}
-                          </label>
-                          {field.type === 'dropdown' ? (
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  <div className="flex flex-col gap-4">
+                    {/* Inspector and Project on one line */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {inspectorField && (
+                        <div className="col-span-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{inspectorField.label}</label>
+                          <input
+                            type="text"
+                            name={inspectorField.name}
+                            value={header[inspectorField.name] || ''}
+                            onChange={(e) => handleHeaderChange({ target: { name: inspectorField.name, value: e.target.value } })}
+                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            required={inspectorField.required}
+                          />
+                        </div>
+                      )}
+                      {projectField && (
+                        <div className="col-span-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{projectField.label}</label>
+                          <input
+                            type="text"
+                            name={projectField.name}
+                            value={header[projectField.name] || ''}
+                            onChange={(e) => handleHeaderChange({ target: { name: projectField.name, value: e.target.value } })}
+                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            required={projectField.required}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {/* Spread, Facility, Contractor on one line */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {spreadField && (
+                        <div className="col-span-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{spreadField.label}</label>
+                          {Array.isArray(spreadField.options) && spreadField.options.length > 0 ? (
                             <select
-                              value={row[field.name] || ''}
-                              onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                              name={spreadField.name}
+                              value={header[spreadField.name] || ''}
+                              onChange={(e) => handleHeaderChange({ target: { name: spreadField.name, value: e.target.value } })}
+                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                             >
-                              <option value="">Select {field.label}</option>
-                              {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
+                              <option value="">Select {spreadField.label}</option>
+                              {spreadField.options.map(option => (
+                                <option key={option} value={option}>{option}</option>
                               ))}
                             </select>
                           ) : (
                             <input
-                              type={field.type || 'text'}
-                              value={row[field.name] || ''}
-                              onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                              placeholder={field.placeholder}
+                              type="text"
+                              name={spreadField.name}
+                              value={header[spreadField.name] || ''}
+                              onChange={(e) => handleHeaderChange({ target: { name: spreadField.name, value: e.target.value } })}
+                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                             />
                           )}
                         </div>
+                      )}
+                      {facilityField && (
+                        <div className="col-span-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{facilityField.label}</label>
+                          {Array.isArray(facilityField.options) && facilityField.options.length > 0 ? (
+                            <select
+                              name={facilityField.name}
+                              value={header[facilityField.name] || ''}
+                              onChange={(e) => handleHeaderChange({ target: { name: facilityField.name, value: e.target.value } })}
+                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            >
+                              <option value="">Select {facilityField.label}</option>
+                              {facilityField.options.map(option => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              name={facilityField.name}
+                              value={header[facilityField.name] || ''}
+                              onChange={(e) => handleHeaderChange({ target: { name: facilityField.name, value: e.target.value } })}
+                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            />
+                          )}
+                        </div>
+                      )}
+                      {contractorField && (
+                        <div className="col-span-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{contractorField.label}</label>
+                          <input
+                            type="text"
+                            name={contractorField.name}
+                            value={header[contractorField.name] || ''}
+                            onChange={(e) => handleHeaderChange({ target: { name: contractorField.name, value: e.target.value } })}
+                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            required={contractorField.required}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {/* Milepost Start, Milepost End, Station Start, Station End all on one line */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {[...milepostFields, ...stationFields].map((field) => (
+                        <div key={field.name} className="col-span-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                          <input
+                            type="text"
+                            name={field.name}
+                            value={header[field.name] || ''}
+                            onChange={(e) => handleHeaderChange({ target: { name: field.name, value: e.target.value } })}
+                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            required={field.required}
+                          />
+                        </div>
                       ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
               );
             }
@@ -405,7 +476,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                   {(section.rows || []).map((row, rowIndex) => (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                      {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         {weatherFields.map((field) => (
                           <div key={field.name} className="col-span-1">
                             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -418,10 +490,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                                 className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               >
                                 <option value="">Select {field.label}</option>
-                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
-                                  <option key={option} value={option}>
-                                    {option}
-                                  </option>
+                                {(field.options || sectionConfig.dropdownOptions || []).map(option => (
+                                  <option key={option} value={option}>{option}</option>
                                 ))}
                               </select>
                             ) : (
@@ -435,6 +505,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                           </div>
                         ))}
                       </div>
+                      {/* Rain gauges on their own line */}
                       {rainGaugeField && (
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -513,8 +584,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                   {(section.rows || []).map((row, rowIndex) => (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        {crewFields.map((field) => (
+                      {/* All fields except Start/End Station */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        {crewFields.filter(f => f.name !== 'Start Station' && f.name !== 'End Station').map((field) => (
                           <div key={field.name} className="col-span-1">
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                               {field.label}
@@ -522,26 +594,46 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                             {field.type === 'dropdown' ? (
                               <select
                                 value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
                                 className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               >
                                 <option value="">Select {field.label}</option>
-                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
-                                  <option key={option} value={option}>
-                                    {option}
-                                  </option>
+                                {(field.options || sectionConfig.dropdownOptions || []).map(option => (
+                                  <option key={option} value={option}>{option}</option>
                                 ))}
                               </select>
                             ) : (
                               <input
                                 type={field.type || 'text'}
                                 value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
                                 className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                placeholder={field.placeholder}
                               />
                             )}
                           </div>
                         ))}
+                        {/* Start Station and End Station side by side */}
+                        <div className="col-span-1 md:col-span-2 flex gap-2">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Start Station</label>
+                            <input
+                              type="text"
+                              value={row['Start Station'] || ''}
+                              onChange={e => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value)}
+                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">End Station</label>
+                            <input
+                              type="text"
+                              value={row['End Station'] || ''}
+                              onChange={e => handleSectionChange(section.name, rowIndex, 'End Station', e.target.value)}
+                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            />
+                          </div>
+                        </div>
                       </div>
                       {summaryField && (
                         <div className="flex items-start gap-2 mb-4">
@@ -551,7 +643,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                             </label>
                             <textarea
                               value={row[summaryField.name] || ''}
-                              onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
+                              onChange={e => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
                               className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               rows={3}
                             />
@@ -591,82 +683,58 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                 <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                   {(section.rows || []).map((row, rowIndex) => (
-                    <div key={rowIndex} className="flex flex-col md:flex-row gap-4 mb-4 w-full items-end">
-                      {fields.map((field, fieldIdx) => {
-                        // For the last field, render input and trash can in a flex row
-                        if (fieldIdx === fields.length - 1) {
-                          return (
-                            <div key={field.name} className="flex flex-col md:flex-row items-end gap-2 w-full md:w-auto flex-1">
-                              <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                  {field.label}
-                                </label>
-                                {field.type === 'dropdown' ? (
-                                  <select
-                                    value={row[field.name] || ''}
-                                    onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                  >
-                                    <option value="">Select {field.label}</option>
-                                    {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
-                                      <option key={option} value={option}>
-                                        {option}
-                                      </option>
-                                    ))}
-                                  </select>
-                                ) : (
-                                  <input
-                                    type={field.type || 'text'}
-                                    value={row[field.name] || ''}
-                                    onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                    placeholder={field.placeholder}
-                                  />
-                                )}
-                              </div>
-                              {!sectionConfig.isStatic && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                  className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
-                                >
-                                  <TrashIcon className="h-5 w-5" />
-                                </button>
-                              )}
-                            </div>
-                          );
-                        }
-                        // All other fields
-                        return (
-                          <div key={field.name} className="flex-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                              {field.label}
-                            </label>
-                            {field.type === 'dropdown' ? (
-                              <select
-                                value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                              >
-                                <option value="">Select {field.label}</option>
-                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
-                                  <option key={option} value={option}>
-                                    {option}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              <input
-                                type={field.type || 'text'}
-                                value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                placeholder={field.placeholder}
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div key={rowIndex} className="mb-4 w-full">
+                      {/* Row 1: Progress Item dropdown */}
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          {fields[0].label}
+                        </label>
+                        <select
+                          value={row[fields[0].name] || ''}
+                          onChange={e => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value)}
+                          className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                        >
+                          <option value="">Select {fields[0].label}</option>
+                          {(fields[0].options || sectionConfig.dropdownOptions || []).map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {/* Row 2: Start Station, End Station, Delete (inline always) */}
+                      <div className="flex flex-row gap-2 items-end">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            {fields[1].label}
+                          </label>
+                          <input
+                            type="text"
+                            value={row[fields[1].name] || ''}
+                            onChange={e => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value)}
+                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            {fields[2].label}
+                          </label>
+                          <input
+                            type="text"
+                            value={row[fields[2].name] || ''}
+                            onChange={e => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value)}
+                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                          />
+                        </div>
+                        {!sectionConfig.isStatic && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRow(section.name, rowIndex)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center ml-2 mt-6"
+                            style={{ height: '42px' }}
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {!sectionConfig.isStatic && (
