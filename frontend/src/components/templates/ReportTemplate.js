@@ -309,96 +309,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   };
 
   return (
-    <div className="bg-gray-900 min-h-screen">
+    <div className="bg-black min-h-screen pt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          {/* Header Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-2xl font-semibold mb-4">{config.title}</h2>
-            <div className="space-y-6">
-              {config.headerFields.map((field, index) => (
-                field.type === 'section' ? (
-                  <h3 key={field.name} className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                    {field.label}
-                  </h3>
-                ) : (
-                  <div key={field.name} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="col-span-1">
-                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                        {field.label}
-                      </label>
-                      {field.type === 'dropdown' ? (
-                        <select
-                          name={field.name}
-                          value={header[field.name] || ''}
-                          onChange={handleHeaderChange}
-                          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select {field.label}</option>
-                          {field.options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : field.type === 'date' ? (
-                        <input
-                          type="date"
-                          name={field.name}
-                          value={header[field.name] || ''}
-                          onChange={handleHeaderChange}
-                          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : field.type === 'dynamicArray' ? (
-                        <div className="space-y-2">
-                          {header[field.name].map((item, index) => (
-                            <div key={index} className="flex gap-2">
-                              {field.subFields.map((subField) => (
-                                <input
-                                  key={subField.name}
-                                  type={subField.type}
-                                  name={`${field.name}.${index}.${subField.name}`}
-                                  value={item[subField.name] || ''}
-                                  onChange={handleHeaderChange}
-                                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  placeholder={subField.label}
-                                />
-                              ))}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveRow(field.name, index)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2"
-                              >
-                                <XMarkIcon className="h-5 w-5" />
-                              </button>
-                            </div>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() => handleAddRow(field.name)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                          >
-                            <PlusIcon className="h-5 w-5" />
-                            Add {field.label}
-                          </button>
-                        </div>
-                      ) : (
-                        <input
-                          type={field.type || 'text'}
-                          name={field.name}
-                          value={header[field.name] || ''}
-                          onChange={handleHeaderChange}
-                          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder={field.placeholder}
-                        />
-                      )}
-                    </div>
-                  </div>
-                )
-              ))}
-            </div>
-          </div>
-
           {/* Dynamic Sections */}
           {(sections || []).map((section, sectionIdx) => {
             // Validate section data
@@ -421,6 +334,67 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
               return null;
             }
 
+            // Render first section (header/project info) with white card wrapper
+            if (sectionIdx === 0) {
+              // Find the date field and other fields
+              const dateField = fields.find(f => f.name === 'inspection_date' || f.name === 'date');
+              const otherFields = fields.filter(f => f.name !== (dateField?.name || 'date'));
+              return (
+                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800">{section.name}</h2>
+                    {dateField && (
+                      <div className="flex items-center gap-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-0 mr-2 whitespace-nowrap">
+                          {dateField.label}
+                        </label>
+                        <input
+                          type="date"
+                          name={dateField.name}
+                          value={header[dateField.name] || ''}
+                          onChange={(e) => handleHeaderChange({ target: { name: dateField.name, value: e.target.value } })}
+                          className="bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {(section.rows || []).map((row, rowIndex) => (
+                    <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                      {otherFields.map((field) => (
+                        <div key={field.name} className="col-span-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                            {field.label}
+                          </label>
+                          {field.type === 'dropdown' ? (
+                            <select
+                              value={row[field.name] || ''}
+                              onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                              className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            >
+                              <option value="">Select {field.label}</option>
+                              {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type={field.type || 'text'}
+                              value={row[field.name] || ''}
+                              onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                              className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                              placeholder={field.placeholder}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
             // Custom layout for Weather Information
             if (section.name === 'Weather Information') {
               const weatherFields = fields.filter(f => f.name !== 'rain_gauges');
@@ -440,7 +414,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               <select
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               >
                                 <option value="">Select {field.label}</option>
                                 {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
@@ -454,7 +428,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                                 type={field.type || 'text'}
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               />
                             )}
                           </div>
@@ -485,7 +459,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                                         )
                                       )
                                     }
-                                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                                     placeholder={subField.label}
                                   />
                                 ))}
@@ -548,7 +522,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               <select
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               >
                                 <option value="">Select {field.label}</option>
                                 {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
@@ -562,7 +536,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                                 type={field.type || 'text'}
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               />
                             )}
                           </div>
@@ -576,7 +550,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                           <textarea
                             value={row[summaryField.name] || ''}
                             onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
-                            className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                             rows={3}
                           />
                         </div>
@@ -652,7 +626,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                                             )
                                           )
                                         }
-                                        className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                                         placeholder={subField.label}
                                       />
                                     ))}
@@ -700,7 +674,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               <select
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               >
                                 <option value="">Select {field.label}</option>
                                 {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
@@ -713,7 +687,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               <textarea
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                                 rows={3}
                               />
                             ) : (
@@ -721,7 +695,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                                 type={field.type || 'text'}
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               />
                             )}
                           </div>
@@ -767,7 +741,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                   <textarea
                     value={summaries[field.name] || ''}
                     onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                     rows={4}
                   />
                 </div>
@@ -788,7 +762,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                     type="text"
                     value={preparedBy}
                     onChange={(e) => setPreparedBy(e.target.value)}
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                   />
                 </div>
                 <div>
@@ -819,7 +793,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                     type="date"
                     value={sigDate ? format(sigDate, 'yyyy-MM-dd') : ''}
                     onChange={(e) => setSigDate(new Date(e.target.value))}
-                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                   />
                 </div>
               </div>
