@@ -1,10 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SWPPPReportViewSet, SWPPPItemViewSet
+from .views import PhotoViewSet
 
 router = DefaultRouter()
-router.register(r'reports', SWPPPReportViewSet)
-router.register(r'items', SWPPPItemViewSet)
+router.register(r'photos', PhotoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

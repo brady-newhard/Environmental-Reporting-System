@@ -17,6 +17,8 @@ const PhotoUploadDialog = ({ open, onClose, onSave, initialPhotos = [], initialC
   const [photos, setPhotos] = useState(initialPhotos);
   const [comments, setComments] = useState(initialComments);
 
+  console.log('PhotoUploadDialog loaded', photos);
+
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
     setPhotos(prev => [...prev, ...newFiles]);

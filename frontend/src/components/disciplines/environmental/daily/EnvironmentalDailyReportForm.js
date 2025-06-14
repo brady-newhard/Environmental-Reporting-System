@@ -5,6 +5,7 @@ import ReportTemplate from '../../../templates/ReportTemplate';
 import { saveDraft, normalizeDraft, loadDraft } from '../../../../utils/draftUtils';
 import AddIcon from '@mui/icons-material/Add';
 import environmentalDailyReportConfig from './environmentalDailyReportConfig';
+import ReportPhotoSection from '../../../../components/common/ReportPhotoSection';
 
 // console.log('EnvironmentalDailyReportForm loaded');
 
@@ -16,6 +17,7 @@ export default function EnvironmentalDailyReportForm() {
   const [isLoading, setIsLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const reportType = 'environmental';
+  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
     const initializeDraft = async () => {
@@ -117,7 +119,14 @@ export default function EnvironmentalDailyReportForm() {
   };
 
   return (
-    <>
+    <Box sx={{ 
+      height: 'calc(100vh - 64px)',
+      display: 'flex',
+      flexDirection: 'column',
+      bgcolor: '#f5f5f5',
+      p: { xs: 1, sm: 1.5 },
+      overflow: 'auto'
+    }}>
       <ReportTemplate 
         initialData={draft}
         onChange={(newData) => setDraft(newData)}
@@ -125,6 +134,13 @@ export default function EnvironmentalDailyReportForm() {
         onReview={handleReview}
         onCancel={handleCloseSnackbar}
         config={environmentalDailyReportConfig}
+      />
+      <ReportPhotoSection
+        photos={photos}
+        onPhotosChange={setPhotos}
+        content_type="environmental_daily"
+        object_id={id}
+        editable={true}
       />
       <Snackbar
         open={snackbar.open}
@@ -136,6 +152,6 @@ export default function EnvironmentalDailyReportForm() {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </>
+    </Box>
   );
 } 
