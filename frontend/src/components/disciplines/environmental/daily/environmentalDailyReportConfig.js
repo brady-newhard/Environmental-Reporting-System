@@ -4,28 +4,40 @@ const environmentalDailyReportConfig = {
   title: 'Daily Environmental Report',
   reportType: 'environmental',
   summarySectionTitle: 'Environmental Summary',
-  headerFields: [
-    { name: 'inspection_type', label: 'Inspection Type', type: 'dropdown', options: ['Routine Weekly Inspection', 'Precipitation Event > 0.25"'], required: true },
-    { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
-    { name: 'project', label: 'Project', required: true },
-    { name: 'spread', label: 'Spread', required: false },
-    { name: 'contractor', label: 'Contractor', required: false },
-    { name: 'inspector', label: 'Inspector', required: true },
-    { name: 'weather_conditions', label: 'Sky Cover', type: 'dropdown', options: ['Sunny', 'Mostly Sunny', 'Partly Sunny', 'Cloudy', 'Overcast'], required: false },
-    { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false },
-    { name: 'precipitation_type', label: 'Precipitation Type', type: 'dropdown', options: ['none', 'drizzle', 'rain', 'snow', 'sleet', 'hail'], required: false },
-    { name: 'soil_conditions', label: 'Soil Conditions', type: 'dropdown', options: ['Dry', 'Wet', 'Saturated', 'Frozen'], required: false },
-    { name: 'rain_gauges', label: 'Rain Gauges', type: 'dynamicArray', subFields: [
-      { name: 'location', label: 'Rain Gauge Location', type: 'text' },
-      { name: 'rain', label: 'Rain (in)', type: 'number' },
-      { name: 'snow', label: 'Snow (in)', type: 'number' }
-    ] },
-    { name: 'milepost_start', label: 'Milepost Start', required: false },
-    { name: 'milepost_end', label: 'Milepost End', required: false },
-    { name: 'station_start', label: 'Station Start', required: false },
-    { name: 'station_end', label: 'Station End', required: false }
-  ],
+  headerFields: [],
   dynamicSections: [
+    {
+      name: 'Project Information',
+      isStatic: true,
+      fields: [
+        { name: 'inspection_type', label: 'Inspection Type', type: 'dropdown', options: ['Routine Weekly Inspection', 'Precipitation Event > 0.25"'], required: true },
+        { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
+        { name: 'project', label: 'Project', required: true },
+        { name: 'spread', label: 'Spread', required: false },
+        { name: 'contractor', label: 'Contractor', required: false },
+        { name: 'inspector', label: 'Inspector', required: true },
+        { name: 'milepost_start', label: 'Milepost Start', required: false },
+        { name: 'milepost_end', label: 'Milepost End', required: false },
+        { name: 'station_start', label: 'Station Start', required: false },
+        { name: 'station_end', label: 'Station End', required: false }
+      ],
+      defaultRow: () => ({})
+    },
+    {
+      name: 'Weather Information',
+      fields: [
+        { name: 'weather_conditions', label: 'Sky Cover', type: 'dropdown', options: ['Sunny', 'Mostly Sunny', 'Partly Sunny', 'Cloudy', 'Overcast'], required: false },
+        { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false },
+        { name: 'precipitation_type', label: 'Precipitation Type', type: 'dropdown', options: ['none', 'drizzle', 'rain', 'snow', 'sleet', 'hail'], required: false },
+        { name: 'soil_conditions', label: 'Soil Conditions', type: 'dropdown', options: ['Dry', 'Wet', 'Saturated', 'Frozen'], required: false },
+        { name: 'rain_gauges', label: 'Rain Gauges', type: 'dynamicArray', subFields: [
+          { name: 'location', label: 'Rain Gauge Location', type: 'text' },
+          { name: 'rain', label: 'Rain (in)', type: 'number' },
+          { name: 'snow', label: 'Snow (in)', type: 'number' }
+        ] }
+      ],
+      defaultRow: () => ({})
+    },
     {
       name: 'Crew Daily Summaries',
       dropdownLabel: 'Crew',

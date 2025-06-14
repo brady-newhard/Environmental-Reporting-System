@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { saveDraft, normalizeDraft } from '../../../../utils/draftUtils';
 import { useSnackbar } from 'notistack';
 import environmentalDailyReportConfig from './environmentalDailyReportConfig';
+import PageHeader from '../../../common/PageHeader';
 
 const EnvironmentalDailyReport = () => {
   const navigate = useNavigate();
@@ -41,11 +42,14 @@ const EnvironmentalDailyReport = () => {
   };
 
   return (
-    <ReportTemplate 
-      config={environmentalDailyReportConfig} 
-      onSave={handleSave}
-      isSaving={isSaving}
-    />
+    <>
+      <PageHeader title={environmentalDailyReportConfig.title} />
+      <ReportTemplate 
+        config={environmentalDailyReportConfig} 
+        onSave={handleSave}
+        isSaving={isSaving}
+      />
+    </>
   );
 };
 

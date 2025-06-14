@@ -79,16 +79,43 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   });
 
   const [sections, setSections] = useState(() => {
-    if (initialData?.sections) {
-      return initialData.sections.map(section => ({
-        ...section,
-        rows: section.rows && section.rows.length > 0 ? section.rows : [section.defaultRow ? section.defaultRow() : {}]
-      }));
+    try {
+      // If we have initial data with sections, validate and use it
+      if (initialData?.sections) {
+        return initialData.sections.map(section => {
+          if (!section || !section.name) {
+            console.warn('Invalid section in initialData:', section);
+            return null;
+          }
+          return {
+            ...section,
+            rows: Array.isArray(section.rows) && section.rows.length > 0 
+              ? section.rows 
+              : [section.defaultRow ? section.defaultRow() : {}]
+          };
+        }).filter(Boolean); // Remove any null sections
+      }
+
+      // Otherwise, initialize from config
+      if (!config.dynamicSections) {
+        console.warn('No dynamicSections found in config');
+        return [];
+      }
+
+      return config.dynamicSections.map(section => {
+        if (!section || !section.name || !section.defaultRow) {
+          console.warn('Invalid section in config:', section);
+          return null;
+        }
+        return {
+          name: section.name,
+          rows: [section.defaultRow()]
+        };
+      }).filter(Boolean); // Remove any null sections
+    } catch (error) {
+      console.error('Error initializing sections:', error);
+      return [];
     }
-    return config.dynamicSections.map(section => ({
-      name: section.name,
-      rows: [section.defaultRow()]
-    }));
   });
 
   const [summaries, setSummaries] = useState(() => {
@@ -282,152 +309,150 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <form onSubmit={handleFormSubmit} className="space-y-6">
-        {/* Header Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-semibold mb-4">{config.title}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {config.headerFields.map((field) => (
-              <div key={field.name} className="space-y-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  {field.label}
-                  {field.required && <span className="text-red-500">*</span>}
-                </label>
-                {field.type === 'dropdown' ? (
-                  <select
-                    name={field.name}
-                    value={header[field.name] || ''}
-                    onChange={handleHeaderChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                    required={field.required}
-                  >
-                    <option value="">Select {field.label}</option>
-                    {field.options.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                ) : field.type === 'date' ? (
-                  <input
-                    type="date"
-                    name={field.name}
-                    value={header[field.name] || ''}
-                    onChange={handleHeaderChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                    required={field.required}
-                  />
-                ) : field.type === 'dynamicArray' ? (
-                  <div className="space-y-2">
-                    {header[field.name].map((item, index) => (
-                      <div key={index} className="flex gap-2">
-                        {field.subFields.map((subField) => (
-                          <input
-                            key={subField.name}
-                            type={subField.type === 'number' ? 'number' : 'text'}
-                            placeholder={subField.label}
-                            value={item[subField.name] || ''}
-                            onChange={(e) => {
-                              const newItems = [...header[field.name]];
-                              newItems[index] = {
-                                ...newItems[index],
-                                [subField.name]: e.target.value
-                              };
-                              setHeader({ ...header, [field.name]: newItems });
-                            }}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                          />
-                        ))}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newItems = header[field.name].filter((_, i) => i !== index);
-                            setHeader({ ...header, [field.name]: newItems });
-                          }}
-                          className="mt-1 p-1 text-red-500 hover:text-red-700"
-                        >
-                          <XMarkIcon className="h-5 w-5" />
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHeader({
-                          ...header,
-                          [field.name]: [...header[field.name], { location: '', rain: '', snow: '' }]
-                        });
-                      }}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-primary bg-primary/10 hover:bg-primary/20"
-                    >
-                      <PlusIcon className="h-4 w-4 mr-1" />
-                      Add {field.label}
-                    </button>
-                  </div>
+    <div className="min-h-screen bg-gray-100 text-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          {/* Header Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-2xl font-semibold mb-4">{config.title}</h2>
+            <div className="space-y-6">
+              {config.headerFields.map((field, index) => (
+                field.type === 'section' ? (
+                  <h3 key={field.name} className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                    {field.label}
+                  </h3>
                 ) : (
-                  <input
-                    type={field.type === 'number' ? 'number' : 'text'}
-                    name={field.name}
-                    value={header[field.name] || ''}
-                    onChange={handleHeaderChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                    required={field.required}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Dynamic Sections */}
-        {sections && sections.length > 0 && sections.map((section) => (
-          <div key={section.name} className="bg-white rounded-lg shadow p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">{section.name}</h3>
-              <button
-                type="button"
-                onClick={() => handleAddRow(section.name)}
-                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-primary bg-primary/10 hover:bg-primary/20"
-              >
-                <PlusIcon className="h-4 w-4 mr-1" />
-                Add Row
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {config.dynamicSections
-                      .find(s => s.name === section.name)
-                      ?.fields?.map((field) => (
-                        <th
-                          key={field.name}
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  <div key={field.name} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="col-span-1">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">
+                        {field.label}
+                      </label>
+                      {field.type === 'dropdown' ? (
+                        <select
+                          name={field.name}
+                          value={header[field.name] || ''}
+                          onChange={handleHeaderChange}
+                          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          {field.label}
-                        </th>
-                      ))}
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {section.rows?.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {config.dynamicSections
-                        .find(s => s.name === section.name)
-                        ?.fields?.map((field) => (
-                          <td key={field.name} className="px-6 py-4 whitespace-nowrap">
+                          <option value="">Select {field.label}</option>
+                          {field.options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : field.type === 'date' ? (
+                        <input
+                          type="date"
+                          name={field.name}
+                          value={header[field.name] || ''}
+                          onChange={handleHeaderChange}
+                          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : field.type === 'dynamicArray' ? (
+                        <div className="space-y-2">
+                          {header[field.name].map((item, index) => (
+                            <div key={index} className="flex gap-2">
+                              {field.subFields.map((subField) => (
+                                <input
+                                  key={subField.name}
+                                  type={subField.type}
+                                  name={`${field.name}.${index}.${subField.name}`}
+                                  value={item[subField.name] || ''}
+                                  onChange={handleHeaderChange}
+                                  className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder={subField.label}
+                                />
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveRow(field.name, index)}
+                                className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2"
+                              >
+                                <XMarkIcon className="h-5 w-5" />
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => handleAddRow(field.name)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                          >
+                            <PlusIcon className="h-5 w-5" />
+                            Add {field.label}
+                          </button>
+                        </div>
+                      ) : (
+                        <input
+                          type={field.type || 'text'}
+                          name={field.name}
+                          value={header[field.name] || ''}
+                          onChange={handleHeaderChange}
+                          className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder={field.placeholder}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          </div>
+
+          {/* Dynamic Sections */}
+          {(sections || []).map((section) => {
+            // Validate section data
+            if (!section || !section.name) {
+              console.warn('Invalid section data:', section);
+              return null;
+            }
+
+            // Find matching section config
+            const sectionConfig = config.dynamicSections?.find(s => s.name === section.name);
+            if (!sectionConfig) {
+              console.warn(`Section "${section.name}" not found in config.dynamicSections`);
+              return null;
+            }
+
+            // Validate section fields
+            const fields = sectionConfig.fields || [];
+            if (!Array.isArray(fields)) {
+              console.warn(`Invalid fields for section "${section.name}":`, fields);
+              return null;
+            }
+
+            return (
+              <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                {(section.rows || []).map((row, rowIndex) => {
+                  // Validate row data
+                  if (!row || typeof row !== 'object') {
+                    console.warn(`Invalid row data in section "${section.name}" at index ${rowIndex}:`, row);
+                    return null;
+                  }
+
+                  return (
+                    <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                      {fields.map((field) => {
+                        // Validate field data
+                        if (!field || !field.name || !field.label) {
+                          console.warn(`Invalid field data in section "${section.name}":`, field);
+                          return null;
+                        }
+
+                        return (
+                          <div key={field.name} className="col-span-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                              {field.label}
+                            </label>
                             {field.type === 'dropdown' ? (
                               <select
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                               >
                                 <option value="">Select {field.label}</option>
-                                {field.options?.map((option) => (
+                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
                                   <option key={option} value={option}>
                                     {option}
                                   </option>
@@ -437,190 +462,203 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               <textarea
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 rows={3}
                               />
                             ) : (
                               <input
-                                type="text"
+                                type={field.type || 'text'}
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                               />
                             )}
-                          </td>
-                        ))}
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          </div>
+                        );
+                      })}
+                      {!sectionConfig.isStatic && (
+                        <div className="col-span-1 flex items-end">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRow(section.name, rowIndex)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-4 py-2"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {!sectionConfig.isStatic && (
+                  <button
+                    type="button"
+                    onClick={() => handleAddRow(section.name)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                  >
+                    <PlusIcon className="h-5 w-5" />
+                    Add Row
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Summary Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle}</h2>
+            <div className="space-y-4">
+              {config.summaryFields.map((field) => (
+                <div key={field.name}>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    {field.label}
+                  </label>
+                  <textarea
+                    value={summaries[field.name] || ''}
+                    onChange={(e) => handleSummaryChange(field.name, e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={4}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Signature Section */}
+          {config.requiresSignature && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Prepared By
+                  </label>
+                  <input
+                    type="text"
+                    value={preparedBy}
+                    onChange={(e) => setPreparedBy(e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Signature
+                  </label>
+                  <div className="mt-1 border border-gray-300 rounded-md">
+                    <SignaturePad
+                      ref={sigPadRef}
+                      canvasProps={{
+                        className: 'w-full h-48 rounded-md'
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearSignature}
+                    className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Clear Signature
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={sigDate ? format(sigDate, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => setSigDate(new Date(e.target.value))}
+                    className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Photo Section */}
+          {config.requiresPhotos && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-center w-full">
+                  <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <CameraIcon className="w-8 h-8 mb-4 text-gray-500" />
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG or JPEG</p>
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      multiple
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                    />
+                  </label>
+                </div>
+                {photos.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {photos.map((photo, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={photo.url}
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
                         <button
                           type="button"
-                          onClick={() => handleRemoveRow(section.name, rowIndex)}
-                          className="text-red-500 hover:text-red-700"
+                          onClick={() => {
+                            setPhotos(photos.filter((_, i) => i !== index));
+                          }}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <XMarkIcon className="h-4 w-4" />
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ))}
-
-        {/* Summary Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">{config.summarySectionTitle || 'Summary'}</h3>
-          <div className="space-y-4">
-            {config.summaryFields.map((field) => (
-              <div key={field.name}>
-                <label className="block text-sm font-medium text-gray-700">
-                  {field.label}
-                </label>
-                <textarea
-                  value={summaries[field.name] || ''}
-                  onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                  rows={4}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Signature Section */}
-        {config.requiresSignature && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold mb-4">Signature</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Prepared By
-                </label>
-                <input
-                  type="text"
-                  value={preparedBy}
-                  onChange={(e) => setPreparedBy(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Signature
-                </label>
-                <div className="mt-1 border border-gray-300 rounded-md">
-                  <SignaturePad
-                    ref={sigPadRef}
-                    canvasProps={{
-                      className: 'w-full h-48 rounded-md'
-                    }}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClearSignature}
-                  className="mt-2 text-sm text-red-500 hover:text-red-700"
-                >
-                  Clear Signature
-                </button>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={sigDate ? format(sigDate, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => setSigDate(new Date(e.target.value))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Photo Section */}
-        {config.requiresPhotos && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold mb-4">Photos</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <CameraIcon className="w-8 h-8 mb-4 text-gray-500" />
-                    <p className="mb-2 text-sm text-gray-500">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p className="text-xs text-gray-500">PNG, JPG or JPEG</p>
+                      </div>
+                    ))}
                   </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    multiple
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                  />
-                </label>
+                )}
               </div>
-              {photos.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {photos.map((photo, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={photo.url}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPhotos(photos.filter((_, i) => i !== index));
-                        }}
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                      >
-                        <XMarkIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={handleExit}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Exit
-          </button>
-          {draftId && (
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4 justify-end">
             <button
               type="button"
-              onClick={handleDelete}
-              className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              onClick={handleExit}
+              className="bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-md px-4 py-2"
             >
-              Delete
+              Exit
             </button>
-          )}
-          <button
-            type="button"
-            onClick={handleReview}
-            className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Review
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Saving...' : 'Save'}
-          </button>
-        </div>
-      </form>
+            {draftId && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-4 py-2"
+              >
+                Delete
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleReview}
+              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-md px-4 py-2"
+            >
+              Review
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md px-4 py-2"
+            >
+              {loading ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </form>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       {deleteDialogOpen && (
@@ -692,49 +730,53 @@ ReportTemplate.propTypes = {
   config: PropTypes.shape({
     title: PropTypes.string.isRequired,
     reportType: PropTypes.string.isRequired,
-    headerFields: PropTypes.arrayOf(
-      PropTypes.shape({
+    headerFields: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      required: PropTypes.bool,
+      type: PropTypes.string,
+      placeholder: PropTypes.string
+    })).isRequired,
+    dynamicSections: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      fields: PropTypes.arrayOf(PropTypes.shape({
         name: PropTypes.string.isRequired,
         label: PropTypes.string.isRequired,
         type: PropTypes.string,
-        required: PropTypes.bool,
-        options: PropTypes.arrayOf(PropTypes.string)
-      })
-    ).isRequired,
-    dynamicSections: PropTypes.arrayOf(
-      PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        fields: PropTypes.arrayOf(
-          PropTypes.shape({
-            name: PropTypes.string.isRequired,
-            label: PropTypes.string.isRequired,
-            type: PropTypes.string
-          })
-        ).isRequired,
-        defaultRow: PropTypes.func.isRequired
-      })
-    ).isRequired,
-    summaryFields: PropTypes.arrayOf(
-      PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        label: PropTypes.string.isRequired,
-        multiline: PropTypes.bool
-      })
-    ).isRequired,
+        required: PropTypes.bool
+      })).isRequired,
+      defaultRow: PropTypes.func.isRequired,
+      dropdownOptions: PropTypes.arrayOf(PropTypes.string),
+      isStatic: PropTypes.bool
+    })).isRequired,
+    summaryFields: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      multiline: PropTypes.bool
+    })).isRequired,
     requiresSignature: PropTypes.bool,
-    requiresPhotos: PropTypes.bool
+    requiresPhotos: PropTypes.bool,
+    summarySectionTitle: PropTypes.string
   }).isRequired,
   initialData: PropTypes.shape({
     header: PropTypes.object,
-    sections: PropTypes.array,
+    sections: PropTypes.arrayOf(PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      rows: PropTypes.arrayOf(PropTypes.object).isRequired
+    })),
     summaries: PropTypes.object,
     preparedBy: PropTypes.string,
     signature: PropTypes.string,
-    sigDate: PropTypes.string,
-    photos: PropTypes.array,
+    sigDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    photos: PropTypes.arrayOf(PropTypes.string),
     id: PropTypes.string
   }),
-  onSave: PropTypes.func
+  onSave: PropTypes.func.isRequired
+};
+
+ReportTemplate.defaultProps = {
+  config: defaultConfig,
+  initialData: null
 };
 
 export default ReportTemplate; 
