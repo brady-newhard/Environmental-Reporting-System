@@ -112,10 +112,7 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
             />
             <div className="p-2 flex-1 flex flex-col justify-between">
               {editingIdx === idx ? (
-                <form
-                  className="space-y-1"
-                  onSubmit={e => { e.preventDefault(); saveEdit(idx); }}
-                >
+                <div className="space-y-1">
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded px-2 py-1 text-xs mb-1 focus:ring-2 focus:ring-yellow-400"
@@ -132,10 +129,23 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
                     onChange={e => handleEditChange('description', e.target.value)}
                   />
                   <div className="flex gap-2 mt-1">
-                    <button type="submit" className="text-xs bg-green-500 text-white rounded px-2 py-1" disabled={!editFields.location && !editFields.description}>Save</button>
-                    <button type="button" className="text-xs bg-gray-200 text-gray-700 rounded px-2 py-1" onClick={cancelEdit}>Cancel</button>
+                    <button
+                      type="button"
+                      className="text-xs bg-green-500 text-white rounded px-2 py-1"
+                      disabled={!editFields.location && !editFields.description}
+                      onClick={() => saveEdit(idx)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs bg-gray-200 text-gray-700 rounded px-2 py-1"
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </button>
                   </div>
-                </form>
+                </div>
               ) : (
                 <>
                   <div className="text-xs text-gray-700 truncate cursor-pointer flex items-center gap-1" onClick={() => editable && startEdit(idx)}>
