@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { User, Lock } from 'lucide-react';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isAuthenticated, loading } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
@@ -16,11 +17,14 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
+  // Get the page the user was trying to access, or default to "/"
+  const from = location.state?.from?.pathname || '/';
+
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      navigate('/');
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, loading, navigate, from]);
 
   const handleChange = (e) => {
     setFormData({
@@ -41,7 +45,7 @@ const SignIn = () => {
         password: formData.password
       });
       await login(response.data.token, response.data.username, response.data.first_name);
-      navigate('/');
+      navigate(from, { replace: true }); // Redirect to the page the user wanted
     } catch (err) {
       if (err.response) {
         if (err.response.status === 401) {

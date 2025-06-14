@@ -1,3 +1,8 @@
+// Dev helper: Always set the token in localStorage during development
+if (window.location.hostname === 'localhost') {
+  localStorage.setItem('token', 'e2eafb6d54947c3b1810bacba44cb3e403901f84');
+}
+
 // Basic initialization
 document.addEventListener('DOMContentLoaded', () => {
     const root = document.getElementById('root');
