@@ -1,53 +1,19 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Stack,
-  Card,
-  CardContent,
-  Grid,
-  Tooltip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Snackbar,
-  Alert,
-  CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, PhotoCamera, Save as SaveIcon, Visibility as VisibilityIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import SignaturePad from 'react-signature-canvas';
-import PageHeader from '../common/PageHeader';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
-import ReportPhotoSection from '../common/ReportPhotoSection';
 import axios from '../../utils/axios';
-import { message } from 'antd';
 import { uploadPhoto } from '../../utils/photoUtils';
 import { loadDraft, saveDraft } from '../../utils/draftUtils';
-import { useAuth } from '../../contexts/AuthContext';
-
-// console.log('ReportTemplate loaded');
+import PageHeader from '../common/PageHeader';
+import { 
+  PlusIcon, 
+  TrashIcon, 
+  CameraIcon, 
+  XMarkIcon 
+} from '@heroicons/react/24/outline';
+import { format } from 'date-fns';
 
 // Template configuration
 const defaultConfig = {
@@ -90,17 +56,14 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   // Initialize state with default values from config
   const [header, setHeader] = useState(() => {
     const defaultHeader = config.headerFields.reduce((acc, field) => {
-      // Initialize rain_gauges as an empty array if it's a dynamicArray type
       if (field.type === 'dynamicArray') {
         return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
       }
       return { ...acc, [field.name]: '' };
     }, { date: null, reportNo: 'Pending' });
     
-    // If we have initialData, merge it with defaultHeader, ensuring rain_gauges is an array
     if (initialData?.header) {
       const mergedHeader = { ...defaultHeader, ...initialData.header };
-      // Ensure rain_gauges is an array
       if (config.headerFields.some(field => field.type === 'dynamicArray')) {
         config.headerFields.forEach(field => {
           if (field.type === 'dynamicArray') {
@@ -141,18 +104,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   // Update state when initialData changes
   useEffect(() => {
     if (!initialData) return;
     
     console.log('ReportTemplate initialData changed:', initialData);
     
-    // Update header with default values for required fields
     const defaultHeader = config.headerFields.reduce((acc, field) => {
-      // Initialize rain_gauges as an empty array if it's a dynamicArray type
       if (field.type === 'dynamicArray') {
         return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
       }
@@ -166,7 +124,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
     console.log('Updated header:', updatedHeader);
     setHeader(updatedHeader);
 
-    // Update sections
     if (initialData.sections) {
       const updatedSections = initialData.sections.map(section => ({
         ...section,
@@ -176,7 +133,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
       setSections(updatedSections);
     }
 
-    // Update summaries
     if (initialData.summaries) {
       const updatedSummaries = {
         ...summaries,
@@ -186,7 +142,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
       setSummaries(updatedSummaries);
     }
 
-    // Update other fields
     if (initialData.preparedBy) setPreparedBy(initialData.preparedBy);
     if (initialData.signature) setSignature(initialData.signature);
     if (initialData.sigDate) setSigDate(new Date(initialData.sigDate));
@@ -194,45 +149,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
     if (initialData.id) setDraftId(initialData.id);
   }, [initialData]);
 
-  // Initialize state with default values from config
-  useEffect(() => {
-    if (!initialData) {
-      const defaultHeader = config.headerFields.reduce((acc, field) => {
-        // Initialize rain_gauges as an empty array if it's a dynamicArray type
-        if (field.type === 'dynamicArray') {
-          return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
-        }
-        return { ...acc, [field.name]: '' };
-      }, { date: null, reportNo: 'Pending' });
-      setHeader(defaultHeader);
-
-      const defaultSections = config.dynamicSections.map(section => ({
-        name: section.name,
-        rows: [section.defaultRow()]
-      }));
-      setSections(defaultSections);
-
-      const defaultSummaries = config.summaryFields.reduce((acc, field) => ({ ...acc, [field.name]: '' }), {});
-      setSummaries(defaultSummaries);
-    }
-  }, []);
-
-  // DEBUG: Log state on every render
-  useEffect(() => {
-  console.log('ReportTemplate state:', {
-    header,
-    sections,
-    summaries,
-    preparedBy,
-    signature,
-    sigDate,
-    photos,
-    draftId
-  });
-  }, [header, sections, summaries, preparedBy, signature, sigDate, photos, draftId]);
-
   // Handlers
   const handleHeaderChange = e => setHeader({ ...header, [e.target.name]: e.target.value });
+  
   const handleSectionChange = (sectionName, rowIndex, field, value) => {
     setSections(sections.map(section => {
       if (section.name !== sectionName) return section;
@@ -244,6 +163,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
       };
     }));
   };
+
   const handleAddRow = (sectionName) => {
     setSections(sections.map(section => {
       if (section.name !== sectionName) return section;
@@ -254,128 +174,91 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
       };
     }));
   };
+
   const handleRemoveRow = (sectionName, rowIndex) => {
     setSections(sections.map(section => {
       if (section.name !== sectionName) return section;
       return {
         ...section,
-        rows: section.rows.length > 1 
-          ? section.rows.filter((_, idx) => idx !== rowIndex)
-          : section.rows
+        rows: section.rows.filter((_, idx) => idx !== rowIndex)
       };
     }));
   };
+
   const handleSummaryChange = (field, value) => {
     setSummaries({ ...summaries, [field]: value });
   };
-  const handlePhotoUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setPhotos([...photos, ...files]);
-  };
-  const handleClearSignature = () => {
-    sigPadRef.current?.clear();
-    setSignature('');
-  };
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    if (typeof onSave === 'function') {
-      onSave({
-        header,
-        sections,
-        summaries,
-        photos,
-        signature,
-        sigDate,
-        id: draftId,
-      });
-    }
-  };
-  const handleSave = async () => {
-    console.log('Save button clicked');
-    console.log('onSave prop:', onSave);
-    if (typeof onSave !== 'function') {
-      console.error('onSave prop is not a function:', onSave);
-      enqueueSnackbar('Error: Save functionality not available', { variant: 'error' });
-      return;
-    }
 
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files);
     try {
-      console.log('Starting save operation...');
+      const uploadedPhotos = await Promise.all(
+        files.map(file => uploadPhoto(file))
+      );
+      setPhotos([...photos, ...uploadedPhotos]);
+    } catch (error) {
+      console.error('Error uploading photos:', error);
+      enqueueSnackbar('Error uploading photos', { variant: 'error' });
+    }
+  };
+
+  const handleClearSignature = () => {
+    if (sigPadRef.current) {
+      sigPadRef.current.clear();
+      setSignature('');
+    }
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (sigPadRef.current && !signature) {
+      const signatureData = sigPadRef.current.toDataURL();
+      setSignature(signatureData);
+    }
+    await handleSave();
+  };
+
+  const handleSave = async () => {
+    try {
       setLoading(true);
       const formData = {
         header,
         sections,
         summaries,
-        photos,
-        signature,
-        sigDate,
         preparedBy,
-        id: draftId,
+        signature,
+        sigDate: sigDate ? format(sigDate, 'yyyy-MM-dd') : null,
+        photos,
+        id: draftId
       };
-      console.log('Saving form data:', formData);
-      const savedId = await onSave(formData);
-      console.log('Save operation completed successfully');
       
-      // Update local state with the saved data
-      if (savedId) {
-        setDraftId(savedId);
-        // Don't reset the form data since we want to keep the current values
-        enqueueSnackbar('Draft saved successfully', { variant: 'success' });
+      if (onSave) {
+        await onSave(formData);
       }
+      
+      enqueueSnackbar('Report saved successfully', { variant: 'success' });
     } catch (error) {
-      console.error('Error in handleSave:', error);
-      enqueueSnackbar('Error saving draft: ' + (error.message || 'Unknown error'), { variant: 'error' });
+      console.error('Error saving report:', error);
+      enqueueSnackbar('Error saving report: ' + error.message, { variant: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (field, value) => {
-    if (field === 'preparedBy') {
-      setPreparedBy(value);
-    } else if (field === 'sigDate') {
-      setSigDate(value);
-    }
-  };
-
-  // Project fields for the Project Information section (custom order)
-  const projectFieldNames = [
-    'project',
-    'date',
-    'contractor',
-    'spread',
-    'facility',
-    'inspector',
-    'milepost_start',
-    'milepost_end',
-    'station_start',
-    'station_end'
-  ];
-  const projectFields = config.headerFields.filter(f => projectFieldNames.includes(f.name));
-  const weatherFieldNames = [
-    'weather_conditions',
-    'temperature',
-    'precipitation_type',
-    'soil_conditions'
-  ];
-  const weatherFields = config.headerFields.filter(f => weatherFieldNames.includes(f.name));
-  const rainGaugeField = config.headerFields.find(f => f.name === 'rain_gauges');
-  const additionalCommentsField = config.headerFields.find(f => f.name === 'additional_comments');
-
-  const handleDelete = async () => {
-    if (!id) return;
+  const handleDelete = () => {
     setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      await axios.delete(`/api/drafts/${id}/`);
-      enqueueSnackbar('Draft deleted successfully', { variant: 'success' });
-      setDraftId(null);
-      navigate(`/${config.reportType}/reports/daily/drafts`);
+      if (draftId) {
+        await axios.delete(`/api/drafts/${draftId}`);
+        enqueueSnackbar('Report deleted successfully', { variant: 'success' });
+        navigate('/environmental/reports/daily');
+      }
     } catch (error) {
-      console.error('Error deleting draft:', error);
-      enqueueSnackbar('Failed to delete draft', { variant: 'error' });
+      console.error('Error deleting report:', error);
+      enqueueSnackbar('Error deleting report: ' + error.message, { variant: 'error' });
     } finally {
       setDeleteDialogOpen(false);
     }
@@ -387,882 +270,421 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
 
   const handleExitConfirm = async (shouldSave) => {
     if (shouldSave) {
-      try {
-        setLoading(true);
-        await handleSave();
-      } catch (error) {
-        console.error('Error saving before exit:', error);
-        enqueueSnackbar('Error saving draft: ' + (error.message || 'Unknown error'), { variant: 'error' });
-        setLoading(false);
-        return; // Don't navigate if save failed
-      } finally {
-        setLoading(false);
-      }
+      await handleSave();
     }
-
-    // Determine where to navigate based on the current context
-    const path = location.pathname;
-    if (path.includes('/new')) {
-      // If we're on the new report page, go back to reports
-      navigate(`/${config.reportType}/reports`);
-    } else if (path.includes('/review') || path.includes('/edit')) {
-      // If we're on the review or edit page, go to drafts
-      navigate(`/${config.reportType}/reports/daily/drafts`);
-    } else {
-      // Default fallback
-      navigate(-1);
-    }
-    setExitDialogOpen(false);
+    navigate('/environmental/reports/daily');
   };
 
   const handleReview = () => {
     if (draftId) {
-      const reviewData = {
-        header,
-        sections,
-        summaries,
-        preparedBy,
-        signature,
-        sigDate,
-        photos,
-        id: draftId,
-      };
-      
-      navigate(`${config.reviewPath}/${draftId}`);
+      navigate(`/environmental/reports/daily/review/${draftId}`);
     }
   };
 
   return (
-    <Box sx={{ width: { xs: '100%', sm: '100%' }, maxWidth: { xs: '100%', sm: 1400 }, mx: 0, px: { xs: 1, sm: 2 }, py: 3, mt: 1, mb: 1, pb: { xs: 6, sm: 6 }, bgcolor: '#f5f5f5', borderRadius: 2, overflowX: 'hidden', boxSizing: 'border-box' }}>
-        <PageHeader
-          title={config.title}
-          backPath={`/${config.reportType}/reports`}
-          backButtonStyle={{ backgroundColor: '#000000', color: '#ffffff', '&:hover': { backgroundColor: '#333333' } }}
-        />
-      <Paper sx={{ width: '100%', boxShadow: 'none', p: 0, bgcolor: 'transparent' }}>
-          <FormControl component="form" onSubmit={handleFormSubmit} layout="vertical">
-          <Grid container spacing={3} direction="column">
-            {/* Project Information Section */}
-            <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }}>
-              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                <CardContent sx={{ p: 2 }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>Project Information</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                  {projectFields.map((field, index) => (
-                    <Box
-                      key={field.name}
-                      sx={{
-                        flex: { xs: '1 1 100%', sm: '1 1 48%' },
-                        minWidth: { xs: '100%', sm: '48%' },
-                        maxWidth: { xs: '100%', sm: '48%' },
-                        mb: 2,
-                      }}
-                    >
-                      <TextField
-                        label={field.label}
-                        name={field.name}
-                        value={header[field.name] || ''}
-                        onChange={(e) => {
-                          handleChange(field.name, e.target.value);
-                          handleHeaderChange(e);
-                        }}
-                        required={field.required}
-                        fullWidth
-                        variant="outlined"
-                        sx={{ bgcolor: '#fff' }}
-                      />
-                    </Box>
-                  ))}
-                  <Box
-                    sx={{
-                      flex: { xs: '1 1 100%', sm: '1 1 48%' },
-                      minWidth: { xs: '100%', sm: '48%' },
-                      maxWidth: { xs: '100%', sm: '48%' },
-                      mb: 2,
-                    }}
+    <div className="min-h-screen bg-background p-4">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
+        {/* Header Section */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-2xl font-semibold mb-4">{config.title}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {config.headerFields.map((field) => (
+              <div key={field.name} className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  {field.label}
+                  {field.required && <span className="text-red-500">*</span>}
+                </label>
+                {field.type === 'dropdown' ? (
+                  <select
+                    name={field.name}
+                    value={header[field.name] || ''}
+                    onChange={handleHeaderChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    required={field.required}
                   >
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                      <DatePicker
-                        label="Date"
-                        value={header.date ? new Date(header.date) : null}
-                        onChange={(date) => {
-                          handleChange('date', date);
-                          handleHeaderChange({ target: { name: 'date', value: date } });
-                        }}
-                        slotProps={{ textField: { fullWidth: true, sx: { bgcolor: '#fff' } } }}
-                      />
-                    </LocalizationProvider>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-            </Grid>
-
-            {/* Weather Information Section (Rain Gauge Data INSIDE) */}
-            <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 } }}>
-              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff', mb: 2 }}>
-                <CardContent sx={{ p: 2 }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>Weather Information</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                  {weatherFields.map((field, index) => (
-                    <Box
-                      key={field.name}
-                      sx={{
-                        flex: { xs: '1 1 100%', sm: '1 1 48%' },
-                        minWidth: { xs: '100%', sm: '48%' },
-                        maxWidth: { xs: '100%', sm: '48%' },
-                        mb: 2,
-                      }}
-                    >
-                      {field.type === 'dropdown' ? (
-                        <FormControl fullWidth variant="outlined" sx={{ bgcolor: '#fff' }}>
-                          <InputLabel>{field.label}</InputLabel>
-                          <Select
-                            label={field.label}
-                            name={field.name}
-                            value={header[field.name] || ''}
+                    <option value="">Select {field.label}</option>
+                    {field.options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : field.type === 'date' ? (
+                  <input
+                    type="date"
+                    name={field.name}
+                    value={header[field.name] || ''}
+                    onChange={handleHeaderChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    required={field.required}
+                  />
+                ) : field.type === 'dynamicArray' ? (
+                  <div className="space-y-2">
+                    {header[field.name].map((item, index) => (
+                      <div key={index} className="flex gap-2">
+                        {field.subFields.map((subField) => (
+                          <input
+                            key={subField.name}
+                            type={subField.type === 'number' ? 'number' : 'text'}
+                            placeholder={subField.label}
+                            value={item[subField.name] || ''}
                             onChange={(e) => {
-                              handleChange(field.name, e.target.value);
-                              handleHeaderChange(e);
+                              const newItems = [...header[field.name]];
+                              newItems[index] = {
+                                ...newItems[index],
+                                [subField.name]: e.target.value
+                              };
+                              setHeader({ ...header, [field.name]: newItems });
                             }}
-                            required={field.required}
-                          >
-                            <MenuItem value="" disabled>
-                              <em>Select {field.label}</em>
-                            </MenuItem>
-                            {field.options.map(option => (
-                              <MenuItem key={option} value={option}>{option}</MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      ) : (
-                        <TextField
-                          label={field.label}
-                          name={field.name}
-                          type={field.type || 'text'}
-                          value={header[field.name] || ''}
-                          onChange={(e) => {
-                            handleChange(field.name, e.target.value);
-                            handleHeaderChange(e);
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                          />
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newItems = header[field.name].filter((_, i) => i !== index);
+                            setHeader({ ...header, [field.name]: newItems });
                           }}
-                          required={field.required}
-                          fullWidth
-                            sx={{ bgcolor: '#fff' }}
-                        />
-                      )}
-                    </Box>
-                  ))}
-                </Box>
-                  {rainGaugeField && rainGaugeField.subFields && (
-                  <Paper sx={{ p: 2, bgcolor: '#f8f8f8', borderRadius: 1, mt: 2 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>Rain Gauge Data</Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {(header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).map((row, idx) => (
-                        <Box key={idx} sx={{ display: { xs: 'block', sm: 'flex' }, gap: 2, alignItems: 'center', width: '100%', bgcolor: 'transparent', p: 0, borderRadius: 0 }}>
-                          {rainGaugeField.subFields.map(subField => (
-                            <TextField
-                              key={subField.name}
-                              label={subField.label}
-                              name={subField.name}
-                              type={subField.type || 'text'}
-                              value={row[subField.name] || ''}
-                              onChange={e => {
-                                const updatedRows = (header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).map((r, i) =>
-                                  i === idx ? { ...r, [subField.name]: e.target.value } : r
-                                );
-                                setHeader({ ...header, [rainGaugeField.name]: updatedRows });
-                              }}
-                              size="small"
-                              fullWidth
-                              sx={{
-                                bgcolor: '#fff',
-                                flex: {
-                                  xs: '1 1 100%',
-                                  sm: subField.name === 'location' ? 2 : 1
-                                },
-                                minWidth: 0,
-                                mb: { xs: 2, sm: 0 }
-                              }}
-                            />
-                          ))}
-                          <IconButton
-                            color="error"
-                            onClick={() => {
-                              const updatedRows = (header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).filter((_, i) => i !== idx);
-                              setHeader({ ...header, [rainGaugeField.name]: updatedRows.length ? updatedRows : [{ location: '', rain: '', snow: '' }] });
-                            }}
-                            disabled={(header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]).length === 1}
-                            sx={{ ml: 1 }}
-                            aria-label="Remove Rain Gauge"
-                          >
-                            <Box sx={{ fontSize: 42 }}><DeleteIcon sx={{ fontSize: 'inherit' }} /></Box>
-                          </IconButton>
-                        </Box>
-                      ))}
-                      <Button
-                        onClick={() => {
-                          const updatedRows = [...(header[rainGaugeField.name] || [{ location: '', rain: '', snow: '' }]), { location: '', rain: '', snow: '' }];
-                          setHeader({ ...header, [rainGaugeField.name]: updatedRows });
-                        }}
-                        size="small"
-                        variant="outlined"
-                        startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>}
-                        sx={{ width: '200px', alignSelf: 'center', borderColor: 'primary.main', '&:hover': { borderColor: 'primary.dark' } }}
-                      >
-                        Add Rain Gage
-                      </Button>
-                    </Box>
-                  </Paper>
+                          className="mt-1 p-1 text-red-500 hover:text-red-700"
+                        >
+                          <XMarkIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHeader({
+                          ...header,
+                          [field.name]: [...header[field.name], { location: '', rain: '', snow: '' }]
+                        });
+                      }}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-primary bg-primary/10 hover:bg-primary/20"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-1" />
+                      Add {field.label}
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type={field.type === 'number' ? 'number' : 'text'}
+                    name={field.name}
+                    value={header[field.name] || ''}
+                    onChange={handleHeaderChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                    required={field.required}
+                  />
                 )}
-              </CardContent>
-            </Card>
-            </Grid>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            {/* Environmental Summary Section */}
-            <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 } }}>
-              <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                <CardContent sx={{ p: 2 }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>{config.summarySectionTitle || 'Summaries'}</Typography>
-                <Stack spacing={2}>
-                  {config.summaryFields.map(field => (
-                      <TextField
-                        key={field.name}
-                        label={field.label}
-                        name={field.name}
-                        value={summaries[field.name] || ''}
-                        onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                        multiline={field.multiline}
-                        rows={field.multiline ? 2 : 1}
-                        fullWidth
-                        sx={{ bgcolor: '#fff' }}
-                      />
+        {/* Dynamic Sections */}
+        {sections && sections.length > 0 && sections.map((section) => (
+          <div key={section.name} className="bg-white rounded-lg shadow p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">{section.name}</h3>
+              <button
+                type="button"
+                onClick={() => handleAddRow(section.name)}
+                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-primary bg-primary/10 hover:bg-primary/20"
+              >
+                <PlusIcon className="h-4 w-4 mr-1" />
+                Add Row
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {config.dynamicSections
+                      .find(s => s.name === section.name)
+                      ?.fields?.map((field) => (
+                        <th
+                          key={field.name}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {field.label}
+                        </th>
+                      ))}
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {section.rows?.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {config.dynamicSections
+                        .find(s => s.name === section.name)
+                        ?.fields?.map((field) => (
+                          <td key={field.name} className="px-6 py-4 whitespace-nowrap">
+                            {field.type === 'dropdown' ? (
+                              <select
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                              >
+                                <option value="">Select {field.label}</option>
+                                {field.options?.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : field.type === 'multiline' ? (
+                              <textarea
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                                rows={3}
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                value={row[field.name] || ''}
+                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                              />
+                            )}
+                          </td>
+                        ))}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveRow(section.name, rowIndex)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                </Stack>
-              </CardContent>
-            </Card>
-            </Grid>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
 
-            {/* Crew Daily Summaries Section */}
-            {sections.map(section => {
-              if (section.name !== 'Crew Daily Summaries') return null;
-              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              if (!sectionConfig) return null;
-              return (
-                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: { xs: 0.5, sm: 2 } }} key={section.name}>
-                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                    <CardContent sx={{ p: 2, width: '100%' }}>
-                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
-                      {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
-                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0 }}>
-                            {sectionConfig.fields.filter(f => f.name !== 'Summary').map(fieldConfig => (
-                              <Box
-                                key={fieldConfig.name}
-                                sx={{
-                                  flex: { xs: '1 1 100%', sm: '1 1 25%' },
-                                  minWidth: 0,
-                                  maxWidth: { xs: '100%', sm: '25%' }
-                                }}
-                              >
-                                <TextField
-                                  label={fieldConfig.label}
-                                  name={fieldConfig.name}
-                                  value={row[fieldConfig.name] || ''}
-                                  onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                  fullWidth
-                                  sx={{ bgcolor: '#fff' }}
-                                />
-                              </Box>
-                            ))}
-                          </Box>
-                          <Box sx={{ width: '100%', mt: 2 }}>
-                            <TextField
-                              label="Summary"
-                              name="Summary"
-                              value={row['Summary'] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, 'Summary', e.target.value)}
-                              fullWidth
-                              multiline
-                              minRows={2}
-                              sx={{ bgcolor: '#fff' }}
-                            />
-                          </Box>
-                          {section.rows.length > 1 && (
-                            <Box sx={{ width: '100%', display: 'flex', justifyContent: { xs: 'center', sm: 'flex-end' }, mt: 1 }}>
-                              <IconButton
-                                color="error"
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                aria-label={`Remove ${section.name} row`}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          )}
-                        </Paper>
-                      ))}
-                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
-                        Add Row
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
+        {/* Summary Section */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-xl font-semibold mb-4">{config.summarySectionTitle || 'Summary'}</h3>
+          <div className="space-y-4">
+            {config.summaryFields.map((field) => (
+              <div key={field.name}>
+                <label className="block text-sm font-medium text-gray-700">
+                  {field.label}
+                </label>
+                <textarea
+                  value={summaries[field.name] || ''}
+                  onChange={(e) => handleSummaryChange(field.name, e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  rows={4}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
 
-            {/* Daily Progress Section */}
-            {sections.map(section => {
-              if (section.name !== 'Daily Progress') return null;
-              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              if (!sectionConfig) return null;
-              return (
-                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
-                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                    <CardContent sx={{ p: 2 }}>
-                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
-                      {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
-                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0 }}>
-                            {sectionConfig.fields.map(fieldConfig => (
-                              <Box
-                                key={fieldConfig.name}
-                                sx={{
-                                  flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                  minWidth: 0,
-                                  maxWidth: { xs: '100%', sm: '33.33%' }
-                                }}
-                              >
-                              <TextField
-                                label={fieldConfig.label}
-                                name={fieldConfig.name}
-                                value={row[fieldConfig.name] || ''}
-                                onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                fullWidth
-                                sx={{ bgcolor: '#fff' }}
-                              />
-                            </Box>
-                          ))}
-                            {/* Delete button for row */}
-                            {section.rows.length > 1 && (
-                              <IconButton
-                                color="error"
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                sx={{ alignSelf: 'center', ml: 1 }}
-                                aria-label={`Remove ${section.name} row`}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            )}
-                          </Box>
-                        </Paper>
-                      ))}
-                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
-                        Add Row
-                      </Button>
-                  </CardContent>
-                </Card>
-                </Grid>
-              );
-            })}
-
-            {/* Generic Dynamic Sections */}
-            {sections.map(section => {
-              // Skip sections that are already handled
-              if (section.name === 'Crew Daily Summaries' || section.name === 'Daily Progress' || section.name === 'SWPPP Inspection Items') return null;
-              
-              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              if (!sectionConfig) return null;
-
-              return (
-                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
-                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                    <CardContent sx={{ p: 2 }}>
-                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
-                      {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, width: '100%', minWidth: 0 }}>
-                            {sectionConfig.fields.map(fieldConfig => (
-                              <Box
-                                key={fieldConfig.name}
-                                sx={{
-                                  flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                  minWidth: 0,
-                                  maxWidth: { xs: '100%', sm: '33.33%' }
-                                }}
-                              >
-                                {fieldConfig.type === 'dropdown' ? (
-                                  <FormControl fullWidth size="small">
-                                    <InputLabel>{fieldConfig.label}</InputLabel>
-                                    <Select
-                                      value={row[fieldConfig.name] || ''}
-                                      label={fieldConfig.label}
-                                      onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                    >
-                                      {fieldConfig.options.map(option => (
-                                        <MenuItem key={option} value={option}>{option}</MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                ) : fieldConfig.type === 'multiline' ? (
-                                  <TextField
-                                    label={fieldConfig.label}
-                                    name={fieldConfig.name}
-                                    value={row[fieldConfig.name] || ''}
-                                    onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                    fullWidth
-                                    multiline
-                                    minRows={2}
-                                    sx={{ bgcolor: '#fff' }}
-                                  />
-                                ) : (
-                                  <TextField
-                                    label={fieldConfig.label}
-                                    name={fieldConfig.name}
-                                    value={row[fieldConfig.name] || ''}
-                                    onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                    fullWidth
-                                    type={fieldConfig.type === 'date' ? 'date' : fieldConfig.type === 'time' ? 'time' : 'text'}
-                                    InputLabelProps={fieldConfig.type === 'date' || fieldConfig.type === 'time' ? { shrink: true } : undefined}
-                                    sx={{ bgcolor: '#fff' }}
-                                  />
-                                )}
-                              </Box>
-                            ))}
-                            {section.rows.length > 1 && (
-                              <IconButton
-                                color="error"
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                sx={{ alignSelf: 'center', ml: 1 }}
-                                aria-label={`Remove ${section.name} row`}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            )}
-                          </Box>
-                        </Paper>
-                      ))}
-                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
-                        Add Row
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
-
-            {/* SWPPP Inspection Items Section */}
-            {sections.map(section => {
-              if (section.name !== 'SWPPP Inspection Items') return null;
-              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              if (!sectionConfig) return null;
-              return (
-                <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }} key={section.name}>
-                  <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                    <CardContent sx={{ p: 2 }}>
-                      <Typography variant="h6" sx={{ mb: 2 }}>{section.name}</Typography>
-                      {section.rows.map((row, rowIndex) => (
-                        <Paper key={rowIndex} sx={{ p: 2, mb: 2, position: 'relative', width: '100%', bgcolor: '#f5f5f5' }}>
-                          {/* Row 1 */}
-                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0, mb: 2 }}>
-                            {sectionConfig.fields.slice(0, 3).map(fieldConfig => (
-                              <Box
-                                key={fieldConfig.name}
-                                sx={{
-                                  flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                  minWidth: 0,
-                                  maxWidth: { xs: '100%', sm: '33.33%' }
-                                }}
-                              >
-                                <TextField
-                                  label={fieldConfig.label}
-                                  name={fieldConfig.name}
-                                  value={row[fieldConfig.name] || ''}
-                                  onChange={e => handleSectionChange(section.name, rowIndex, fieldConfig.name, e.target.value)}
-                                  fullWidth
-                                  sx={{ bgcolor: '#fff' }}
-                                />
-                              </Box>
-                            ))}
-                          </Box>
-                          
-                          {/* Row 2 */}
-                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0, mb: 2 }}>
-                            {/* Inspector ID */}
-                            <Box
-                              sx={{
-                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                minWidth: 0,
-                                maxWidth: { xs: '100%', sm: '33.33%' }
-                              }}
-                            >
-                              <TextField
-                                label="Inspector ID"
-                                name="inspector_id"
-                                value={row.inspector_id || ''}
-                                onChange={e => handleSectionChange(section.name, rowIndex, 'inspector_id', e.target.value)}
-                                fullWidth
-                                sx={{ bgcolor: '#fff' }}
-                              />
-                            </Box>
-                            {/* Inspection Time */}
-                            <Box
-                              sx={{
-                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                minWidth: 0,
-                                maxWidth: { xs: '100%', sm: '33.33%' }
-                              }}
-                            >
-                              <TextField
-                                label="Inspection Time"
-                                name="inspection_time"
-                                type="time"
-                                value={row.inspection_time || ''}
-                                onChange={e => handleSectionChange(section.name, rowIndex, 'inspection_time', e.target.value)}
-                                fullWidth
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ bgcolor: '#fff' }}
-                              />
-                            </Box>
-                            {/* Inspection Date */}
-                            <Box
-                              sx={{
-                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                minWidth: 0,
-                                maxWidth: { xs: '100%', sm: '33.33%' }
-                              }}
-                            >
-                              <TextField
-                                label="Inspection Date"
-                                name="inspection_date"
-                                type="date"
-                                value={row.inspection_date || ''}
-                                onChange={e => handleSectionChange(section.name, rowIndex, 'inspection_date', e.target.value)}
-                                fullWidth
-                                InputLabelProps={{ shrink: true }}
-                                sx={{ bgcolor: '#fff' }}
-                              />
-                            </Box>
-                          </Box>
-                          
-                          {/* Row 3 */}
-                          <Box sx={{ display: 'flex', flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: 2, width: '100%', minWidth: 0, mb: 2 }}>
-                            {/* ECD Functional? */}
-                            <Box
-                              sx={{
-                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                minWidth: 0,
-                                maxWidth: { xs: '100%', sm: '33.33%' }
-                              }}
-                            >
-                              <FormControl fullWidth size="small">
-                                <InputLabel>ECD Functional?</InputLabel>
-                                <Select
-                                  value={row.ecd_functional || ''}
-                                  label="ECD Functional?"
-                                  onChange={e => handleSectionChange(section.name, rowIndex, 'ecd_functional', e.target.value)}
-                                >
-                                  <MenuItem value="">Select</MenuItem>
-                                  <MenuItem value="Yes">Yes</MenuItem>
-                                  <MenuItem value="No">No</MenuItem>
-                                </Select>
-                              </FormControl>
-                            </Box>
-                            {/* ECD Needs Maintenance? */}
-                            <Box
-                              sx={{
-                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                minWidth: 0,
-                                maxWidth: { xs: '100%', sm: '33.33%' }
-                              }}
-                            >
-                              <FormControl fullWidth size="small">
-                                <InputLabel>ECD Needs Maintenance?</InputLabel>
-                                <Select
-                                  value={row.ecd_maintenance || ''}
-                                  label="ECD Needs Maintenance?"
-                                  onChange={e => handleSectionChange(section.name, rowIndex, 'ecd_maintenance', e.target.value)}
-                                >
-                                  <MenuItem value="">Select</MenuItem>
-                                  <MenuItem value="Yes">Yes</MenuItem>
-                                  <MenuItem value="No">No</MenuItem>
-                                </Select>
-                              </FormControl>
-                            </Box>
-                            {/* Soil Disturbed? */}
-                            <Box
-                              sx={{
-                                flex: { xs: '1 1 100%', sm: '1 1 33.33%' },
-                                minWidth: 0,
-                                maxWidth: { xs: '100%', sm: '33.33%' }
-                              }}
-                            >
-                              <FormControl fullWidth size="small">
-                                <InputLabel>Soil Disturbed?</InputLabel>
-                                <Select
-                                  value={row.soil_disturbed || ''}
-                                  label="Soil Disturbed?"
-                                  onChange={e => handleSectionChange(section.name, rowIndex, 'soil_disturbed', e.target.value)}
-                                >
-                                  <MenuItem value="">Select</MenuItem>
-                                  <MenuItem value="Yes">Yes</MenuItem>
-                                  <MenuItem value="No">No</MenuItem>
-                                </Select>
-                              </FormControl>
-                            </Box>
-                          </Box>
-                          {/* Row 4 - Comments */}
-                          <Box sx={{ width: '100%', mb: 2 }}>
-                            <TextField
-                              label="Comments"
-                              name="comments"
-                              value={row.comments || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, 'comments', e.target.value)}
-                              fullWidth
-                              multiline
-                              minRows={2}
-                              sx={{ bgcolor: '#fff' }}
-                            />
-                          </Box>
-                          
-                          {section.rows.length > 1 && (
-                            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                              <IconButton
-                                color="error"
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                aria-label={`Remove ${section.name} row`}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-                          )}
-                        </Paper>
-                      ))}
-                      <Button startIcon={<Box sx={{ fontSize: 42 }}><AddIcon sx={{ fontSize: 'inherit' }} /></Box>} onClick={() => handleAddRow(section.name)}>
-                        Add Row
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
-
-            {/* Signature Section */}
-            {config.requiresSignature && (
-              <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }}>
-                <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                  <CardContent sx={{ p: 2 }}>
-                  <Typography variant="h6" sx={{ mb: 2 }}>Inspector Signature</Typography>
-                  <Stack spacing={2}>
-                    <Box
-                      sx={{
-                        flex: { xs: '1 1 100%', sm: '1 1 48%' },
-                        minWidth: { xs: '100%', sm: '48%' },
-                        maxWidth: { xs: '100%', sm: '48%' },
-                        mb: 2,
-                      }}
-                    >
-                      <TextField
-                        label="Inspector/Report Prepared by"
-                        name="preparedBy"
-                          value={preparedBy}
-                          onChange={(e) => handleChange('preparedBy', e.target.value)}
-                        fullWidth
-                        sx={{ bgcolor: '#fff' }}
-                      />
-                    </Box>
-                    <Box
-                      sx={{
-                        width: '100%',
-                        height: 200,
-                        border: '1px solid #ccc',
-                        borderRadius: 1,
-                        bgcolor: '#fff',
-                        position: 'relative'
-                      }}
-                    >
-                      <SignaturePad
-                        ref={sigPadRef}
-                        canvasProps={{
-                          width: '100%',
-                          height: '100%',
-                          className: 'signature-canvas'
-                        }}
-                        onEnd={() => setSignature(sigPadRef.current?.toDataURL())}
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <Button variant="outlined" onClick={handleClearSignature}>
-                        Clear Signature
-                      </Button>
-                      <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DatePicker
-                          label="Signature Date"
-                          name="sigDate"
-                            value={sigDate}
-                            onChange={(date) => handleChange('sigDate', date)}
-                          slotProps={{ textField: { fullWidth: true, sx: { bgcolor: '#fff' } } }}
-                        />
-                      </LocalizationProvider>
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-              </Grid>
-            )}
-
-            {/* Photo Section */}
-            {config.requiresPhotos && (
-              <Grid item xs={12} sx={{ mx: { xs: 0, sm: 1 }, mt: 2 }}>
-                <Card sx={{ width: { xs: 'calc(100% - 8px)', sm: '100%' }, ml: { xs: 'auto', sm: 0 }, mr: { xs: 'auto', sm: 0 }, p: 0, boxSizing: 'border-box', overflowX: { xs: 'hidden', sm: 'visible' }, boxShadow: 'none', borderRadius: { xs: 0, sm: 2 }, bgcolor: '#fff' }}>
-                  <CardContent sx={{ p: 2 }}>
-                  <Typography variant="h6" sx={{ mb: 2 }}>Photos</Typography>
-                  <ReportPhotoSection photos={photos} onPhotosChange={setPhotos} editable={true} />
-                </CardContent>
-              </Card>
-              </Grid>
-            )}
-
-            {/* Action Buttons at the bottom */}
-            <Grid item xs={12}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              mt: 3,
-              px: { xs: 3, sm: 4 },
-              pb: { xs: 2, sm: 3 }
-            }}>
-              <Button
-                variant={isMobile ? "text" : "contained"}
-                color={isMobile ? "success" : "primary"}
-                onClick={handleSave}
-                disabled={loading}
-                sx={{ 
-                  minWidth: isMobile ? 40 : 120,
-                  height: isMobile ? 40 : 48,
-                  p: isMobile ? 0 : 1
-                }}
-              >
-                <SaveIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
-                {!isMobile && 'Save'}
-              </Button>
-              {id && (
-                <>
-                  <Button
-                    variant={isMobile ? "text" : "contained"}
-                    color="error"
-                    onClick={handleDelete}
-                    sx={{ 
-                      minWidth: isMobile ? 40 : 120,
-                      height: isMobile ? 40 : 48,
-                      p: isMobile ? 0 : 1
+        {/* Signature Section */}
+        {config.requiresSignature && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold mb-4">Signature</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Prepared By
+                </label>
+                <input
+                  type="text"
+                  value={preparedBy}
+                  onChange={(e) => setPreparedBy(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Signature
+                </label>
+                <div className="mt-1 border border-gray-300 rounded-md">
+                  <SignaturePad
+                    ref={sigPadRef}
+                    canvasProps={{
+                      className: 'w-full h-48 rounded-md'
                     }}
-                  >
-                    <DeleteIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
-                    {!isMobile && 'Delete'}
-                  </Button>
-                  {draftId && (
-                    <Button
-                      variant={isMobile ? "text" : "contained"}
-                      color={isMobile ? "info" : "primary"}
-                      onClick={handleReview}
-                      sx={{ 
-                        minWidth: isMobile ? 40 : 120,
-                        height: isMobile ? 40 : 48,
-                        p: isMobile ? 0 : 1
-                      }}
-                    >
-                      <VisibilityIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
-                      {!isMobile && 'Review'}
-                    </Button>
-                  )}
-                </>
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleClearSignature}
+                  className="mt-2 text-sm text-red-500 hover:text-red-700"
+                >
+                  Clear Signature
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  value={sigDate ? format(sigDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => setSigDate(new Date(e.target.value))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Photo Section */}
+        {config.requiresPhotos && (
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold mb-4">Photos</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <CameraIcon className="w-8 h-8 mb-4 text-gray-500" />
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG or JPEG</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                  />
+                </label>
+              </div>
+              {photos.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {photos.map((photo, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={photo.url}
+                        alt={`Photo ${index + 1}`}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhotos(photos.filter((_, i) => i !== index));
+                        }}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
-              <Button
-                variant={isMobile ? "text" : "contained"}
-                color="secondary"
-                onClick={handleExit}
-                sx={{ 
-                  minWidth: isMobile ? 40 : 120,
-                  height: isMobile ? 40 : 48,
-                  p: isMobile ? 0 : 1
-                }}
-              >
-                <CloseIcon sx={{ fontSize: 42, mr: !isMobile ? 1 : 0 }} />
-                {!isMobile && 'Exit'}
-              </Button>
-            </Box>
-            </Grid>
-          </Grid>
-          </FormControl>
-        </Paper>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={handleExit}
+            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            Exit
+          </button>
+          {draftId && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Delete
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleReview}
+            className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            Review
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </form>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Delete Draft</DialogTitle>
-        <DialogContent>
-          <Typography>Are you sure you want to delete this draft?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Report</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Are you sure you want to delete this report? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => setDeleteDialogOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Exit Confirmation Dialog */}
-      <Dialog
-        open={exitDialogOpen}
-        onClose={() => setExitDialogOpen(false)}
-      >
-        <DialogTitle>Exit</DialogTitle>
-        <DialogContent>
-          <Typography>Do you want to save your changes before exiting?</Typography>
-        </DialogContent>
-        <DialogActions sx={{ 
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: { xs: 'stretch', sm: 'space-between' },
-          px: { xs: 2, sm: 3 },
-          pb: { xs: 2, sm: 2 },
-          gap: { xs: 1, sm: 0 }
-        }}>
-          <Button 
-            onClick={() => setExitDialogOpen(false)}
-            fullWidth={isMobile}
-            sx={{ 
-              order: { xs: 3, sm: 1 },
-              mt: { xs: 1, sm: 0 }
-            }}
-          >
-            Cancel
-          </Button>
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: 1, sm: 1 },
-            width: { xs: '100%', sm: 'auto' },
-            order: { xs: 1, sm: 2 }
-          }}>
-            <Button 
-              onClick={() => handleExitConfirm(false)}
-              fullWidth={isMobile}
-            >
-              Exit Without Saving
-            </Button>
-            <Button 
-              onClick={() => handleExitConfirm(true)} 
-              color="primary" 
-              variant="contained"
-              fullWidth={isMobile}
-            >
-              Save & Exit
-            </Button>
-          </Box>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      {exitDialogOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Exit Report</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Do you want to save your changes before exiting?
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => setExitDialogOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleExitConfirm(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Don't Save
+              </button>
+              <button
+                type="button"
+                onClick={() => handleExitConfirm(true)}
+                className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -1270,47 +692,49 @@ ReportTemplate.propTypes = {
   config: PropTypes.shape({
     title: PropTypes.string.isRequired,
     reportType: PropTypes.string.isRequired,
-    headerFields: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      required: PropTypes.bool
-    })).isRequired,
-    dynamicSections: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      dropdownLabel: PropTypes.string,
-      dropdownName: PropTypes.string,
-      dropdownOptions: PropTypes.arrayOf(PropTypes.string),
-      fields: PropTypes.arrayOf(PropTypes.shape({
+    headerFields: PropTypes.arrayOf(
+      PropTypes.shape({
         name: PropTypes.string.isRequired,
         label: PropTypes.string.isRequired,
-        type: PropTypes.string
-      })).isRequired,
-      defaultRow: PropTypes.func.isRequired
-    })).isRequired,
-    summaryFields: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      multiline: PropTypes.bool
-    })).isRequired,
+        type: PropTypes.string,
+        required: PropTypes.bool,
+        options: PropTypes.arrayOf(PropTypes.string)
+      })
+    ).isRequired,
+    dynamicSections: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        fields: PropTypes.arrayOf(
+          PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            label: PropTypes.string.isRequired,
+            type: PropTypes.string
+          })
+        ).isRequired,
+        defaultRow: PropTypes.func.isRequired
+      })
+    ).isRequired,
+    summaryFields: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        label: PropTypes.string.isRequired,
+        multiline: PropTypes.bool
+      })
+    ).isRequired,
     requiresSignature: PropTypes.bool,
-    requiresPhotos: PropTypes.bool,
-    reviewPath: PropTypes.string,
-    editPath: PropTypes.string
-  }),
+    requiresPhotos: PropTypes.bool
+  }).isRequired,
   initialData: PropTypes.shape({
     header: PropTypes.object,
-    sections: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      rows: PropTypes.arrayOf(PropTypes.object).isRequired
-    })),
+    sections: PropTypes.array,
     summaries: PropTypes.object,
-    photos: PropTypes.array,
-    signature: PropTypes.string,
-    sigDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
     preparedBy: PropTypes.string,
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    signature: PropTypes.string,
+    sigDate: PropTypes.string,
+    photos: PropTypes.array,
+    id: PropTypes.string
   }),
-  onSave: PropTypes.func.isRequired
+  onSave: PropTypes.func
 };
 
 export default ReportTemplate; 
