@@ -12,6 +12,11 @@ class PunchlistReport(models.Model):
     def __str__(self):
         return f"Punchlist Report: {self.title} ({self.date})"
 
+    class Meta:
+        app_label = 'environmental'
+        verbose_name = 'Punchlist Report'
+        verbose_name_plural = 'Punchlist Reports'
+
 class PunchlistItem(models.Model):
     punchlist_report = models.ForeignKey(PunchlistReport, on_delete=models.CASCADE, related_name='items')
     item_number = models.IntegerField(null=True, blank=True)
@@ -29,7 +34,10 @@ class PunchlistItem(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        app_label = 'environmental'
         ordering = ['item_number']
+        verbose_name = 'Punchlist Item'
+        verbose_name_plural = 'Punchlist Items'
 
     def __str__(self):
         return f"Item #{self.item_number} - {self.feature}" 

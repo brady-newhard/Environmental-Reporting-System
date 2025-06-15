@@ -1,6 +1,8 @@
 from django.contrib import admin
 from disciplines.environmental.punchlists.models import PunchlistReport, PunchlistItem
 from disciplines.environmental.swppp.models import SWPPPReport, SWPPPItem, SWPPPPhoto
+from disciplines.environmental.daily.models import DailyReport
+from disciplines.environmental.variance.models import VarianceReport
 
 class PunchlistItemInline(admin.TabularInline):
     model = PunchlistItem
@@ -110,4 +112,38 @@ class SWPPPPhotoAdmin(admin.ModelAdmin):
         ('Photo Information', {
             'fields': ('report', 'image', 'location', 'description')
         }),
-    ) 
+    )
+
+@admin.register(DailyReport)
+class DailyReportAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'date', 'finalized', 'created_at')
+    list_filter = ('finalized', 'date', 'author')
+    search_fields = ('title', 'author__username')
+    date_hierarchy = 'date'
+    fieldsets = (
+        ('Report Information', {
+            'fields': ('title', 'date', 'summary', 'finalized')
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.author = request.user
+        super().save_model(request, obj, form, change)
+
+@admin.register(VarianceReport)
+class VarianceReportAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'date', 'approved', 'created_at')
+    list_filter = ('approved', 'date', 'author')
+    search_fields = ('title', 'author__username', 'description')
+    date_hierarchy = 'date'
+    fieldsets = (
+        ('Variance Information', {
+            'fields': ('title', 'date', 'description', 'approved')
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.author = request.user
+        super().save_model(request, obj, form, change) 
