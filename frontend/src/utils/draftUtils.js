@@ -49,7 +49,7 @@ export async function saveDraft(reportType, data) {
   try {
     const normalizedData = normalizeDraft(data);
     const savedId = data.id;
-    const isValidId = savedId && savedId !== 'null' && savedId !== undefined && !savedId.startsWith('temp_');
+    const isValidId = savedId && savedId !== 'null' && savedId !== undefined && !(typeof savedId === 'string' && savedId.startsWith('temp_'));
     
     // Save to IndexedDB first (raw type)
     await indexedDBStorage.saveDraft(reportType, savedId, normalizedData);
@@ -172,12 +172,20 @@ export async function deleteDraft(reportType, draftId) {
     // If online, authenticated, and not a temporary or null/undefined ID, delete from backend (mapped type)
     if (isOnline() && draftId && draftId !== 'null' && draftId !== undefined && !draftId.startsWith('temp_')) {
       const token = localStorage.getItem('token');
+      console.log('Token available:', !!token);
       if (token) {
         try {
-          await api.delete(`/drafts/${draftId}/`);
+          console.log('Attempting to delete from backend with token:', token.substring(0, 10) + '...');
+          const response = await api.delete(`/drafts/${draftId}/`);
+          console.log('Backend delete response:', response);
           console.log('Successfully deleted from backend');
         } catch (error) {
           console.error('Error deleting from backend:', error);
+          console.error('Error details:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            headers: error.response?.headers
+          });
           // Continue with local deletion only
         }
       }

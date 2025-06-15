@@ -152,30 +152,45 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
     console.log('Updated header:', updatedHeader);
     setHeader(updatedHeader);
 
-    if (initialData.sections) {
+    if (initialData.sections && initialData.sections.length > 0) {
       const updatedSections = initialData.sections.map(section => ({
         ...section,
         rows: section.rows && section.rows.length > 0 ? section.rows : [section.defaultRow ? section.defaultRow() : {}]
       }));
       console.log('Updated sections:', updatedSections);
       setSections(updatedSections);
+    } else if (config.dynamicSections) {
+      // Fallback: initialize from config if sections is empty or missing
+      const fallbackSections = config.dynamicSections.map(section => ({
+        name: section.name,
+        rows: [section.defaultRow ? section.defaultRow() : {}]
+      }));
+      console.log('Fallback sections from config:', fallbackSections);
+      setSections(fallbackSections);
+    } else {
+      setSections([]);
     }
 
+    // Always fully reset summaries from initialData
     if (initialData.summaries) {
-      const updatedSummaries = {
-        ...summaries,
-        ...initialData.summaries
-      };
-      console.log('Updated summaries:', updatedSummaries);
-      setSummaries(updatedSummaries);
+      setSummaries({ ...initialData.summaries });
+    } else {
+      setSummaries({});
     }
 
-    if (initialData.preparedBy) setPreparedBy(initialData.preparedBy);
-    if (initialData.signature) setSignature(initialData.signature);
-    if (initialData.sigDate) setSigDate(new Date(initialData.sigDate));
-    if (initialData.photos) setPhotos(initialData.photos);
-    if (initialData.id) setDraftId(initialData.id);
+    setPreparedBy(initialData.preparedBy || '');
+    setSignature(initialData.signature || '');
+    setSigDate(initialData.sigDate ? new Date(initialData.sigDate) : null);
+    setPhotos(initialData.photos || []);
+    setDraftId(initialData.id || null);
   }, [initialData]);
+
+  // Debug logging for state and data flow
+  console.log('initialData:', initialData);
+  console.log('header:', header);
+  console.log('sections:', sections);
+  console.log('summaries:', summaries);
+  console.log('photos:', photos);
 
   // Handlers
   const handleHeaderChange = e => setHeader({ ...header, [e.target.name]: e.target.value });
@@ -315,6 +330,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
         <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* Dynamic Sections */}
           {(sections || []).map((section, sectionIdx) => {
+            const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+            const fields = sectionConfig ? sectionConfig.fields : [];
+
             // Validate section data
             if (!section || !section.name) {
               console.warn('Invalid section data:', section);
@@ -322,14 +340,12 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             }
 
             // Find matching section config
-            const sectionConfig = config.dynamicSections?.find(s => s.name === section.name);
             if (!sectionConfig) {
               console.warn(`Section "${section.name}" not found in config.dynamicSections`);
               return null;
             }
 
             // Validate section fields
-            const fields = sectionConfig.fields || [];
             if (!Array.isArray(fields)) {
               console.warn(`Invalid fields for section "${section.name}":`, fields);
               return null;
@@ -348,7 +364,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               const stationEndField = fields.find(f => f.name === 'station_end');
 
               return (
-                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                   <div className="flex flex-col gap-4">
                     {/* Inspector and Project on one line for md+ */}
@@ -502,32 +518,38 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                     <>
                       {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        {weatherFields.map((field) => (
-                          <div key={field.name} className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                              {field.label}
-                            </label>
-                            {field.type === 'dropdown' ? (
-                              <select
-                                value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                              >
-                                <option value="">Select {field.label}</option>
-                                {(field.options || sectionConfig.dropdownOptions || []).map(option => (
-                                  <option key={option} value={option}>{option}</option>
-                                ))}
-                              </select>
-                            ) : (
-                              <input
-                                type={field.type || 'text'}
-                                value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                              />
-                            )}
-                          </div>
-                        ))}
+                        {weatherFields.map((field, idx) => {
+                          if (!field || !field.label) {
+                            console.warn('Invalid field in ReportTemplate:', field, idx);
+                            return null;
+                          }
+                          return (
+                            <div key={field.name} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {field.type === 'dropdown' ? (
+                                <select
+                                  value={row[field.name] || ''}
+                                  onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                >
+                                  <option value="">Select {field.label}</option>
+                                  {(field.options || sectionConfig.dropdownOptions || []).map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type={field.type || 'text'}
+                                  value={row[field.name] || ''}
+                                  onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                       {/* Rain gauges on their own line */}
                       {rainGaugeField && (
@@ -692,33 +714,39 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                     <>
                       {/* All fields except Start/End Station */}
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        {crewFields.filter(f => f.name !== 'Start Station' && f.name !== 'End Station').map((field) => (
-                          <div key={field.name} className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                              {field.label}
-                            </label>
-                            {field.type === 'dropdown' ? (
-                              <select
-                                value={row[field.name] || ''}
-                                onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                              >
-                                <option value="">Select {field.label}</option>
-                                {(field.options || sectionConfig.dropdownOptions || []).map(option => (
-                                  <option key={option} value={option}>{option}</option>
-                                ))}
-                              </select>
-                            ) : (
-                              <input
-                                type={field.type || 'text'}
-                                value={row[field.name] || ''}
-                                onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                placeholder={field.placeholder}
-                              />
-                            )}
-                          </div>
-                        ))}
+                        {crewFields.filter(f => f.name !== 'Start Station' && f.name !== 'End Station').map((field, idx) => {
+                          if (!field || !field.label) {
+                            console.warn('Invalid field in ReportTemplate:', field, idx);
+                            return null;
+                          }
+                          return (
+                            <div key={field.name} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {field.type === 'dropdown' ? (
+                                <select
+                                  value={row[field.name] || ''}
+                                  onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                >
+                                  <option value="">Select {field.label}</option>
+                                  {(field.options || sectionConfig.dropdownOptions || []).map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type={field.type || 'text'}
+                                  value={row[field.name] || ''}
+                                  onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
+                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                  placeholder={field.placeholder}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
                         {/* Start Station and End Station side by side */}
                         <div className="col-span-1 md:col-span-2 flex gap-2">
                           <div className="flex-1">
@@ -785,6 +813,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
 
             // Custom layout for Daily Progress
             if (section.name === 'Daily Progress') {
+              // Always get fields from config for this section
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              const fields = sectionConfig ? sectionConfig.fields : [];
+              if (!fields[0] || !fields[0].label || !fields[1] || !fields[1].label || !fields[2] || !fields[2].label) {
+                console.warn('Config for Daily Progress section is missing required fields:', fields);
+                return null;
+              }
               return (
                 <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
@@ -920,7 +955,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             }
 
             return (
-              <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                 {(section.rows || []).map((row, rowIndex) => {
                   // Validate row data
@@ -931,10 +966,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
 
                   return (
                     <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                      {fields.map((field) => {
-                        // Validate field data
+                      {fields.map((field, idx) => {
                         if (!field || !field.name || !field.label) {
-                          console.warn(`Invalid field data in section "${section.name}":`, field);
+                          console.warn('Invalid field in ReportTemplate:', field, idx);
                           return null;
                         }
                         if (field.type === 'dynamicArray') {
@@ -1376,7 +1410,7 @@ ReportTemplate.propTypes = {
     signature: PropTypes.string,
     sigDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
     photos: PropTypes.arrayOf(PropTypes.string),
-    id: PropTypes.string
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }),
   onSave: PropTypes.func.isRequired
 };
