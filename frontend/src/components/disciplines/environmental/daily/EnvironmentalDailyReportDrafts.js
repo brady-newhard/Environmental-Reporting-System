@@ -118,9 +118,7 @@ export default function EnvironmentalDailyReportDrafts() {
 
   const handleEdit = (draft) => {
     console.log('Navigating to edit with draft:', draft);
-    navigate(`/environmental/reports/daily/edit/${draft.id}`, {
-      state: { draft }
-    });
+    navigate(`/environmental/reports/daily/edit/${draft.id}`, { state: { draft: { ...draft.data, id: draft.id } } });
   };
 
   const handleReview = (draft) => {

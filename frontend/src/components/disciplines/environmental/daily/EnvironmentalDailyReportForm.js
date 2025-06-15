@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Snackbar, Alert, Grid, Typography, TextField, Button, Box } from '@mui/material';
 import ReportTemplate from '../../../templates/ReportTemplate';
 import { saveDraft, normalizeDraft, loadDraft } from '../../../../utils/draftUtils';
-import AddIcon from '@mui/icons-material/Add';
 import environmentalDailyReportConfig from './environmentalDailyReportConfig';
 import ReportPhotoSection from '../../../../components/common/ReportPhotoSection';
+import PageHeader from '../../../common/PageHeader';
 
 // console.log('EnvironmentalDailyReportForm loaded');
 
@@ -22,11 +21,13 @@ export default function EnvironmentalDailyReportForm() {
   useEffect(() => {
     const initializeDraft = async () => {
       try {
-        if (id) {
+        if (location.state && location.state.draft) {
+          setDraft(normalizeDraft(location.state.draft));
+        } else if (id) {
           // Load existing draft
           const loadedDraft = await loadDraft(reportType, id);
           if (loadedDraft) {
-            setDraft(loadedDraft);
+            setDraft(normalizeDraft(loadedDraft));
           } else {
             console.error('Failed to load draft with ID:', id);
             setSnackbar({
@@ -56,7 +57,7 @@ export default function EnvironmentalDailyReportForm() {
             preparedBy: '',
             id: `temp_${Date.now()}`
           };
-          setDraft(emptyDraft);
+          setDraft(normalizeDraft(emptyDraft));
         }
       } catch (error) {
         console.error('Error initializing draft:', error);
@@ -71,7 +72,7 @@ export default function EnvironmentalDailyReportForm() {
     };
 
     initializeDraft();
-  }, [id, reportType]);
+  }, [id, reportType, location.state]);
 
   const handleSave = async (formData) => {
     console.log('EnvironmentalDailyReportForm handleSave called with:', formData);
@@ -118,40 +119,75 @@ export default function EnvironmentalDailyReportForm() {
     navigate(`/environmental/reports/daily/review/${draft.id}`);
   };
 
+  const handleDelete = async () => {
+    if (!draft?.id) return;
+    if (!window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) return;
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token available for delete:', !!token);
+      console.log('Token value:', token ? token.substring(0, 10) + '...' : 'none');
+      console.log('Attempting to delete draft:', draft.id);
+      
+      // Delete from backend
+      const response = await fetch(`/api/drafts/${draft.id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error('Delete response not OK:', {
+          status: response.status,
+          statusText: response.statusText
+        });
+        const errorData = await response.json().catch(() => null);
+        console.error('Error data:', errorData);
+        throw new Error(`Failed to delete draft: ${response.status} ${response.statusText}`);
+      }
+      
+      setSnackbar({ open: true, message: 'Draft deleted successfully', severity: 'success' });
+      setTimeout(() => {
+        navigate('/environmental/reports/daily');
+      }, 500);
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      setSnackbar({ open: true, message: 'Error deleting draft', severity: 'error' });
+    }
+  };
+
+  if (isLoading || !draft) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <Box sx={{ 
-      height: 'calc(100vh - 64px)',
-      display: 'flex',
-      flexDirection: 'column',
-      bgcolor: '#f5f5f5',
-      p: { xs: 1, sm: 1.5 },
-      overflow: 'auto'
-    }}>
+    <div className="min-h-[calc(100vh-64px)] overflow-auto p-4 sm:p-6">
+      <PageHeader 
+        title={<span className="text-white">Edit Daily Environmental Report</span>}
+        backPath="/environmental/reports/daily"
+        backButtonStyle={{
+          backgroundColor: '#000000',
+          color: '#ffffff',
+          '&:hover': { backgroundColor: '#333333' }
+        }}
+      />
       <ReportTemplate 
         initialData={draft}
-        onChange={(newData) => setDraft(newData)}
+        onChange={setDraft}
         onSave={handleSave}
         onReview={handleReview}
         onCancel={handleCloseSnackbar}
         config={environmentalDailyReportConfig}
       />
-      <ReportPhotoSection
-        photos={photos}
-        onPhotosChange={setPhotos}
-        content_type="environmental_daily"
-        object_id={id}
-        editable={true}
-      />
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
+      {/* Tailwind notification */}
+      {snackbar.open && (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-center transition-all duration-300 ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+             onClick={handleCloseSnackbar}
+        >
           {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+        </div>
+      )}
+    </div>
   );
 } 

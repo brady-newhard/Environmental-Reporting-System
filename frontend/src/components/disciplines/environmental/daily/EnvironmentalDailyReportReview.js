@@ -361,7 +361,7 @@ export default function EnvironmentalDailyReportReview() {
 
   // Button handlers
   const handleEdit = () => {
-    navigate(`/environmental/reports/daily/edit/${id}`, { state: { draft } });
+    navigate(`/environmental/reports/daily/edit/${id}`, { state: { draft: { ...draft.data, id: draft.id } } });
   };
 
   const handleExit = () => {

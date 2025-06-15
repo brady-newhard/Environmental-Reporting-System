@@ -26,7 +26,7 @@ const EnvironmentalDailyReport = () => {
       // Update URL with new ID if this was a new draft
       if (!formData.id) {
         navigate(`/environmental/reports/daily/edit/${savedDraft.id}`, { 
-          state: { formData: { ...savedDraft.data, id: savedDraft.id } },
+          state: { draft: { ...savedDraft.data, id: savedDraft.id } },
           replace: false 
         });
       }
