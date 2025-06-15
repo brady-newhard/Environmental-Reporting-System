@@ -537,42 +537,120 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                           </label>
                           <div className="space-y-2">
                             {(row[rainGaugeField.name] || []).map((item, idx) => (
-                              <div key={idx} className="flex gap-2">
-                                {rainGaugeField.subFields.map((subField) => (
-                                  <input
-                                    key={subField.name}
-                                    type={subField.type}
-                                    value={item[subField.name] || ''}
-                                    onChange={e =>
+                              <div key={idx}>
+                                {/* Large screens: all fields in one row */}
+                                <div className="hidden lg:flex gap-2">
+                                  {rainGaugeField.subFields.map((subField) => (
+                                    <input
+                                      key={subField.name}
+                                      type={subField.type}
+                                      value={item[subField.name] || ''}
+                                      onChange={e =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                            subIdx === idx
+                                              ? { ...subItem, [subField.name]: e.target.value }
+                                              : subItem
+                                          )
+                                        )
+                                      }
+                                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                      placeholder={subField.label}
+                                    />
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
                                       handleSectionChange(
                                         section.name,
                                         rowIndex,
                                         rainGaugeField.name,
-                                        (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                          subIdx === idx
-                                            ? { ...subItem, [subField.name]: e.target.value }
-                                            : subItem
-                                        )
+                                        (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
                                       )
                                     }
-                                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                    placeholder={subField.label}
-                                  />
-                                ))}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleSectionChange(
-                                      section.name,
-                                      rowIndex,
-                                      rainGaugeField.name,
-                                      (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                    )
-                                  }
-                                  className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2"
-                                >
-                                  <XMarkIcon className="h-5 w-5" />
-                                </button>
+                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
+                                  >
+                                    <XMarkIcon className="h-5 w-5" />
+                                  </button>
+                                </div>
+                                {/* Mobile/tablet: location on one line, rain/snow/trash on next line */}
+                                <div className="block lg:hidden">
+                                  <div className="mb-2">
+                                    <input
+                                      type={rainGaugeField.subFields[0].type}
+                                      value={item[rainGaugeField.subFields[0].name] || ''}
+                                      onChange={e =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                            subIdx === idx
+                                              ? { ...subItem, [rainGaugeField.subFields[0].name]: e.target.value }
+                                              : subItem
+                                          )
+                                        )
+                                      }
+                                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                      placeholder={rainGaugeField.subFields[0].label}
+                                    />
+                                  </div>
+                                  <div className="flex w-full min-w-0 gap-2 items-center">
+                                    <input
+                                      type={rainGaugeField.subFields[1].type}
+                                      value={item[rainGaugeField.subFields[1].name] || ''}
+                                      onChange={e =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                            subIdx === idx
+                                              ? { ...subItem, [rainGaugeField.subFields[1].name]: e.target.value }
+                                              : subItem
+                                          )
+                                        )
+                                      }
+                                      className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                      placeholder={rainGaugeField.subFields[1].label}
+                                    />
+                                    <input
+                                      type={rainGaugeField.subFields[2].type}
+                                      value={item[rainGaugeField.subFields[2].name] || ''}
+                                      onChange={e =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                            subIdx === idx
+                                              ? { ...subItem, [rainGaugeField.subFields[2].name]: e.target.value }
+                                              : subItem
+                                          )
+                                        )
+                                      }
+                                      className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                      placeholder={rainGaugeField.subFields[2].label}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                        )
+                                      }
+                                      className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
+                                    >
+                                      <XMarkIcon className="h-5 w-5" />
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                             <button
@@ -863,42 +941,120 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               </label>
                               <div className="space-y-2">
                                 {(row[field.name] || []).map((item, idx) => (
-                                  <div key={idx} className="flex gap-2">
-                                    {field.subFields.map((subField) => (
-                                      <input
-                                        key={subField.name}
-                                        type={subField.type}
-                                        value={item[subField.name] || ''}
-                                        onChange={e =>
+                                  <div key={idx}>
+                                    {/* Large screens: all fields in one row */}
+                                    <div className="hidden lg:flex gap-2">
+                                      {field.subFields.map((subField) => (
+                                        <input
+                                          key={subField.name}
+                                          type={subField.type}
+                                          value={item[subField.name] || ''}
+                                          onChange={e =>
+                                            handleSectionChange(
+                                              section.name,
+                                              rowIndex,
+                                              field.name,
+                                              (row[field.name] || []).map((subItem, subIdx) =>
+                                                subIdx === idx
+                                                  ? { ...subItem, [subField.name]: e.target.value }
+                                                  : subItem
+                                              )
+                                            )
+                                          }
+                                          className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                          placeholder={subField.label}
+                                        />
+                                      ))}
+                                      <button
+                                        type="button"
+                                        onClick={() =>
                                           handleSectionChange(
                                             section.name,
                                             rowIndex,
                                             field.name,
-                                            (row[field.name] || []).map((subItem, subIdx) =>
-                                              subIdx === idx
-                                                ? { ...subItem, [subField.name]: e.target.value }
-                                                : subItem
-                                            )
+                                            (row[field.name] || []).filter((_, subIdx) => subIdx !== idx)
                                           )
                                         }
-                                        className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                        placeholder={subField.label}
-                                      />
-                                    ))}
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          field.name,
-                                          (row[field.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                        )
-                                      }
-                                      className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2"
-                                    >
-                                      <XMarkIcon className="h-5 w-5" />
-                                    </button>
+                                        className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
+                                      >
+                                        <XMarkIcon className="h-5 w-5" />
+                                      </button>
+                                    </div>
+                                    {/* Mobile/tablet: location on one line, rain/snow/trash on next line */}
+                                    <div className="block lg:hidden">
+                                      <div className="mb-2">
+                                        <input
+                                          type={field.subFields[0].type}
+                                          value={item[field.subFields[0].name] || ''}
+                                          onChange={e =>
+                                            handleSectionChange(
+                                              section.name,
+                                              rowIndex,
+                                              field.name,
+                                              (row[field.name] || []).map((subItem, subIdx) =>
+                                                subIdx === idx
+                                                  ? { ...subItem, [field.subFields[0].name]: e.target.value }
+                                                  : subItem
+                                              )
+                                            )
+                                          }
+                                          className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                          placeholder={field.subFields[0].label}
+                                        />
+                                      </div>
+                                      <div className="flex w-full min-w-0 gap-2 items-center">
+                                        <input
+                                          type={field.subFields[1].type}
+                                          value={item[field.subFields[1].name] || ''}
+                                          onChange={e =>
+                                            handleSectionChange(
+                                              section.name,
+                                              rowIndex,
+                                              field.name,
+                                              (row[field.name] || []).map((subItem, subIdx) =>
+                                                subIdx === idx
+                                                  ? { ...subItem, [field.subFields[1].name]: e.target.value }
+                                                  : subItem
+                                              )
+                                            )
+                                          }
+                                          className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                          placeholder={field.subFields[1].label}
+                                        />
+                                        <input
+                                          type={field.subFields[2].type}
+                                          value={item[field.subFields[2].name] || ''}
+                                          onChange={e =>
+                                            handleSectionChange(
+                                              section.name,
+                                              rowIndex,
+                                              field.name,
+                                              (row[field.name] || []).map((subItem, subIdx) =>
+                                                subIdx === idx
+                                                  ? { ...subItem, [field.subFields[2].name]: e.target.value }
+                                                  : subItem
+                                              )
+                                            )
+                                          }
+                                          className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                          placeholder={field.subFields[2].label}
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleSectionChange(
+                                              section.name,
+                                              rowIndex,
+                                              field.name,
+                                              (row[field.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                            )
+                                          }
+                                          className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
+                                        >
+                                          <XMarkIcon className="h-5 w-5" />
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
                                 ))}
                                 <button
