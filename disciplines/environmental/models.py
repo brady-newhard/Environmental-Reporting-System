@@ -10,6 +10,8 @@ class ProgressChart(models.Model):
     class Meta:
         app_label = 'environmental'
         db_table = 'environmental_progresschart'
+        verbose_name = 'Progress Chart'
+        verbose_name_plural = 'Progress Charts'
 
     def __str__(self):
         return self.activity

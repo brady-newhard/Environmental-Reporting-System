@@ -27,6 +27,11 @@ class SWPPPReport(models.Model):
     def __str__(self):
         return f"SWPPP Report: {self.inspection_type} ({self.inspection_date})"
 
+    class Meta:
+        app_label = 'environmental'
+        verbose_name = 'SWPPP Report'
+        verbose_name_plural = 'SWPPP Reports'
+
 class SWPPPItem(models.Model):
     report = models.ForeignKey(SWPPPReport, on_delete=models.CASCADE, related_name='items')
     location = models.CharField(max_length=255)
@@ -44,6 +49,11 @@ class SWPPPItem(models.Model):
     def __str__(self):
         return f"SWPPP Item: {self.location}"
 
+    class Meta:
+        app_label = 'environmental'
+        verbose_name = 'SWPPP Item'
+        verbose_name_plural = 'SWPPP Items'
+
 class SWPPPPhoto(models.Model):
     report = models.ForeignKey(SWPPPReport, on_delete=models.CASCADE, related_name='photos')
     image = models.ImageField(upload_to='swppp_photos/')
@@ -52,4 +62,9 @@ class SWPPPPhoto(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"SWPPP Photo: {self.location}" 
+        return f"SWPPP Photo: {self.location}"
+
+    class Meta:
+        app_label = 'environmental'
+        verbose_name = 'SWPPP Photo'
+        verbose_name_plural = 'SWPPP Photos' 

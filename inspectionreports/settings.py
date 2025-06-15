@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'disciplines.coating',  # Coating reports
     'disciplines.welding',  # Welding reports
     'disciplines.utility',  # Utility reports
+    'drafts',
 ]
 
 MIDDLEWARE = [

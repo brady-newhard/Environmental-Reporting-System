@@ -46,7 +46,7 @@ const defaultConfig = {
   requiresPhotos: true
 };
 
-const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
+const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -280,7 +280,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
   const handleDeleteConfirm = async () => {
     try {
       if (draftId) {
-        await axios.delete(`/api/drafts/${draftId}`);
+        await axios.delete(`/drafts/${draftId}`);
         enqueueSnackbar('Report deleted successfully', { variant: 'success' });
         navigate('/environmental/reports/daily');
       }
@@ -540,26 +540,30 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                               <div key={idx}>
                                 {/* Large screens: all fields in one row */}
                                 <div className="hidden lg:flex gap-2">
-                                  {rainGaugeField.subFields.map((subField) => (
-                                    <input
-                                      key={subField.name}
-                                      type={subField.type}
-                                      value={item[subField.name] || ''}
-                                      onChange={e =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          rainGaugeField.name,
-                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                            subIdx === idx
-                                              ? { ...subItem, [subField.name]: e.target.value }
-                                              : subItem
+                                  {rainGaugeField.subFields.map((subField, subFieldIndex) => (
+                                    <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`} className="flex-1">
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">
+                                        {subField.label}
+                                      </label>
+                                      <input
+                                        type={subField.type}
+                                        value={item[subField.name] || ''}
+                                        onChange={e =>
+                                          handleSectionChange(
+                                            section.name,
+                                            rowIndex,
+                                            rainGaugeField.name,
+                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                              subIdx === idx
+                                                ? { ...subItem, [subField.name]: e.target.value }
+                                                : subItem
+                                            )
                                           )
-                                        )
-                                      }
-                                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                      placeholder={subField.label}
-                                    />
+                                        }
+                                        className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                        placeholder={subField.label}
+                                      />
+                                    </div>
                                   ))}
                                   <button
                                     type="button"
@@ -944,26 +948,30 @@ const ReportTemplate = ({ config = defaultConfig, initialData, onSave }) => {
                                   <div key={idx}>
                                     {/* Large screens: all fields in one row */}
                                     <div className="hidden lg:flex gap-2">
-                                      {field.subFields.map((subField) => (
-                                        <input
-                                          key={subField.name}
-                                          type={subField.type}
-                                          value={item[subField.name] || ''}
-                                          onChange={e =>
-                                            handleSectionChange(
-                                              section.name,
-                                              rowIndex,
-                                              field.name,
-                                              (row[field.name] || []).map((subItem, subIdx) =>
-                                                subIdx === idx
-                                                  ? { ...subItem, [subField.name]: e.target.value }
-                                                  : subItem
+                                      {field.subFields.map((subField, subFieldIndex) => (
+                                        <div key={`${field.name}-${subField.name}-${subFieldIndex}`} className="flex-1">
+                                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                                            {subField.label}
+                                          </label>
+                                          <input
+                                            type={subField.type}
+                                            value={item[subField.name] || ''}
+                                            onChange={e =>
+                                              handleSectionChange(
+                                                section.name,
+                                                rowIndex,
+                                                field.name,
+                                                (row[field.name] || []).map((subItem, subIdx) =>
+                                                  subIdx === idx
+                                                    ? { ...subItem, [subField.name]: e.target.value }
+                                                    : subItem
+                                                )
                                               )
-                                            )
-                                          }
-                                          className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                          placeholder={subField.label}
-                                        />
+                                            }
+                                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                            placeholder={subField.label}
+                                          />
+                                        </div>
                                       ))}
                                       <button
                                         type="button"
@@ -1371,11 +1379,6 @@ ReportTemplate.propTypes = {
     id: PropTypes.string
   }),
   onSave: PropTypes.func.isRequired
-};
-
-ReportTemplate.defaultProps = {
-  config: defaultConfig,
-  initialData: null
 };
 
 export default ReportTemplate; 

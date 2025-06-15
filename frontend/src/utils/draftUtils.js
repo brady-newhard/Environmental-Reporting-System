@@ -72,8 +72,14 @@ export async function saveDraft(reportType, data) {
             report_type: mapReportType(reportType),
             data: normalizedData
           });
+          console.log('Draft creation response:', response.data);
+          // Update the data with the new draft ID
+          normalizedData.id = response.data.id;
         }
-        return response.data;
+        return {
+          id: response.data.id,
+          data: normalizedData
+        };
       }
     }
     return { id: savedId, data: normalizedData };
@@ -193,8 +199,9 @@ export async function loadDraft(reportType, draftId) {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await api.get(`/api/drafts/${draftId}/`);
+          const response = await api.get(`/drafts/${draftId}/`);
           const backendDraft = response.data;
+          console.log('Backend draft response:', backendDraft);
           
           // Save to IndexedDB for offline access (raw type)
           await indexedDBStorage.saveDraft(reportType, draftId, backendDraft.data);

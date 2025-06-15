@@ -17,12 +17,12 @@ export async function saveDraft(reportType, draft) {
   const draftId = draft.id || Date.now().toString();
   if (isOnline()) {
     if (draft.id) {
-      await axios.put(`/api/drafts/${draft.id}/`, { report_type: reportType, data: draft });
+      await axios.put(`/drafts/${draft.id}/`, { report_type: reportType, data: draft });
       // Save to IndexedDB for offline access
       await localforage.setItem(`${LOCAL_PREFIX}${reportType}_${draftId}`, draft);
       return draft.id;
     } else {
-      const res = await axios.post('/api/drafts/', { report_type: reportType, data: draft });
+      const res = await axios.post('/drafts/', { report_type: reportType, data: draft });
       await localforage.setItem(`${LOCAL_PREFIX}${reportType}_${res.data.id}`, { ...draft, id: res.data.id });
       return res.data.id;
     }
@@ -41,7 +41,7 @@ export async function loadDraft(reportType, draftId) {
 export async function deleteDraft(reportType, draftId, isLocal) {
   await localforage.removeItem(`${LOCAL_PREFIX}${reportType}_${draftId}`);
   if (isOnline() && !isLocal) {
-    await axios.delete(`/api/drafts/${draftId}/`);
+    await axios.delete(`/drafts/${draftId}/`);
   }
 }
 
@@ -57,7 +57,7 @@ export async function getAllDrafts(reportType) {
   let backendDrafts = [];
   if (isOnline()) {
     try {
-      const res = await axios.get(`/api/drafts/?report_type=${reportType}`);
+      const res = await axios.get(`/drafts/?report_type=${reportType}`);
       backendDrafts = res.data.map(d => ({ ...d.data, id: d.id, isLocal: false }));
     } catch (e) { /* ignore if offline */ }
   }

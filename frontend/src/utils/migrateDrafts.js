@@ -13,7 +13,7 @@ export const migrateDrafts = async () => {
       const draftData = JSON.parse(localStorage.getItem(key));
       
       // Create draft in backend
-      await axios.post('/api/drafts/', {
+      await axios.post('/drafts/', {
         report_type: 'environmental',
         data: draftData
       });

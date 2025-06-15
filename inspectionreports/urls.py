@@ -47,6 +47,7 @@ urlpatterns = [
     path('api/coating/', include('disciplines.coating.urls')),
     path('api/welding/', include('disciplines.welding.urls')),
     path('api/utility/', include('disciplines.utility.urls')),
+    path('api/drafts/', include('drafts.urls')),
     path('api/login/', CustomAuthToken.as_view(), name='api_token_auth'),
     path('api/', include('core.urls')),
     # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
