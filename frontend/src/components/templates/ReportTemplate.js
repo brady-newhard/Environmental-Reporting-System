@@ -3,15 +3,15 @@ import PropTypes from 'prop-types';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import SignaturePad from 'react-signature-canvas';
 import { useSnackbar } from 'notistack';
-import axios from '../../utils/axios';
-import { uploadPhoto } from '../../utils/photoUtils';
-import { loadDraft, saveDraft } from '../../utils/draftUtils';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { deleteDraft } from '../../utils/draftUtils';
 import PageHeader from '../common/PageHeader';
 import { 
   PlusIcon, 
   TrashIcon, 
   CameraIcon, 
-  XMarkIcon 
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import ReportPhotoSection from '../common/ReportPhotoSection';
@@ -295,13 +295,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
   const handleDeleteConfirm = async () => {
     try {
       if (draftId) {
-        await axios.delete(`/drafts/${draftId}`);
+        await deleteDraft('environmental', draftId);
         enqueueSnackbar('Report deleted successfully', { variant: 'success' });
         navigate('/environmental/reports/daily');
       }
     } catch (error) {
       console.error('Error deleting report:', error);
-      enqueueSnackbar('Error deleting report: ' + error.message, { variant: 'error' });
+      enqueueSnackbar(error.response?.data?.detail || 'Error deleting report', { variant: 'error' });
     } finally {
       setDeleteDialogOpen(false);
     }
@@ -824,7 +824,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                 <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                   {(section.rows || []).map((row, rowIndex) => (
-                    <div key={rowIndex} className="mb-4 w-full">
+                    <div key={`row-${section.name}-${rowIndex}`} className="mb-4 w-full">
                       {/* MOBILE ONLY */}
                       <div className="block lg:hidden">
                         {/* Progress Item label and dropdown */}
@@ -965,7 +965,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                   }
 
                   return (
-                    <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div key={`row-${section.name}-${rowIndex}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                       {fields.map((field, idx) => {
                         if (!field || !field.name || !field.label) {
                           console.warn('Invalid field in ReportTemplate:', field, idx);
@@ -973,7 +973,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                         }
                         if (field.type === 'dynamicArray') {
                           return (
-                            <div key={field.name} className="col-span-full">
+                            <div key={`field-${field.name}-${idx}`} className="col-span-full">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
@@ -1119,7 +1119,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                           );
                         }
                         return (
-                          <div key={field.name} className="col-span-1">
+                          <div key={`field-${field.name}-${idx}`} className="col-span-1">
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                               {field.label}
                             </label>
@@ -1131,7 +1131,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                               >
                                 <option value="">Select {field.label}</option>
                                 {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
-                                  <option key={option} value={option}>
+                                  <option key={`option-${option}`} value={option}>
                                     {option}
                                   </option>
                                 ))}
@@ -1149,6 +1149,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                                 value={row[field.name] || ''}
                                 onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
                                 className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                placeholder={field.label}
                               />
                             )}
                           </div>
