@@ -182,6 +182,7 @@ export default function EnvironmentalDailyReportReview() {
     inspector: draft?.header?.inspector || '—',
     contractor: draft?.header?.contractor || '—',
     date: formatDate(draft?.header?.date),
+    facility: draft?.header?.facility || '—',
     milepost_start: draft?.header?.milepost_start || '—',
     milepost_end: draft?.header?.milepost_end || '—',
     station_start: draft?.header?.station_start || '—',
@@ -316,31 +317,42 @@ export default function EnvironmentalDailyReportReview() {
       <div className="bg-white rounded-lg shadow-md p-6">
         {/* Project Information */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Project Information</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="min-w-[180px]"><span className="font-semibold">Project:</span> {projectInfo.project}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Spread:</span> {projectInfo.spread}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Inspector:</span> {projectInfo.inspector}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Contractor:</span> {projectInfo.contractor}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Date:</span> {projectInfo.date}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Milepost Start:</span> {projectInfo.milepost_start}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Milepost End:</span> {projectInfo.milepost_end}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Station Start:</span> {projectInfo.station_start}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Station End:</span> {projectInfo.station_end}</div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+            <h2 className="text-xl font-semibold">Project Information</h2>
+            <div className="mt-2 md:mt-0 md:text-right">
+              <span className="font-semibold">Date:</span> {projectInfo.date}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Column 1 */}
+            <div className="flex flex-col gap-2">
+              <div><span className="font-semibold">Inspector:</span> {projectInfo.inspector}</div>
+              <div><span className="font-semibold">Project:</span> {projectInfo.project}</div>
+              <div><span className="font-semibold">Spread:</span> {projectInfo.spread}</div>
+              <div><span className="font-semibold">Facility:</span> {projectInfo.facility}</div>
+              <div><span className="font-semibold">Contractor:</span> {projectInfo.contractor}</div>
+            </div>
+            {/* Column 2 */}
+            <div className="flex flex-col gap-2">
+              <div><span className="font-semibold">Milepost Start:</span> {projectInfo.milepost_start}</div>
+              <div><span className="font-semibold">Milepost End:</span> {projectInfo.milepost_end}</div>
+              <div><span className="font-semibold">Station Start:</span> {projectInfo.station_start}</div>
+              <div><span className="font-semibold">Station End:</span> {projectInfo.station_end}</div>
+            </div>
           </div>
         </div>
 
         {/* Weather Information */}
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4">Weather Information</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-8 gap-2">
             <div className="min-w-[180px]"><span className="font-semibold">Weather Conditions:</span> {weatherInfo.weather_conditions}</div>
             <div className="min-w-[180px]"><span className="font-semibold">Temperature:</span> {weatherInfo.temperature}</div>
             <div className="min-w-[180px]"><span className="font-semibold">Precipitation Type:</span> {weatherInfo.precipitation_type}</div>
             <div className="min-w-[180px]"><span className="font-semibold">Soil Conditions:</span> {weatherInfo.soil_conditions}</div>
-            <div className="min-w-[180px] col-span-3">
-              <span className="font-semibold">Rain Gauges:</span> {renderRainGaugesTable(weatherInfo.rain_gauges)}
-            </div>
+          </div>
+          <div className="min-w-[180px] col-span-3 mt-2">
+            <span className="font-semibold">Rain Gauges:</span> {renderRainGaugesTable(weatherInfo.rain_gauges)}
           </div>
         </div>
 
@@ -350,6 +362,46 @@ export default function EnvironmentalDailyReportReview() {
           const lowerName = section.name ? section.name.toLowerCase() : '';
           if (lowerName.includes('project information') || lowerName.includes('weather information')) {
             return null;
+          }
+          // Special handling for Crew Daily Summaries
+          if (lowerName.includes('crew daily summaries')) {
+            return (
+              <div key={idx} className="mb-6">
+                <h2 className="text-xl font-semibold mb-4">{section.name}</h2>
+                {section.rows && section.rows.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crew</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foreman</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Station</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Station</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {section.rows.map((row, rowIdx) => (
+                          <React.Fragment key={rowIdx}>
+                            <tr>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.Crew || row.crew || '—'}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.Foreman || row.foreman || '—'}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row['Start Station'] || row.start_station || '—'}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row['End Station'] || row.end_station || '—'}</td>
+                            </tr>
+                            <tr>
+                              <td colSpan={4} className="px-6 pb-6 pt-0 text-sm text-gray-700 bg-gray-50">
+                                <span className="font-semibold">Summary:</span> {row.Summary || row.summary || row.Notes || row.notes || '—'}
+                              </td>
+                            </tr>
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                {section.photos && section.photos.length > 0 && renderPhotos(section.photos)}
+              </div>
+            );
           }
           return (
             <div key={idx} className="mb-6">
