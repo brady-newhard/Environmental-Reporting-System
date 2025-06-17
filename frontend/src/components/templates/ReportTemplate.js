@@ -398,7 +398,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
         rows: section.rows || [],
         photos: section.photos ? section.photos.map(photo => ({
           url: photo.url || photo.file || photo.preview || photo.image_url,
-          comment: photo.comment || photo.comments || '',
+          comment: photo.comment || photo.comments || photo.description || '',
           location: photo.location || '',
         })) : [],
       })) : [],
@@ -407,7 +407,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
       // Photos
       photos: photos ? photos.map(photo => ({
         url: photo.url || photo.file || photo.preview || photo.image_url,
-        comment: photo.comment || photo.comments || '',
+        comment: photo.comment || photo.comments || photo.description || '',
         location: photo.location || '',
       })) : [],
       // Signature
@@ -416,6 +416,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
     };
 
     console.log('Review data being passed:', reviewData); // Debug log
+    console.log('Photos being passed to review:', reviewData.photos);
     navigate(`/environmental/reports/daily/review/${draftId}`, { state: { reportData: reviewData } });
   };
 

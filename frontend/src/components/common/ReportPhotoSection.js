@@ -68,7 +68,7 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
     setEditingIdx(idx);
     setEditFields({
       location: photos[idx].location || '',
-      description: photos[idx].description || '',
+      description: photos[idx].description || photos[idx].comment || photos[idx].comments || '',
     });
   };
   const cancelEdit = () => {
