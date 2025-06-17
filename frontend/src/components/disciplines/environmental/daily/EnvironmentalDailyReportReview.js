@@ -209,6 +209,7 @@ export default function EnvironmentalDailyReportReview() {
   const signature = draft?.signature || '';
   const sigDate = formatDate(draft?.sigDate);
   const photos = Array.isArray(draft?.photos) ? draft.photos : [];
+  console.log('Photos passed to review:', photos);
 
   // Button handlers
   const handleEdit = () => {
@@ -244,33 +245,28 @@ export default function EnvironmentalDailyReportReview() {
 
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+  // Helper to render photos with comments
   const renderPhotos = (photos) => {
-    if (!photos || photos.length === 0) return null;
-
+    if (!Array.isArray(photos) || photos.length === 0) return null;
     return (
-      <div className="mt-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Photos</h3>
-        <div className="grid grid-cols-2 gap-4 w-full">
-          {photos.map((photo, index) => (
-            <div key={index} className="relative w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+        {photos.map((photo, idx) => (
+          <div key={idx} className="flex flex-col items-center border rounded-lg p-2 bg-gray-50">
+            {photo.url && (
               <img
-                src={photo.url || photo.file || photo.preview || photo.image_url}
-                alt={photo.comment || `Photo ${index + 1}`}
-                className="w-full h-48 object-cover rounded-lg shadow-md"
+                src={photo.url}
+                alt={photo.comment || `Photo ${idx + 1}`}
+                className="w-full max-w-xs max-h-60 object-contain mb-2 rounded shadow"
               />
-              {photo.comment && (
-                <div className="mt-2 text-sm text-gray-600">
-                  {photo.comment}
-                </div>
-              )}
-              {photo.location && (
-                <div className="mt-1 text-sm text-gray-500">
-                  Location: {photo.location}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            )}
+            {photo.location && (
+              <div className="text-xs text-gray-500 mb-1">Location: {photo.location}</div>
+            )}
+            {photo.comment && (
+              <div className="text-sm text-gray-700 italic">{photo.comment}</div>
+            )}
+          </div>
+        ))}
       </div>
     );
   };
