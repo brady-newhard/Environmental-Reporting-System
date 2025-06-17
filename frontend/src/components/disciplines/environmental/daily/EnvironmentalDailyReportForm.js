@@ -148,7 +148,7 @@ export default function EnvironmentalDailyReportForm() {
     <div className="min-h-[calc(100vh-64px)] overflow-auto p-4 sm:p-6">
       <PageHeader 
         title={<span className="text-white">Edit Daily Environmental Report</span>}
-        backPath="/environmental/reports/daily"
+        backPath={id ? "/environmental/reports/daily/drafts" : "/environmental/reports"}
         backButtonStyle={{
           backgroundColor: '#000000',
           color: '#ffffff',
@@ -159,7 +159,7 @@ export default function EnvironmentalDailyReportForm() {
         initialData={draft}
         onChange={setDraft}
         onSave={handleSave}
-        onReview={handleReview}
+        onReview={draft?.id ? handleReview : undefined}
         onCancel={handleCloseSnackbar}
         config={environmentalDailyReportConfig}
       />
