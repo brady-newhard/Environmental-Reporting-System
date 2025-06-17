@@ -12,6 +12,9 @@ import {
   TrashIcon, 
   CameraIcon, 
   XMarkIcon,
+  ArrowLeftOnRectangleIcon,
+  CheckIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import ReportPhotoSection from '../common/ReportPhotoSection';
@@ -315,12 +318,36 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
     if (shouldSave) {
       await handleSave();
     }
-    navigate('/environmental/reports/daily');
+    navigate(draftId ? '/environmental/reports/daily/drafts' : '/environmental/reports');
   };
 
   const handleReview = () => {
     if (draftId) {
-      navigate(`/environmental/reports/daily/review/${draftId}`);
+      // Find the weather section
+      const weatherSection = sections.find(s => s.name === 'Weather Information');
+      const weatherData = weatherSection?.rows?.[0] || {};
+
+      // Ensure all data is properly formatted before navigation
+      const reviewData = {
+        header: {
+          ...header,
+          // Add weather data from the section
+          weather_conditions: weatherData.weather_conditions || '',
+          temperature: weatherData.temperature || '',
+          precipitation_type: weatherData.precipitation_type || '',
+          soil_conditions: weatherData.soil_conditions || '',
+          rain_gauges: weatherData.rain_gauges || []
+        },
+        sections: sections || [],
+        summaries: summaries || {},
+        photos: photos || [],
+        signature: signature || '',
+        sigDate: sigDate ? format(sigDate, 'yyyy-MM-dd') : '',
+        preparedBy: preparedBy || ''
+      };
+      
+      console.log('Review data being passed:', reviewData);
+      navigate(`/environmental/reports/daily/review/${draftId}`, { state: reviewData });
     }
   };
 
@@ -875,7 +902,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                               onClick={() => handleRemoveRow(section.name, rowIndex)}
                               className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
                             >
-                              <TrashIcon className="h-5 w-5" />
+                              <XMarkIcon className="h-5 w-5" />
                             </button>
                           )}
                         </div>
@@ -931,7 +958,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                               onClick={() => handleRemoveRow(section.name, rowIndex)}
                               className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
                             >
-                              <TrashIcon className="h-5 w-5" />
+                              <XMarkIcon className="h-5 w-5" />
                             </button>
                           )}
                         </div>
@@ -1271,32 +1298,38 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             <button
               type="button"
               onClick={handleExit}
-              className="bg-gray-400 hover:bg-gray-500 text-white font-semibold rounded-md px-4 py-2"
+              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
             >
-              Exit
+              <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
+              <span className="hidden sm:inline">Exit</span>
             </button>
             {draftId && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-4 py-2"
-              >
-                Delete
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  <TrashIcon className="w-5 h-5 mr-2" />
+                  <span className="hidden sm:inline">Delete</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReview}
+                  className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
+                >
+                  <CheckIcon className="w-5 h-5 mr-2" />
+                  <span className="hidden sm:inline">Review</span>
+                </button>
+              </>
             )}
-            <button
-              type="button"
-              onClick={handleReview}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-md px-4 py-2"
-            >
-              Review
-            </button>
             <button
               type="submit"
               disabled={loading}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md px-4 py-2"
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
             >
-              {loading ? 'Saving...' : 'Save'}
+              <PencilIcon className="w-5 h-5 mr-2" />
+              <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
             </button>
           </div>
         </form>
