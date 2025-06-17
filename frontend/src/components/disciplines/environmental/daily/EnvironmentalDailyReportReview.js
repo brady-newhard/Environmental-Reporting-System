@@ -20,7 +20,7 @@ const config = {
     { name: 'weather_conditions', label: 'Sky Cover' },
     { name: 'temperature', label: 'Temperature (°F)' },
     { name: 'precipitation_type', label: 'Precipitation Type' },
-    { name: 'soil_conditions', label: 'Soil Conditions' }
+    { name: 'soil_conditions', label: 'Soil Conditions' },
   ],
   rainGaugeFields: [
     { name: 'location', label: 'Rain Gauge Location' },
@@ -66,6 +66,14 @@ export default function EnvironmentalDailyReportReview() {
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+  // Helper to format date as MM/DD/YYYY
+  const formatDate = (value) => {
+    if (!value) return '—';
+    const d = new Date(value);
+    if (isNaN(d)) return value;
+    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+  };
+
   // Get the back path from location state or default to drafts
   const backPath = location.state?.from || '/environmental/reports/daily/drafts';
 
@@ -74,9 +82,18 @@ export default function EnvironmentalDailyReportReview() {
       setIsLoading(true);
       try {
         // First check if data was passed through location state
-        if (location.state) {
-          console.log('Using data from location state:', location.state);
-          setDraft(location.state);
+        if (location.state?.reportData) {
+          console.log('Using data from location state:', location.state.reportData);
+          // Ensure the data has the correct structure
+          const formattedData = {
+            ...location.state.reportData,
+            rain_gauges: Array.isArray(location.state.reportData.rain_gauges)
+              ? location.state.reportData.rain_gauges
+              : Array.isArray(location.state.reportData.weather?.rain_gauge_readings)
+                ? location.state.reportData.weather.rain_gauge_readings
+                : []
+          };
+          setDraft(formattedData);
           setIsLoading(false);
           return;
         }
@@ -86,7 +103,16 @@ export default function EnvironmentalDailyReportReview() {
         console.log('Loaded draft from storage:', loadedDraft);
         
         if (loadedDraft) {
-          setDraft(loadedDraft);
+          // Ensure the loaded data has the correct structure
+          const formattedData = {
+            ...loadedDraft,
+            rain_gauges: Array.isArray(loadedDraft.rain_gauges)
+              ? loadedDraft.rain_gauges
+              : Array.isArray(loadedDraft.weather?.rain_gauge_readings)
+                ? loadedDraft.weather.rain_gauge_readings
+                : []
+          };
+          setDraft(formattedData);
         } else {
           console.log('Draft not found with ID:', id);
           setError('Draft not found');
@@ -149,21 +175,39 @@ export default function EnvironmentalDailyReportReview() {
     );
   }
 
-  const header = draft.header || {};
-  const sections = draft.sections || [];
-  const summaries = draft.summaries || {};
-  const photos = draft.photos || [];
-  const signature = draft.signature || '';
-  const sigDate = draft.sigDate || draft.sig_date || '';
-  const preparedBy = header.prepared_by || '';
-
-  // Helper to format date as MM/DD/YYYY
-  const formatDate = (value) => {
-    if (!value) return '—';
-    const d = new Date(value);
-    if (isNaN(d)) return value;
-    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+  // Map project info from draft.header (remove prepared_by)
+  const projectInfo = {
+    project: draft?.header?.project || '—',
+    spread: draft?.header?.spread || '—',
+    inspector: draft?.header?.inspector || '—',
+    contractor: draft?.header?.contractor || '—',
+    date: formatDate(draft?.header?.date),
+    milepost_start: draft?.header?.milepost_start || '—',
+    milepost_end: draft?.header?.milepost_end || '—',
+    station_start: draft?.header?.station_start || '—',
+    station_end: draft?.header?.station_end || '—',
   };
+
+  // Combine weather info from draft.header and 'Weather Information' section
+  let weatherSection = null;
+  if (Array.isArray(draft?.sections)) {
+    weatherSection = draft.sections.find(s => s.name && s.name.toLowerCase().includes('weather'));
+  }
+  const weatherRow = weatherSection && Array.isArray(weatherSection.rows) && weatherSection.rows.length > 0 ? weatherSection.rows[0] : {};
+
+  const weatherInfo = {
+    weather_conditions: weatherRow.weather_conditions || draft?.header?.weather_conditions || '—',
+    temperature: weatherRow.temperature || draft?.header?.temperature || '—',
+    precipitation_type: weatherRow.precipitation_type || draft?.header?.precipitation_type || '—',
+    soil_conditions: weatherRow.soil_conditions || draft?.header?.soil_conditions || '—',
+    rain_gauges: Array.isArray(weatherRow.rain_gauges) ? weatherRow.rain_gauges : (Array.isArray(draft?.header?.rain_gauges) ? draft.header.rain_gauges : []),
+  };
+
+  const sections = Array.isArray(draft?.sections) ? draft.sections : [];
+  const summaries = typeof draft?.summaries === 'object' && draft?.summaries !== null ? draft.summaries : {};
+  const signature = draft?.signature || '';
+  const sigDate = formatDate(draft?.sigDate);
+  const photos = Array.isArray(draft?.photos) ? draft.photos : [];
 
   // Button handlers
   const handleEdit = () => {
@@ -199,6 +243,62 @@ export default function EnvironmentalDailyReportReview() {
 
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+  const renderPhotos = (photos) => {
+    if (!photos || photos.length === 0) return null;
+
+    return (
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Photos</h3>
+        <div className="grid grid-cols-2 gap-4 w-full">
+          {photos.map((photo, index) => (
+            <div key={index} className="relative w-full">
+              <img
+                src={photo.url || photo.file || photo.preview || photo.image_url}
+                alt={photo.comment || `Photo ${index + 1}`}
+                className="w-full h-48 object-cover rounded-lg shadow-md"
+              />
+              {photo.comment && (
+                <div className="mt-2 text-sm text-gray-600">
+                  {photo.comment}
+                </div>
+              )}
+              {photo.location && (
+                <div className="mt-1 text-sm text-gray-500">
+                  Location: {photo.location}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Helper to render rain gauges as a table
+  const renderRainGaugesTable = (rainGauges) => {
+    if (!Array.isArray(rainGauges) || rainGauges.length === 0) return '—';
+    return (
+      <table className="min-w-full divide-y divide-gray-200 mt-2">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rain (in)</th>
+            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Snow (in)</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {rainGauges.map((g, i) => (
+            <tr key={i}>
+              <td className="px-2 py-1 text-sm text-gray-900">{g.location || '—'}</td>
+              <td className="px-2 py-1 text-sm text-gray-900">{g.rain || '—'}</td>
+              <td className="px-2 py-1 text-sm text-gray-900">{g.snow || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <PageHeader 
@@ -218,194 +318,117 @@ export default function EnvironmentalDailyReportReview() {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4">Project Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {config.headerFields.map(field => {
-              let value = header[field.name] || '';
-              if (field.type === 'date') value = formatDate(value);
-              if (!value) value = '—';
-              return (
-                <div key={field.name} className="min-w-[180px]">
-                  <span className="font-semibold">{field.label}:</span>{' '}
-                  {value}
-                </div>
-              );
-            })}
+            <div className="min-w-[180px]"><span className="font-semibold">Project:</span> {projectInfo.project}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Spread:</span> {projectInfo.spread}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Inspector:</span> {projectInfo.inspector}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Contractor:</span> {projectInfo.contractor}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Date:</span> {projectInfo.date}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Milepost Start:</span> {projectInfo.milepost_start}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Milepost End:</span> {projectInfo.milepost_end}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Station Start:</span> {projectInfo.station_start}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Station End:</span> {projectInfo.station_end}</div>
           </div>
         </div>
 
         {/* Weather Information */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Weather Data</h2>
+          <h2 className="text-xl font-semibold mb-4">Weather Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {config.weatherFields.map(field => {
-              let value = header[field.name] || '';
-              if (!value) value = '—';
-              return (
-                <div key={field.name} className="min-w-[180px]">
-                  <span className="font-semibold">{field.label}:</span>{' '}
-                  {value}
-                </div>
-              );
-            })}
+            <div className="min-w-[180px]"><span className="font-semibold">Weather Conditions:</span> {weatherInfo.weather_conditions}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Temperature:</span> {weatherInfo.temperature}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Precipitation Type:</span> {weatherInfo.precipitation_type}</div>
+            <div className="min-w-[180px]"><span className="font-semibold">Soil Conditions:</span> {weatherInfo.soil_conditions}</div>
+            <div className="min-w-[180px] col-span-3">
+              <span className="font-semibold">Rain Gauges:</span> {renderRainGaugesTable(weatherInfo.rain_gauges)}
+            </div>
           </div>
         </div>
 
-        {/* Rain Gauges */}
-        {header?.rain_gauges && header.rain_gauges.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Rain Gauge Data</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {config.rainGaugeFields.map(field => (
-                      <th key={field.name} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {field.label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {header.rain_gauges.map((gauge, idx) => (
-                    <tr key={idx}>
-                      {config.rainGaugeFields.map(field => (
-                        <td key={field.name} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {gauge[field.name] || '—'}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
         {/* Dynamic Sections */}
-        {config.dynamicSections.map(sectionConfig => {
-          const section = sections.find(s => s.name === sectionConfig.name) || { rows: [] };
-          const sectionData = section.rows || [];
+        {sections.map((section, idx) => {
+          // Skip redundant Project Information and Weather Information sections
+          const lowerName = section.name ? section.name.toLowerCase() : '';
+          if (lowerName.includes('project information') || lowerName.includes('weather information')) {
+            return null;
+          }
           return (
-            <div key={sectionConfig.name} className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">{sectionConfig.label}</h2>
-              {Array.isArray(sectionData) && sectionData.length > 0 ? (
-                <div className="space-y-4">
-                  {sectionData.map((row, idx) => (
-                    <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                      {sectionConfig.fields.map(field => (
-                        <div key={field.name}>
-                          <span className="font-semibold">{field.label}:</span>{' '}
-                          {row[field.name] || '—'}
-                        </div>
+            <div key={idx} className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">{section.name}</h2>
+              {section.rows && section.rows.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {Object.keys(section.rows[0]).map(field => (
+                          <th key={field} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            {field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {section.rows.map((row, rowIdx) => (
+                        <tr key={rowIdx}>
+                          {Object.values(row).map((value, fieldIdx) => {
+                            // Only render primitive values, stringify arrays/objects
+                            let displayValue = value;
+                            if (typeof value === 'object' && value !== null) {
+                              if (Array.isArray(value)) {
+                                displayValue = value.join(', ');
+                              } else {
+                                displayValue = Object.values(value).join(', ');
+                              }
+                            }
+                            if (displayValue === '' || displayValue === undefined || displayValue === null) displayValue = '—';
+                            return (
+                              <td key={fieldIdx} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {displayValue}
+                              </td>
+                            );
+                          })}
+                        </tr>
                       ))}
-                    </div>
-                  ))}
+                    </tbody>
+                  </table>
                 </div>
-              ) : (
-                <p className="text-gray-500">No entries</p>
               )}
+              {section.photos && section.photos.length > 0 && renderPhotos(section.photos)}
             </div>
           );
         })}
 
-        {/* Summary Fields */}
+        {/* Summaries */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Notes</h2>
-          {config.summaryFields.map(field => (
-            <div key={field.name} className="p-4 bg-gray-50 rounded-lg">
-              {summaries[field.name] || '—'}
-            </div>
+          <h2 className="text-xl font-semibold mb-4">Environmental Inspection Summary</h2>
+          {Object.entries(summaries).map(([key, value]) => (
+            <p key={key} className="mb-2">
+              <span className="font-semibold">{key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:</span>{' '}
+              {value || '—'}
+            </p>
           ))}
         </div>
 
-        {/* Photos Section */}
-        {Array.isArray(photos) && photos.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Photos</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {photos.map((photo, idx) => {
-                let photoUrl;
-                if (typeof photo === 'string') {
-                  photoUrl = photo;
-                } else if (photo.url) {
-                  photoUrl = photo.url;
-                } else if (photo.file) {
-                  photoUrl = photo.file;
-                } else if (photo instanceof Blob) {
-                  photoUrl = URL.createObjectURL(photo);
-                } else if (photo.preview) {
-                  photoUrl = photo.preview;
-                } else if (photo.image_url) {
-                  photoUrl = photo.image_url;
-                }
+        {/* Photos */}
+        {photos.length > 0 && renderPhotos(photos)}
 
-                const location = photo.location || '';
-                const comments = photo.comments || photo.comment || '';
-
-                return (
-                  <div
-                    key={idx}
-                    className="border border-gray-200 rounded-lg overflow-hidden bg-white flex flex-col"
-                  >
-                    <div className="relative pt-[75%] bg-gray-50">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={`Photo ${idx + 1}`}
-                          className="absolute top-0 left-0 w-full h-full object-contain"
-                          onError={e => {
-                            console.error('Error loading photo:', e);
-                            e.target.onerror = null;
-                            e.target.src = '';
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-500">
-                          Image not available
-                        </div>
-                      )}
-                    </div>
-                    {(location || comments) && (
-                      <div className="p-3 bg-gray-50">
-                        {location && (
-                          <p className="text-sm font-medium text-gray-700 mb-1">
-                            Location: {location}
-                          </p>
-                        )}
-                        {comments && (
-                          <p className="text-sm text-gray-600">
-                            {comments}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Signature Section */}
+        {/* Signature */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Signatures</h2>
-          <div className="space-y-4">
-            <p>
-              <span className="font-semibold">Prepared By:</span> {preparedBy || '—'}
-            </p>
-            {signature && (
-              <div className="my-4">
-                <img 
-                  src={signature} 
-                  alt="Signature" 
-                  className="max-w-[300px] border border-gray-300 rounded p-1 bg-white" 
-                />
-              </div>
-            )}
-            <p>
-              <span className="font-semibold">Date:</span> {formatDate(sigDate)}
-            </p>
-          </div>
+          <h2 className="text-xl font-semibold mb-4">Inspector Signature</h2>
+          <p className="mb-2">
+            <span className="font-semibold">Prepared by:</span> {projectInfo.inspector}
+          </p>
+          {signature && (
+            <div className="my-4">
+              <img 
+                src={signature} 
+                alt="Signature" 
+                className="max-w-[300px] border border-gray-300 rounded p-1 bg-white" 
+              />
+            </div>
+          )}
+          <p>
+            <span className="font-semibold">Date:</span> {sigDate}
+          </p>
         </div>
 
         {/* Action Buttons */}

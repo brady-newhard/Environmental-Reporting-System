@@ -7,7 +7,7 @@ const ReportTemplateReview = ({ config }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { draftId } = useParams();
-  let data = location.state?.formData;
+  let data = location.state?.reportData;
 
   // If no data in state, try to load from localStorage
   if (!data && draftId && config && config.reportType) {
@@ -52,13 +52,53 @@ const ReportTemplateReview = ({ config }) => {
   };
 
   // Defensive: ensure all fields are present
-  const header = data.header || {};
+  const projectInfo = {
+    project: data.project || '',
+    spread: data.spread || '',
+    inspector: data.inspector || '',
+    afe: data.afe || '',
+    contractor: data.contractor || '',
+    date: formatDate(data.date),
+    prepared_by: data.prepared_by || '',
+  };
+
+  const weatherInfo = data.weather || {};
   const sections = Array.isArray(data.sections) ? data.sections : [];
   const summaries = typeof data.summaries === 'object' && data.summaries !== null ? data.summaries : {};
-  const preparedBy = data.preparedBy || '';
   const signature = data.signature || '';
-  const sigDate = data.sigDate || '';
+  const sigDate = formatDate(data.sigDate);
   const photos = Array.isArray(data.photos) ? data.photos : [];
+
+  const renderPhotos = (photos) => {
+    if (!photos || photos.length === 0) return null;
+
+    return (
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Photos</h3>
+        <div className="grid grid-cols-2 gap-4 w-full">
+          {photos.map((photo, index) => (
+            <div key={index} className="relative w-full">
+              <img
+                src={photo.url || photo.file || photo.preview || photo.image_url}
+                alt={photo.comment || `Photo ${index + 1}`}
+                className="w-full h-48 object-cover rounded-lg shadow-md"
+              />
+              {photo.comment && (
+                <div className="mt-2 text-sm text-gray-600">
+                  {photo.comment}
+                </div>
+              )}
+              {photo.location && (
+                <div className="mt-1 text-sm text-gray-500">
+                  Location: {photo.location}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -106,12 +146,10 @@ const ReportTemplateReview = ({ config }) => {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4">Project Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {config.headerFields.filter(f => [
-              'project', 'contractor', 'inspector', 'date', 'spread', 'facility', 'milepost_start', 'milepost_end', 'station_start', 'station_end'
-            ].includes(f.name)).map(field => (
-              <div key={field.name} className="min-w-[180px]">
-                <span className="font-semibold">{field.label}:</span>{' '}
-                {field.type === 'date' ? formatDate(header[field.name]) : (header[field.name] || '')}
+            {Object.entries(projectInfo).map(([key, value]) => (
+              <div key={key} className="min-w-[180px]">
+                <span className="font-semibold">{key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:</span>{' '}
+                {value || '—'}
               </div>
             ))}
           </div>
@@ -121,18 +159,16 @@ const ReportTemplateReview = ({ config }) => {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4">Weather Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {config.headerFields.filter(f => [
-              'weather_conditions', 'temperature', 'precipitation_type', 'soil_conditions'
-            ].includes(f.name)).map(field => (
-              <div key={field.name} className="min-w-[180px]">
-                <span className="font-semibold">{field.label}:</span>{' '}
-                {header[field.name] || ''}
+            {Object.entries(weatherInfo).map(([key, value]) => (
+              <div key={key} className="min-w-[180px]">
+                <span className="font-semibold">{key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:</span>{' '}
+                {value || '—'}
               </div>
             ))}
           </div>
           
           {/* Rain Gauges */}
-          {header?.rain_gauges && header.rain_gauges.length > 0 && (
+          {data?.rain_gauges && data.rain_gauges.length > 0 && (
             <div className="mt-4">
               <h3 className="text-lg font-medium mb-2">Rain Gauge Data</h3>
               <div className="overflow-x-auto">
@@ -145,7 +181,7 @@ const ReportTemplateReview = ({ config }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {header.rain_gauges.map((gauge, idx) => (
+                    {data.rain_gauges.map((gauge, idx) => (
                       <tr key={idx}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gauge.location}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{gauge.rain}</td>
@@ -163,50 +199,56 @@ const ReportTemplateReview = ({ config }) => {
         {sections.map((section, idx) => (
           <div key={idx} className="mb-6">
             <h2 className="text-xl font-semibold mb-4">{section.name}</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {section.rows.length > 0 && Object.keys(section.rows[0]).map(field => (
-                      <th key={field} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {field}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {section.rows.map((row, idx) => (
-                    <tr key={idx}>
-                      {Object.values(row).map((value, fieldIdx) => (
-                        <td key={fieldIdx} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {value}
-                        </td>
+            {section.rows && section.rows.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {Object.keys(section.rows[0]).map(field => (
+                        <th key={field} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {field.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {section.rows.map((row, rowIdx) => (
+                      <tr key={rowIdx}>
+                        {Object.values(row).map((value, fieldIdx) => (
+                          <td key={fieldIdx} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {value || '—'}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {section.photos && section.photos.length > 0 && renderPhotos(section.photos)}
           </div>
         ))}
 
         {/* Summaries */}
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4">Environmental Inspection Summary</h2>
-          {config.summaryFields.map(field => (
-            <p key={field.name} className="mb-2">
-              <span className="font-semibold">{field.label}:</span>{' '}
-              {summaries?.[field.name]}
+          {Object.entries(summaries).map(([key, value]) => (
+            <p key={key} className="mb-2">
+              <span className="font-semibold">{key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:</span>{' '}
+              {value || '—'}
             </p>
           ))}
         </div>
+
+        {/* Photos */}
+        {photos.length > 0 && renderPhotos(photos)}
 
         {/* Signature */}
         {config.requiresSignature && (
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4">Inspector Signature</h2>
             <p className="mb-2">
-              <span className="font-semibold">Prepared by:</span> {preparedBy}
+              <span className="font-semibold">Prepared by:</span> {projectInfo.prepared_by}
             </p>
             {signature && (
               <div className="my-4">
@@ -218,77 +260,8 @@ const ReportTemplateReview = ({ config }) => {
               </div>
             )}
             <p>
-              <span className="font-semibold">Date:</span> {formatDate(sigDate)}
+              <span className="font-semibold">Date:</span> {sigDate}
             </p>
-          </div>
-        )}
-
-        {/* Photos Section */}
-        {config.requiresPhotos && photos && photos.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Photos</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {photos.map((photo, idx) => {
-                let photoUrl;
-                if (typeof photo === 'string') {
-                  photoUrl = photo;
-                } else if (photo.url) {
-                  photoUrl = photo.url;
-                } else if (photo.file) {
-                  photoUrl = photo.file;
-                } else if (photo instanceof Blob) {
-                  photoUrl = URL.createObjectURL(photo);
-                } else if (photo.preview) {
-                  photoUrl = photo.preview;
-                } else if (photo.image_url) {
-                  photoUrl = photo.image_url;
-                }
-
-                const location = photo.location || '';
-                const comments = photo.comments || photo.comment || '';
-
-                return (
-                  <div
-                    key={idx}
-                    className="border border-gray-200 rounded-lg overflow-hidden bg-white flex flex-col"
-                  >
-                    <div className="relative pt-[75%] bg-gray-50">
-                      {photoUrl ? (
-                        <img
-                          src={photoUrl}
-                          alt={`Photo ${idx + 1}`}
-                          className="absolute top-0 left-0 w-full h-full object-contain"
-                          onError={e => {
-                            console.error('Error loading photo:', e);
-                            e.target.onerror = null;
-                            e.target.src = '';
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-500">
-                          Image not available
-                        </div>
-                      )}
-                    </div>
-                    {(location || comments) && (
-                      <div className="p-3 bg-gray-50">
-                        {location && (
-                          <p className="text-sm font-medium text-gray-700 mb-1">
-                            Location: {location}
-                          </p>
-                        )}
-                        {comments && (
-                          <p className="text-sm text-gray-600">
-                            {comments}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </div>
         )}
       </div>
