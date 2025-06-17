@@ -322,33 +322,118 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
   };
 
   const handleReview = () => {
-    if (draftId) {
-      // Find the weather section
-      const weatherSection = sections.find(s => s.name === 'Weather Information');
-      const weatherData = weatherSection?.rows?.[0] || {};
+    // Format the date in local timezone
+    const formatDate = (date) => {
+      if (!date) return '';
+      const d = new Date(date);
+      return d.toISOString().split('T')[0];
+    };
 
-      // Ensure all data is properly formatted before navigation
-      const reviewData = {
-        header: {
-          ...header,
-          // Add weather data from the section
-          weather_conditions: weatherData.weather_conditions || '',
-          temperature: weatherData.temperature || '',
-          precipitation_type: weatherData.precipitation_type || '',
-          soil_conditions: weatherData.soil_conditions || '',
-          rain_gauges: weatherData.rain_gauges || []
-        },
-        sections: sections || [],
-        summaries: summaries || {},
-        photos: photos || [],
-        signature: signature || '',
-        sigDate: sigDate ? format(sigDate, 'yyyy-MM-dd') : '',
-        preparedBy: preparedBy || ''
-      };
-      
-      console.log('Review data being passed:', reviewData);
-      navigate(`/environmental/reports/daily/review/${draftId}`, { state: reviewData });
-    }
+    // Find the weather section
+    const weatherSection = sections.find(s => s.name === 'Weather Information');
+    const weatherData = weatherSection?.rows?.[0] || {};
+
+    // Format rain gauge data
+    const formatRainGaugeData = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) {
+        return data.map(gauge => {
+          if (typeof gauge === 'object' && gauge !== null) {
+            // Ensure all values are strings
+            const location = gauge.location || gauge.Location || '';
+            const rain = gauge.rain || gauge.Rain || '';
+            const snow = gauge.snow || gauge.Snow || '';
+            
+            return {
+              location: typeof location === 'object' ? '' : String(location),
+              rain: typeof rain === 'object' ? '' : String(rain),
+              snow: typeof snow === 'object' ? '' : String(snow)
+            };
+          }
+          return { location: String(gauge), rain: '', snow: '' };
+        });
+      }
+      return [];
+    };
+
+    const reviewData = {
+      // Project Information
+      project: header.project,
+      spread: header.spread,
+      inspector: header.inspector,
+      afe: header.afe,
+      contractor: header.contractor,
+      date: formatDate(header.date),
+      prepared_by: header.inspector,
+
+      // Weather Information
+      weather: {
+        temperature: weatherData.temperature || header.temperature,
+        conditions: weatherData.conditions || header.conditions,
+        wind_speed: weatherData.wind_speed || header.wind_speed,
+        wind_direction: weatherData.wind_direction || header.wind_direction,
+        humidity: weatherData.humidity || header.humidity,
+        barometric_pressure: weatherData.barometric_pressure || header.barometric_pressure,
+        precipitation: weatherData.precipitation || header.precipitation,
+        precipitation_type: weatherData.precipitation_type || header.precipitation_type,
+        precipitation_amount: weatherData.precipitation_amount || header.precipitation_amount,
+        precipitation_duration: weatherData.precipitation_duration || header.precipitation_duration,
+        precipitation_intensity: weatherData.precipitation_intensity || header.precipitation_intensity,
+        precipitation_start_time: weatherData.precipitation_start_time || header.precipitation_start_time,
+        precipitation_end_time: weatherData.precipitation_end_time || header.precipitation_end_time,
+        precipitation_notes: weatherData.precipitation_notes || header.precipitation_notes,
+        rain_gauge_readings: formatRainGaugeData(weatherData.rain_gauge_readings || header.rain_gauge_readings),
+        rain_gauge_notes: weatherData.rain_gauge_notes || header.rain_gauge_notes,
+        weather_notes: weatherData.weather_notes || header.weather_notes,
+      },
+
+      // Add rain_gauges at the top level for backward compatibility
+      rain_gauges: formatRainGaugeData(weatherData.rain_gauge_readings || header.rain_gauge_readings),
+
+      // Sections with photos and comments
+      sections: sections ? sections.map(section => ({
+        name: section.name,
+        rows: section.rows || [],
+        photos: section.photos ? section.photos.map(photo => ({
+          url: photo.url || photo.file || photo.preview || photo.image_url,
+          comment: photo.comment || photo.comments || '',
+          location: photo.location || '',
+        })) : [],
+      })) : [],
+
+      // Summaries
+      summaries: summaries || {},
+
+      // Photos
+      photos: photos ? photos.map(photo => ({
+        url: photo.url || photo.file || photo.preview || photo.image_url,
+        comment: photo.comment || photo.comments || '',
+        location: photo.location || '',
+      })) : [],
+
+      // Signature
+      signature: signature || '',
+      sigDate: sigDate ? formatDate(sigDate) : '',
+    };
+
+    console.log('Review data being passed:', reviewData); // Debug log
+    navigate(`/environmental/reports/daily/review/${draftId}`, { state: { reportData: reviewData } });
+  };
+
+  // Update the signature date handler
+  const handleSigDateChange = (e) => {
+    const date = new Date(e.target.value);
+    // Adjust for timezone offset
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    setSigDate(localDate);
+  };
+
+  // Update the date input handler to handle timezone correctly
+  const handleDateChange = (e) => {
+    const date = new Date(e.target.value);
+    // Adjust for timezone offset
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    handleHeaderChange({ target: { name: 'date', value: localDate.toISOString().split('T')[0] } });
   };
 
   return (
@@ -389,10 +474,24 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               const milepostEndField = fields.find(f => f.name === 'milepost_end');
               const stationStartField = fields.find(f => f.name === 'station_start');
               const stationEndField = fields.find(f => f.name === 'station_end');
+              const dateField = fields.find(f => f.name === 'date');
 
               return (
                 <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800">{section.name}</h2>
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-600 mr-2">Date:</label>
+                      <input
+                        type="date"
+                        name="date"
+                        value={header.date ? new Date(header.date).toISOString().split('T')[0] : ''}
+                        onChange={handleDateChange}
+                        className="bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                        required
+                      />
+                    </div>
+                  </div>
                   <div className="flex flex-col gap-4">
                     {/* Inspector and Project on one line for md+ */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1272,9 +1371,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                   </label>
                   <input
                     type="date"
-                    value={sigDate ? format(sigDate, 'yyyy-MM-dd') : ''}
-                    onChange={(e) => setSigDate(new Date(e.target.value))}
-                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                    value={sigDate ? new Date(sigDate).toISOString().split('T')[0] : ''}
+                    onChange={handleSigDateChange}
+                    className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                   />
                 </div>
               </div>
