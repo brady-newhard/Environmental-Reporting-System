@@ -69,17 +69,28 @@ export default function EnvironmentalDailyReportPrint() {
 
   // Project Info
   const header = draft.header || {};
-  const projectInfo = [
-    { label: 'Project', value: header.project },
-    { label: 'Spread', value: header.spread },
-    { label: 'Inspector', value: header.inspector },
-    { label: 'Contractor', value: header.contractor },
-    { label: 'Facility', value: header.facility },
-    { label: 'Date', value: formatDate(header.date) },
-    { label: 'Milepost Start', value: header.milepost_start },
-    { label: 'Milepost End', value: header.milepost_end },
-    { label: 'Station Start', value: header.station_start },
-    { label: 'Station End', value: header.station_end },
+  // Define the fields for each row as pairs
+  const projectInfoRows = [
+    [
+      { label: 'Inspector', value: header.inspector },
+      { label: 'Milepost Start', value: header.milepost_start },
+    ],
+    [
+      { label: 'Project', value: header.project },
+      { label: 'Milepost End', value: header.milepost_end },
+    ],
+    [
+      { label: 'Spread', value: header.spread },
+      { label: 'Station Start', value: header.station_start },
+    ],
+    [
+      { label: 'Facility', value: header.facility },
+      { label: 'Station End', value: header.station_end },
+    ],
+    [
+      { label: 'Contractor', value: header.contractor },
+      null,
+    ],
   ];
 
   // Weather Info
@@ -122,6 +133,11 @@ export default function EnvironmentalDailyReportPrint() {
       <style>{printPageBreakCss}</style>
       <style>{`
 @media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-bg-gray-200 { background-color: #e5e7eb !important; }
   .print-footer { display: block !important; position: fixed !important; bottom: 0; left: 0; right: 0; width: 100vw; z-index: 9999; }
   .no-print-footer { display: none !important; }
 }
@@ -151,22 +167,18 @@ export default function EnvironmentalDailyReportPrint() {
               </div>
               <table className="w-full mb-6 text-sm">
                 <tbody>
-                  {projectInfo.reduce((rows, item, idx) => {
-                    if (idx % 2 === 0) {
-                      rows.push([item]);
-                    } else {
-                      rows[rows.length - 1].push(item);
-                    }
-                    return rows;
-                  }, []).map((row, rowIdx) => (
-                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50' : ''}>
+                  {projectInfoRows.map((row, rowIdx) => (
+                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
                       {row.map((item, colIdx) => (
-                        <React.Fragment key={colIdx}>
-                          <td className="font-semibold py-1 pr-4 w-48 text-gray-700">{item.label}</td>
-                          <td className="py-1 text-gray-900">{item.value || '—'}</td>
-                        </React.Fragment>
+                        item ? (
+                          <React.Fragment key={colIdx}>
+                            <td className="font-semibold py-1 pr-4 w-48 text-gray-700">{item.label}</td>
+                            <td className="py-1 text-gray-900">{item.value || '—'}</td>
+                          </React.Fragment>
+                        ) : (
+                          <td key={colIdx} colSpan={2}></td>
+                        )
                       ))}
-                      {row.length < 2 && <td colSpan={2}></td>}
                     </tr>
                   ))}
                 </tbody>
@@ -187,7 +199,7 @@ export default function EnvironmentalDailyReportPrint() {
                     }
                     return rows;
                   }, []).map((row, rowIdx) => (
-                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50' : ''}>
+                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
                       {row.map((item, colIdx) => (
                         <React.Fragment key={colIdx}>
                           <td className="font-semibold py-1 pr-4 w-48 text-gray-700">{item.label}</td>
@@ -214,7 +226,7 @@ export default function EnvironmentalDailyReportPrint() {
                   </thead>
                   <tbody>
                     {rainGauges.map((g, i) => (
-                      <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : ''}>
+                      <tr key={i} className={i % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
                         <td className="py-1 px-2">{g.location || '—'}</td>
                         <td className="py-1 px-2">{g.rain || '—'}</td>
                         <td className="py-1 px-2">{g.snow || '—'}</td>
@@ -239,7 +251,7 @@ export default function EnvironmentalDailyReportPrint() {
                     </thead>
                     <tbody>
                       {section.rows.map((row, rowIdx) => (
-                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50' : ''}>
+                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
                           {Object.values(row).map((value, fieldIdx) => (
                             <td key={fieldIdx} className="py-1 px-2">{typeof value === 'object' && value !== null ? JSON.stringify(value) : value || '—'}</td>
                           ))}
@@ -297,9 +309,8 @@ export default function EnvironmentalDailyReportPrint() {
             <span className="print-footer-page">Page 1 of 1</span>
           </div>
           {/* Print-only sticky footer */}
-          <div className="print-footer hidden print:flex w-full border-t-4 border-blue-500 bg-blue-900 text-white py-4 px-8 text-sm items-center" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, width: '100vw', zIndex: 9999 }}>
+          <div className="print-footer hidden print:flex w-full border-t-4 border-blue-500 bg-blue-900 text-white py-4 px-8 text-sm items-center" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
             <div className="flex-1 text-center">&copy; {new Date().getFullYear()} WildStone Solutions, LLC</div>
-            <div className="ml-auto text-right"><span className="print-footer-page">Page 1 of 1</span></div>
           </div>
         </div>
       </div>
