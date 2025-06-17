@@ -38,6 +38,7 @@ import EnvironmentalDailyReportReview from './components/disciplines/environment
 import EnvironmentalDailyReportDrafts from './components/disciplines/environmental/daily/EnvironmentalDailyReportDrafts';
 import EnvironmentalDailyReportForm from './components/disciplines/environmental/daily/EnvironmentalDailyReportForm';
 import SWPPPReportReview from './components/disciplines/environmental/swppp/SWPPPReportReview';
+import EnvironmentalDailyReportPrint from './components/disciplines/environmental/daily/EnvironmentalDailyReportPrint';
 
 // Welding Components
 import WeldingMain from './components/disciplines/welding/main/WeldingMain';
@@ -256,7 +257,7 @@ function AppContent() {
   }, [isAuthenticated, loading]);
 
   return (
-    <>
+    <div className="app-shell print:hidden">
       {!hideNav && <Navigation />}
       <Routes>
         <Route path="/login" element={<SignIn />} />
@@ -307,6 +308,14 @@ function AppContent() {
           element={
             <PrivateRoute>
               <EnvironmentalDailyReportReview />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/daily/print/:id"
+          element={
+            <PrivateRoute>
+              <EnvironmentalDailyReportPrint />
             </PrivateRoute>
           }
         />
@@ -561,7 +570,23 @@ function AppContent() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </>
+    </div>
+  );
+}
+
+// Add a print-only wrapper for the print route
+function PrintRoutes() {
+  return (
+    <Routes>
+      <Route
+        path="/environmental/reports/daily/print/:id"
+        element={
+          <div className="print:block hidden">
+            <EnvironmentalDailyReportPrint />
+          </div>
+        }
+      />
+    </Routes>
   );
 }
 
@@ -571,6 +596,7 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <AppContent />
+        <PrintRoutes />
       </AuthProvider>
     </ThemeProvider>
   );

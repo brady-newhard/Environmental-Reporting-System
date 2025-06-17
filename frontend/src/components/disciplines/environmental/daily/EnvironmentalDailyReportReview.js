@@ -573,6 +573,13 @@ export default function EnvironmentalDailyReportReview() {
           <CheckIcon className="w-5 h-5 mr-2" />
           <span className="hidden sm:inline">Submit</span>
         </button>
+        <button
+          onClick={() => navigate(`/environmental/reports/daily/print/${id}`)}
+          className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors no-print"
+        >
+          <span className="material-icons mr-2">print</span>
+          <span className="hidden sm:inline">Print</span>
+        </button>
       </div>
     </div>
   );
