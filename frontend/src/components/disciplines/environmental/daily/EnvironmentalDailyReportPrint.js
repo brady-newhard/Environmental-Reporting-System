@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { loadDraft } from '../../../../utils/draftUtils';
+import PageHeader from '@/components/common/PageHeader';
+import { Button } from '@/components/ui/button';
 
 function formatDate(value) {
   if (!value) return '—';
@@ -143,6 +145,13 @@ export default function EnvironmentalDailyReportPrint() {
 }
 `}</style>
       <div className="w-full flex flex-col items-center print:block">
+        {/* Add PageHeader and Print button above the main print area, only visible on screen */}
+        {typeof window !== 'undefined' && (
+          <div className="flex items-center gap-4 mb-4 print:hidden w-full max-w-[816px] mx-auto">
+            <PageHeader title="Print Preview" backPath={`/environmental/reports/daily/review/${id}`} />
+            <Button onClick={() => window.print()} className="ml-auto bg-yellow-400 hover:bg-yellow-500 text-black font-semibold">Send to Printer</Button>
+          </div>
+        )}
         {/* Main printable area as a flex column for sticky footer */}
         <div className="max-w-[816px] min-h-[1056px] bg-white shadow-2xl rounded-xl mx-auto flex flex-col print:shadow-none print:rounded-none print:w-full print:max-w-none print:min-h-0 print:p-0 print:m-0">
           {/* Header */}
