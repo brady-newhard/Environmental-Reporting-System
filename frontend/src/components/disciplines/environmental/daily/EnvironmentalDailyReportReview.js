@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { loadDraft } from '../../../../utils/draftUtils';
 import PageHeader from '../../../../components/common/PageHeader';
-import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon, PrinterIcon } from '@heroicons/react/24/outline';
 
 const config = {
   headerFields: [
@@ -260,10 +260,10 @@ export default function EnvironmentalDailyReportReview() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {photos.map((photo, idx) => (
             <div key={idx} className="flex flex-col items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
-              {photo.url && (
+              {(photo.url || photo.image_url || photo.file || photo.preview) && (
                 <img
-                  src={photo.url}
-                  alt={photo.comment || `Photo ${idx + 1}`}
+                  src={photo.url || photo.image_url || photo.file || photo.preview}
+                  alt={photo.comment || photo.description || `Photo ${idx + 1}`}
                   className="w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow"
                 />
               )}
@@ -272,9 +272,9 @@ export default function EnvironmentalDailyReportReview() {
                   <span className="font-medium">Location:</span> {photo.location}
                 </div>
               )}
-              {photo.comment && (
+              {(photo.comment || photo.description) && (
                 <div className="text-sm text-gray-700 w-full">
-                  <span className="font-medium">Comments:</span> {photo.comment}
+                  <span className="font-medium">Comments:</span> {photo.comment || photo.description}
                 </div>
               )}
             </div>
@@ -577,8 +577,8 @@ export default function EnvironmentalDailyReportReview() {
           onClick={() => navigate(`/environmental/reports/daily/print/${id}`)}
           className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors no-print"
         >
-          <span className="material-icons mr-2">print</span>
-          <span className="hidden sm:inline">Print</span>
+          <PrinterIcon className="h-5 w-5 mr-2" />
+          <span>Print</span>
         </button>
       </div>
     </div>
