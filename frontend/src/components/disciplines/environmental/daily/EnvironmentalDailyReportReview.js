@@ -66,9 +66,15 @@ export default function EnvironmentalDailyReportReview() {
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  // Helper to format date as MM/DD/YYYY
+  // Helper to format date as MM/DD/YYYY, but handle YYYY-MM-DD strings without timezone shift
   const formatDate = (value) => {
     if (!value) return '—';
+    // If value is already in YYYY-MM-DD, format as MM/DD/YYYY
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-');
+      return `${parseInt(month, 10)}/${parseInt(day, 10)}/${year}`;
+    }
+    // Otherwise, try to parse as Date
     const d = new Date(value);
     if (isNaN(d)) return value;
     return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
@@ -249,24 +255,31 @@ export default function EnvironmentalDailyReportReview() {
   const renderPhotos = (photos) => {
     if (!Array.isArray(photos) || photos.length === 0) return null;
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-        {photos.map((photo, idx) => (
-          <div key={idx} className="flex flex-col items-center border rounded-lg p-2 bg-gray-50">
-            {photo.url && (
-              <img
-                src={photo.url}
-                alt={photo.comment || `Photo ${idx + 1}`}
-                className="w-full max-w-xs max-h-60 object-contain mb-2 rounded shadow"
-              />
-            )}
-            {photo.location && (
-              <div className="text-xs text-gray-500 mb-1">Location: {photo.location}</div>
-            )}
-            {photo.comment && (
-              <div className="text-sm text-gray-700 italic">{photo.comment}</div>
-            )}
-          </div>
-        ))}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Photos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {photos.map((photo, idx) => (
+            <div key={idx} className="flex flex-col items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
+              {photo.url && (
+                <img
+                  src={photo.url}
+                  alt={photo.comment || `Photo ${idx + 1}`}
+                  className="w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow"
+                />
+              )}
+              {photo.location && (
+                <div className="text-sm text-gray-600 mb-1 w-full">
+                  <span className="font-medium">Location:</span> {photo.location}
+                </div>
+              )}
+              {photo.comment && (
+                <div className="text-sm text-gray-700 w-full">
+                  <span className="font-medium">Comments:</span> {photo.comment}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -390,7 +403,6 @@ export default function EnvironmentalDailyReportReview() {
                     </table>
                   </div>
                 )}
-                {section.photos && section.photos.length > 0 && renderPhotos(section.photos)}
               </div>
             );
           }
@@ -435,7 +447,6 @@ export default function EnvironmentalDailyReportReview() {
                   </table>
                 </div>
               )}
-              {section.photos && section.photos.length > 0 && renderPhotos(section.photos)}
             </div>
           );
         })}
@@ -470,40 +481,8 @@ export default function EnvironmentalDailyReportReview() {
             </div>
           )}
           <p>
-            <span className="font-semibold">Date:</span> {sigDate}
+            <span className="font-semibold">Date:</span> {formatDate(sigDate)}
           </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-4 justify-end mt-6 flex-wrap">
-          <button
-            onClick={handleEdit}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <PencilIcon className="w-5 h-5 mr-2" />
-            <span className="hidden sm:inline">Edit</span>
-          </button>
-          <button
-            onClick={handleExit}
-            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
-            <span className="hidden sm:inline">Exit</span>
-          </button>
-          <button
-            onClick={() => setDeleteDialogOpen(true)}
-            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            <TrashIcon className="w-5 h-5 mr-2" />
-            <span className="hidden sm:inline">Delete</span>
-          </button>
-          <button
-            onClick={() => setSubmitDialogOpen(true)}
-            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            <CheckIcon className="w-5 h-5 mr-2" />
-            <span className="hidden sm:inline">Submit</span>
-          </button>
         </div>
       </div>
 
@@ -563,6 +542,38 @@ export default function EnvironmentalDailyReportReview() {
           </p>
         </div>
       )}
+
+      {/* Action Buttons - moved outside the main container */}
+      <div className="flex gap-4 justify-end mt-6 flex-wrap">
+        <button
+          onClick={handleEdit}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          <PencilIcon className="w-5 h-5 mr-2" />
+          <span className="hidden sm:inline">Edit</span>
+        </button>
+        <button
+          onClick={handleExit}
+          className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+        >
+          <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
+          <span className="hidden sm:inline">Exit</span>
+        </button>
+        <button
+          onClick={() => setDeleteDialogOpen(true)}
+          className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+        >
+          <TrashIcon className="w-5 h-5 mr-2" />
+          <span className="hidden sm:inline">Delete</span>
+        </button>
+        <button
+          onClick={() => setSubmitDialogOpen(true)}
+          className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+        >
+          <CheckIcon className="w-5 h-5 mr-2" />
+          <span className="hidden sm:inline">Submit</span>
+        </button>
+      </div>
     </div>
   );
 } 

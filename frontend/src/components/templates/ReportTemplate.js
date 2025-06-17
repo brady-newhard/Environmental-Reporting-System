@@ -257,27 +257,21 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (sigPadRef.current && !signature) {
-      const signatureData = sigPadRef.current.toDataURL();
-      setSignature(signatureData);
-    }
-    await handleSave();
+    const formData = {
+      header,
+      sections,
+      summaries,
+      photos,
+      signature: sigPadRef.current ? sigPadRef.current.toDataURL() : '',
+      sigDate: sigDate || '', // Use raw sigDate string
+      preparedBy,
+    };
+    await handleSave(formData);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (formData) => {
     try {
       setLoading(true);
-      const formData = {
-        header,
-        sections,
-        summaries,
-        preparedBy,
-        signature,
-        sigDate: sigDate ? format(sigDate, 'yyyy-MM-dd') : null,
-        photos,
-        id: draftId
-      };
-      
       if (onSave) {
         await onSave(formData);
       }
@@ -422,10 +416,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
 
   // Update the signature date handler
   const handleSigDateChange = (e) => {
-    const date = new Date(e.target.value);
-    // Adjust for timezone offset
-    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    setSigDate(localDate);
+    setSigDate(e.target.value); // Store as 'YYYY-MM-DD'
   };
 
   // Update the date input handler to handle timezone correctly
@@ -1371,7 +1362,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                   </label>
                   <input
                     type="date"
-                    value={sigDate ? new Date(sigDate).toISOString().split('T')[0] : ''}
+                    value={sigDate || ''}
                     onChange={handleSigDateChange}
                     className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                   />
