@@ -357,15 +357,19 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
     };
 
     const reviewData = {
-      // Project Information
-      project: header.project,
-      spread: header.spread,
-      inspector: header.inspector,
-      afe: header.afe,
-      contractor: header.contractor,
-      date: formatDate(header.date),
-      prepared_by: header.inspector,
-
+      header: {
+        project: header.project,
+        spread: header.spread,
+        inspector: header.inspector,
+        contractor: header.contractor,
+        facility: header.facility,
+        date: formatDate(header.date),
+        milepost_start: header.milepost_start,
+        milepost_end: header.milepost_end,
+        station_start: header.station_start,
+        station_end: header.station_end,
+        // add any other header fields you use
+      },
       // Weather Information
       weather: {
         temperature: weatherData.temperature || header.temperature,
@@ -386,10 +390,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
         rain_gauge_notes: weatherData.rain_gauge_notes || header.rain_gauge_notes,
         weather_notes: weatherData.weather_notes || header.weather_notes,
       },
-
       // Add rain_gauges at the top level for backward compatibility
       rain_gauges: formatRainGaugeData(weatherData.rain_gauge_readings || header.rain_gauge_readings),
-
       // Sections with photos and comments
       sections: sections ? sections.map(section => ({
         name: section.name,
@@ -400,17 +402,14 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
           location: photo.location || '',
         })) : [],
       })) : [],
-
       // Summaries
       summaries: summaries || {},
-
       // Photos
       photos: photos ? photos.map(photo => ({
         url: photo.url || photo.file || photo.preview || photo.image_url,
         comment: photo.comment || photo.comments || '',
         location: photo.location || '',
       })) : [],
-
       // Signature
       signature: signature || '',
       sigDate: sigDate ? formatDate(sigDate) : '',

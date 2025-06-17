@@ -325,7 +325,7 @@ export default function EnvironmentalDailyReportReview() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Column 1 */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <div><span className="font-semibold">Inspector:</span> {projectInfo.inspector}</div>
               <div><span className="font-semibold">Project:</span> {projectInfo.project}</div>
               <div><span className="font-semibold">Spread:</span> {projectInfo.spread}</div>
@@ -333,7 +333,7 @@ export default function EnvironmentalDailyReportReview() {
               <div><span className="font-semibold">Contractor:</span> {projectInfo.contractor}</div>
             </div>
             {/* Column 2 */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <div><span className="font-semibold">Milepost Start:</span> {projectInfo.milepost_start}</div>
               <div><span className="font-semibold">Milepost End:</span> {projectInfo.milepost_end}</div>
               <div><span className="font-semibold">Station Start:</span> {projectInfo.station_start}</div>
@@ -377,23 +377,18 @@ export default function EnvironmentalDailyReportReview() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foreman</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Station</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Station</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Summary</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {section.rows.map((row, rowIdx) => (
-                          <React.Fragment key={rowIdx}>
-                            <tr>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.Crew || row.crew || '—'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.Foreman || row.foreman || '—'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row['Start Station'] || row.start_station || '—'}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row['End Station'] || row.end_station || '—'}</td>
-                            </tr>
-                            <tr>
-                              <td colSpan={4} className="px-6 pb-6 pt-0 text-sm text-gray-700 bg-gray-50">
-                                <span className="font-semibold">Summary:</span> {row.Summary || row.summary || row.Notes || row.notes || '—'}
-                              </td>
-                            </tr>
-                          </React.Fragment>
+                          <tr key={rowIdx}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.Crew || row.crew || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.Foreman || row.foreman || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row['Start Station'] || row.start_station || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row['End Station'] || row.end_station || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.Summary || row.summary || row.Notes || row.notes || '—'}</td>
+                          </tr>
                         ))}
                       </tbody>
                     </table>
