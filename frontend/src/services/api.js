@@ -10,7 +10,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true, // This is important for CSRF
+  withCredentials: false, // Disable sending cookies since we're using token auth
 });
 
 // Add token to all requests if it exists
@@ -19,13 +19,6 @@ api.interceptors.request.use((config) => {
   console.log('Request interceptor - token:', token);
   if (token) {
     config.headers.Authorization = `Token ${token}`;
-  }
-  // Get CSRF token from cookie
-  const csrfToken = document.cookie.split('; ')
-    .find(row => row.startsWith('csrftoken='))
-    ?.split('=')[1];
-  if (csrfToken) {
-    config.headers['X-CSRFToken'] = csrfToken;
   }
   console.log('Request config:', config);
   return config;

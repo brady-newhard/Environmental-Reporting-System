@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { Box, Typography, Snackbar, Alert } from '@mui/material';
 import ReportTemplate from '../../../templates/ReportTemplate';
 import { saveDraft, normalizeDraft, loadDraft } from '../../../../utils/draftUtils';
 import environmentalDailyReportConfig from './environmentalDailyReportConfig';
 import ReportPhotoSection from '../../../../components/common/ReportPhotoSection';
 import PageHeader from '../../../common/PageHeader';
+import api from '../../../../services/api';
 
 // console.log('EnvironmentalDailyReportForm loaded');
 
@@ -123,37 +125,18 @@ export default function EnvironmentalDailyReportForm() {
     if (!draft?.id) return;
     if (!window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) return;
     try {
-      const token = localStorage.getItem('token');
-      console.log('Token available for delete:', !!token);
-      console.log('Token value:', token ? token.substring(0, 10) + '...' : 'none');
-      console.log('Attempting to delete draft:', draft.id);
-      
-      // Delete from backend
-      const response = await fetch(`/api/drafts/${draft.id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        console.error('Delete response not OK:', {
-          status: response.status,
-          statusText: response.statusText
-        });
-        const errorData = await response.json().catch(() => null);
-        console.error('Error data:', errorData);
-        throw new Error(`Failed to delete draft: ${response.status} ${response.statusText}`);
-      }
-      
+      await api.delete(`/drafts/${draft.id}/`);
       setSnackbar({ open: true, message: 'Draft deleted successfully', severity: 'success' });
       setTimeout(() => {
         navigate('/environmental/reports/daily');
       }, 500);
     } catch (error) {
       console.error('Error deleting draft:', error);
-      setSnackbar({ open: true, message: 'Error deleting draft', severity: 'error' });
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.detail || 'Error deleting draft', 
+        severity: 'error' 
+      });
     }
   };
 

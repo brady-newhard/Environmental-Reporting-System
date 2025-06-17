@@ -161,40 +161,38 @@ export const getAllDrafts = async (reportType) => {
 };
 
 // Delete a draft
-export async function deleteDraft(reportType, draftId) {
+export const deleteDraft = async (reportType, draftId) => {
+  console.log('Deleting draft:', { reportType, draftId });
+  
   try {
-    console.log('Deleting draft:', { reportType, draftId });
+    // Convert draftId to string for consistent handling
+    const draftIdStr = String(draftId);
     
-    // Delete from IndexedDB (raw type)
-    await indexedDBStorage.deleteDraft(reportType, draftId);
+    // Delete from IndexedDB
+    await indexedDBStorage.deleteDraft(reportType, draftIdStr);
     console.log('Successfully deleted from IndexedDB');
 
-    // If online, authenticated, and not a temporary or null/undefined ID, delete from backend (mapped type)
-    if (isOnline() && draftId && draftId !== 'null' && draftId !== undefined && !draftId.startsWith('temp_')) {
-      const token = localStorage.getItem('token');
-      console.log('Token available:', !!token);
-      if (token) {
-        try {
-          console.log('Attempting to delete from backend with token:', token.substring(0, 10) + '...');
-          const response = await api.delete(`/drafts/${draftId}/`);
-          console.log('Backend delete response:', response);
-          console.log('Successfully deleted from backend');
-        } catch (error) {
-          console.error('Error deleting from backend:', error);
-          console.error('Error details:', {
-            status: error.response?.status,
-            data: error.response?.data,
-            headers: error.response?.headers
-          });
-          // Continue with local deletion only
-        }
+    // Delete from backend if online
+    const token = localStorage.getItem('token');
+    if (token) {
+      console.log('Token available:', true);
+      try {
+        console.log('Attempting to delete from backend with token:', token.substring(0, 10) + '...');
+        const response = await api.delete(`/drafts/${draftIdStr}/`);
+        console.log('Backend delete response:', response);
+        console.log('Successfully deleted from backend');
+      } catch (error) {
+        console.error('Error deleting from backend:', error);
+        // Don't throw here - we still want to return success if local delete worked
       }
     }
+
+    return true;
   } catch (error) {
     console.error('Error deleting draft:', error);
     throw error;
   }
-}
+};
 
 // Load a specific draft
 export async function loadDraft(reportType, draftId) {
