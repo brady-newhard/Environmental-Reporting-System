@@ -7,6 +7,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import PageHeader from '../../../../components/common/PageHeader';
 import { getAllDrafts, deleteDraft, cleanupInvalidLocalDrafts } from '../../../../utils/draftUtils';
 import { useAuth } from '../../../../contexts/AuthContext';
+import { PencilIcon, TrashIcon, EyeIcon } from '@heroicons/react/24/outline';
 
 export default function EnvironmentalDailyReportDrafts() {
   const { isAuthenticated, loading } = useAuth();
@@ -136,17 +137,16 @@ export default function EnvironmentalDailyReportDrafts() {
   console.log('All drafts before filtering:', drafts);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <div className="max-w-6xl mx-auto p-4">
       <PageHeader 
         title="Environmental Daily Report Drafts"
         backPath={backPath}
         backButtonStyle={{
           backgroundColor: '#000000',
           color: '#ffffff',
-          '&:hover': {
-            backgroundColor: '#333333'
-          }
+          '&:hover': { backgroundColor: '#333333' }
         }}
+        className="flex flex-wrap min-w-0"
       />
       {drafts
         .filter(draft => {
@@ -156,63 +156,75 @@ export default function EnvironmentalDailyReportDrafts() {
                  id !== undefined && 
                  (typeof id !== 'string' || (!id.startsWith('temp_') && !id.toLowerCase().includes('null')));
         })
-        .map((draft, index) => {
-          console.log('Rendering draft card:', draft);
-          return (
-            <Card key={`draft-${draft.id || index}`} sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row', flexWrap: 'nowrap' }}>
-              <CardContent sx={{ flex: 1 }}>
-                <Typography variant="h6">Project: {draft.data?.header?.project || draft.header?.project || 'N/A'}</Typography>
-                <Typography>Date: {(draft.data?.header?.date || draft.header?.date) ? new Date(draft.data?.header?.date || draft.header?.date).toLocaleDateString() : 'N/A'}</Typography>
-                <Typography>Inspector: {draft.data?.header?.inspector || draft.header?.inspector || 'N/A'}</Typography>
-                <Typography>Spread: {draft.data?.header?.spread || draft.header?.spread || 'N/A'}</Typography>
-                <Typography>Report ID: {draft.id || 'N/A'}</Typography>
-              </CardContent>
-              <CardActions sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                <IconButton onClick={() => handleEdit(draft)} color="primary">
-                  <EditIcon />
-                </IconButton>
-                <IconButton 
-                  onClick={() => handleReview(draft)} 
-                  color="primary"
-                >
-                  <VisibilityIcon />
-                </IconButton>
-                <IconButton onClick={() => handleDeleteClick(draft)} color="error">
-                  <DeleteIcon />
-                </IconButton>
-              </CardActions>
-            </Card>
-          );
-        })}
+        .map((draft, index) => (
+          <div key={`draft-${draft.id || index}`} className="rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between mb-4 bg-white w-full">
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-lg mb-1 truncate">Project: {draft.data?.header?.project || draft.header?.project || 'N/A'}</div>
+              <div className="text-gray-700">Date: {(draft.data?.header?.date || draft.header?.date) ? new Date(draft.data?.header?.date || draft.header?.date).toLocaleDateString() : 'N/A'}</div>
+              <div className="text-gray-700">Inspector: {draft.data?.header?.inspector || draft.header?.inspector || 'N/A'}</div>
+              <div className="text-gray-700">Spread: {draft.data?.header?.spread || draft.header?.spread || 'N/A'}</div>
+              <div className="text-gray-500 text-xs mt-1">Report ID: {draft.id || 'N/A'}</div>
+            </div>
+            <div className="flex gap-2 ml-0 md:ml-4 mt-4 md:mt-0 shrink-0">
+              {/* Edit Button */}
+              <Button
+                onClick={() => handleEdit(draft)}
+                variant="secondary"
+                size="icon"
+                className="md:size-auto md:px-4 md:py-2 flex items-center gap-2 !bg-blue-500 !hover:bg-blue-600 !text-white font-semibold border-none"
+                title="Edit"
+              >
+                <PencilIcon className="h-5 w-5" />
+                <span className="hidden md:inline">Edit</span>
+              </Button>
+              {/* Review Button */}
+              <Button
+                onClick={() => handleReview(draft)}
+                variant="default"
+                size="icon"
+                className="md:size-auto md:px-4 md:py-2 flex items-center gap-2 !bg-yellow-400 !hover:bg-yellow-500 !text-black font-semibold border-none"
+                title="Review"
+              >
+                <EyeIcon className="h-5 w-5" />
+                <span className="hidden md:inline">Review</span>
+              </Button>
+              {/* Delete Button */}
+              <Button
+                onClick={() => handleDeleteClick(draft)}
+                variant="destructive"
+                size="icon"
+                className="md:size-auto md:px-4 md:py-2 flex items-center gap-2 !bg-red-500 !hover:bg-red-600 !text-white font-semibold border-none"
+                title="Delete"
+              >
+                <TrashIcon className="h-5 w-5" />
+                <span className="hidden md:inline">Delete</span>
+              </Button>
+            </div>
+          </div>
+        ))}
 
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-      >
-        <DialogTitle>Delete Draft</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete this draft? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete Confirmation Modal */}
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div className="text-lg font-semibold mb-2">Delete Draft</div>
+            <div className="mb-4">Are you sure you want to delete this draft? This action cannot be undone.</div>
+            <div className="flex justify-end gap-2">
+              <button onClick={handleDeleteCancel} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800">Cancel</button>
+              <button onClick={handleDeleteConfirm} className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-semibold">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
+      {/* Snackbar/Alert */}
+      {snackbar.open && (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-center transition-all duration-300 ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+             onClick={handleCloseSnackbar}
+        >
           {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+        </div>
+      )}
+    </div>
   );
 } 
