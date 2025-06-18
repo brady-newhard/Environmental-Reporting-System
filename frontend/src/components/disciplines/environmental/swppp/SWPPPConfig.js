@@ -2,33 +2,64 @@
 
 const swpppReportConfig = {
   title: 'SWPPP Inspection Report',
-  reportType: 'environmental',
+  reportType: 'swppp',
   summarySectionTitle: 'SWPPP Summary',
   headerFields: [
-    // Inspection Information
-    { name: 'inspection_type', label: 'Inspection Type', type: 'dropdown', options: ['Routine Weekly Inspection', 'Precipitation Event > 0.25"'], required: true },
+    // === Inspection Information ===
+    { name: 'inspection_type', label: 'Inspection Type', type: 'dropdown', options: [
+      { value: 'Routine Weekly Inspection', label: 'Routine Weekly Inspection' },
+      { value: 'Precipitation Event > 0.25"', label: 'Precipitation Event > 0.25"' }
+    ], required: true },
     { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
     
-    // Project Information
+    // === Project Information ===
     { name: 'project', label: 'Project', required: true },
     { name: 'spread', label: 'Spread', required: false },
+    { name: 'facility', label: 'Facility', required: false },
     { name: 'contractor', label: 'Contractor', required: false },
     { name: 'inspector', label: 'Inspector', required: true },
-    
-    // Weather Information
-    { name: 'weather_conditions', label: 'Sky Cover', type: 'dropdown', options: ['Sunny', 'Mostly Sunny', 'Partly Sunny', 'Cloudy', 'Overcast'], required: false },
-    { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false },
-    { name: 'precipitation_type', label: 'Precipitation Type', type: 'dropdown', options: ['none', 'drizzle', 'rain', 'snow', 'sleet', 'hail'], required: false },
-    { name: 'soil_conditions', label: 'Soil Conditions', type: 'dropdown', options: ['Dry', 'Wet', 'Saturated', 'Frozen'], required: false },
-    
-    // Rain Gauge Data
-    { name: 'rain_gauges', label: 'Rain Gauges', type: 'dynamicArray', subFields: [
-      { name: 'location', label: 'Rain Gauge Location', type: 'text' },
-      { name: 'rain', label: 'Rain (in)', type: 'number' },
-      { name: 'snow', label: 'Snow (in)', type: 'number' }
-    ] }
   ],
   dynamicSections: [
+    // Weather Information Section
+    {
+      name: 'Weather Information',
+      isStatic: true,
+      fields: [
+        { name: 'weather_conditions', label: 'Sky Cover', type: 'dropdown', options: [
+          { value: 'Sunny', label: 'Sunny' },
+          { value: 'Mostly Sunny', label: 'Mostly Sunny' },
+          { value: 'Partly Sunny', label: 'Partly Sunny' },
+          { value: 'Cloudy', label: 'Cloudy' },
+          { value: 'Overcast', label: 'Overcast' }
+        ], required: false },
+        { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false },
+        { name: 'precipitation_type', label: 'Precipitation Type', type: 'dropdown', options: [
+          { value: 'none', label: 'none' },
+          { value: 'drizzle', label: 'drizzle' },
+          { value: 'rain', label: 'rain' },
+          { value: 'snow', label: 'snow' },
+          { value: 'sleet', label: 'sleet' },
+          { value: 'hail', label: 'hail' }
+        ], required: false },
+        { name: 'soil_conditions', label: 'Soil Conditions', type: 'dropdown', options: [
+          { value: 'Dry', label: 'Dry' },
+          { value: 'Wet', label: 'Wet' },
+          { value: 'Saturated', label: 'Saturated' },
+          { value: 'Frozen', label: 'Frozen' }
+        ], required: false },
+        {
+          name: 'rain_gauges',
+          label: 'Rain Gauges',
+          type: 'dynamicArray',
+          subfields: [
+            { name: 'location', label: 'Rain Gauge Location', type: 'text' },
+            { name: 'rain', label: 'Rain (in)', type: 'number' },
+            { name: 'snow', label: 'Snow (in)', type: 'number' }
+          ]
+        }
+      ],
+      defaultRow: () => ({})
+    },
     {
       name: 'SWPPP Inspection Items',
       fields: [

@@ -27,7 +27,7 @@ import EnvironmentalReports from './components/disciplines/environmental/main/En
 import NewPunchlistReport from './components/disciplines/environmental/punchlists/NewPunchlistReport';
 import PunchlistDrafts from './components/disciplines/environmental/punchlists/PunchlistDrafts';
 import PunchlistDraftView from './components/disciplines/environmental/punchlists/PunchlistDraftView';
-import NewSWPPP from './components/disciplines/environmental/swppp/NewSWPPP';
+// import NewSWPPP from './components/disciplines/environmental/swppp/NewSWPPP';
 import SWPPPReport from './components/disciplines/environmental/swppp/SWPPPReport';
 import SWPPPPhotoPage from './components/disciplines/environmental/swppp/SWPPPPhotoPage';
 import SWPPPDrafts from './components/disciplines/environmental/swppp/SWPPPDrafts';
@@ -464,10 +464,10 @@ function AppContent() {
           }
         />
         <Route
-          path="/swppp/new"
+          path="/environmental/swppp/new"
           element={
             <PrivateRoute>
-              <NewSWPPP />
+              <SWPPPReport />
             </PrivateRoute>
           }
         />

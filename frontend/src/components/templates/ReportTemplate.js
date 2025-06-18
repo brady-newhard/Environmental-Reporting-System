@@ -428,6 +428,106 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
     handleHeaderChange({ target: { name: 'date', value: localDate.toISOString().split('T')[0] } });
   };
 
+  const renderField = (field, value, onChange) => {
+    if (!field) return null;
+
+    switch (field.type) {
+      case 'dropdown':
+        return (
+          <select
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Select {field.label}</option>
+            {field.options?.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        );
+      case 'date':
+        return (
+          <input
+            type="date"
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        );
+      case 'number':
+        return (
+          <input
+            type="number"
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        );
+      case 'dynamicArray':
+        return (
+          <div className="space-y-4">
+            {(value || []).map((item, index) => (
+              <div key={index} className="flex gap-4 items-start">
+                {field.subfields?.map(subfield => (
+                  <div key={subfield.name} className="flex-1">
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      {subfield.label}
+                    </label>
+                    {renderField(subfield, item[subfield.name], (e) => {
+                      const newValue = [...(value || [])];
+                      newValue[index] = {
+                        ...newValue[index],
+                        [subfield.name]: e.target.value
+                      };
+                      onChange({ target: { name: field.name, value: newValue } });
+                    })}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newValue = [...(value || [])];
+                    newValue.splice(index, 1);
+                    onChange({ target: { name: field.name, value: newValue } });
+                  }}
+                  className="mt-6 p-2 text-red-600 hover:text-red-800"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                const newValue = [...(value || [])];
+                newValue.push({});
+                onChange({ target: { name: field.name, value: newValue } });
+              }}
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <PlusIcon className="h-4 w-4 mr-1" />
+              Add {field.label}
+            </button>
+          </div>
+        );
+      default:
+        return (
+          <input
+            type="text"
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        );
+    }
+  };
+
   return (
     <div className="bg-black min-h-screen pt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -485,141 +585,121 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                     </div>
                   </div>
                   <div className="flex flex-col gap-4">
-                    {/* Inspector and Project on one line for md+ */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {inspectorField && (
-                        <div className="col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{inspectorField.label}</label>
-                          <input
-                            type="text"
-                            name={inspectorField.name}
-                            value={header[inspectorField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: inspectorField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            required={inspectorField.required}
-                          />
+                    {config.reportType === 'swppp' ? (
+                      <>
+                        {/* Inspection Information Section */}
+                        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Inspection Information</h2>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {config.headerFields.filter(field => ['inspection_type', 'inspection_date'].includes(field.name)).map(field => (
+                              <div key={field.name} className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                {renderField(field, header[field.name], handleHeaderChange)}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      )}
-                      {projectField && (
-                        <div className="col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{projectField.label}</label>
-                          <input
-                            type="text"
-                            name={projectField.name}
-                            value={header[projectField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: projectField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            required={projectField.required}
-                          />
+                        {/* Project Information Section */}
+                        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {config.headerFields.filter(field => ['project', 'spread', 'facility', 'contractor', 'inspector'].includes(field.name)).map(field => (
+                              <div key={field.name} className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                {renderField(field, header[field.name], handleHeaderChange)}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    {/* Spread and Facility on one line for mobile, revert to original for md+ */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {spreadField && (
-                        <div className="col-span-1 md:col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{spreadField.label}</label>
-                          <input
-                            type="text"
-                            name={spreadField.name}
-                            value={header[spreadField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: spreadField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          />
+                        {/* Weather Information Section from dynamicSections */}
+                        {config.dynamicSections && config.dynamicSections.find(s => s.name === 'Weather Information') && (
+                          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Weather Information</h2>
+                            {(sections.find(s => s.name === 'Weather Information')?.rows || []).map((row, rowIndex) => {
+                              const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
+                              return (
+                                <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                  {sectionConfig.fields.map(field => (
+                                    <div key={field.name} className="col-span-1">
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                      {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      // Original daily report layout
+                      <>
+                        {/* Inspector and Project on one line for md+ */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {inspectorField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{inspectorField.label}</label>
+                              {renderField(inspectorField, header[inspectorField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {projectField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{projectField.label}</label>
+                              {renderField(projectField, header[projectField.name], handleHeaderChange)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {facilityField && (
-                        <div className="col-span-1 md:col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{facilityField.label}</label>
-                          <input
-                            type="text"
-                            name={facilityField.name}
-                            value={header[facilityField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: facilityField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          />
+                        {/* Spread and Facility on one line for mobile, revert to original for md+ */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {spreadField && (
+                            <div className="col-span-1 md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{spreadField.label}</label>
+                              {renderField(spreadField, header[spreadField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {facilityField && (
+                            <div className="col-span-1 md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{facilityField.label}</label>
+                              {renderField(facilityField, header[facilityField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {/* Contractor only on md+ as third column */}
+                          {contractorField && (
+                            <div className="hidden md:block md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{contractorField.label}</label>
+                              {renderField(contractorField, header[contractorField.name], handleHeaderChange)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {/* Contractor only on md+ as third column */}
-                      {contractorField && (
-                        <div className="hidden md:block md:col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{contractorField.label}</label>
-                          <input
-                            type="text"
-                            name={contractorField.name}
-                            value={header[contractorField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: contractorField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            required={contractorField.required}
-                          />
+                        {/* Milepost and Station fields: 4 fields in one line on md+, two pairs on mobile */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {milepostStartField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{milepostStartField.label}</label>
+                              {renderField(milepostStartField, header[milepostStartField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {milepostEndField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{milepostEndField.label}</label>
+                              {renderField(milepostEndField, header[milepostEndField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {stationStartField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{stationStartField.label}</label>
+                              {renderField(stationStartField, header[stationStartField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {stationEndField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{stationEndField.label}</label>
+                              {renderField(stationEndField, header[stationEndField.name], handleHeaderChange)}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    {/* Contractor on its own line for mobile */}
-                    {contractorField && (
-                      <div className="block md:hidden">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">{contractorField.label}</label>
-                        <input
-                          type="text"
-                          name={contractorField.name}
-                          value={header[contractorField.name] || ''}
-                          onChange={e => handleHeaderChange({ target: { name: contractorField.name, value: e.target.value } })}
-                          className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          required={contractorField.required}
-                        />
-                      </div>
+                      </>
                     )}
-                    {/* Milepost and Station fields: 4 fields in one line on md+, two pairs on mobile */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {milepostStartField && (
-                        <div className="col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{milepostStartField.label}</label>
-                          <input
-                            type="text"
-                            name={milepostStartField.name}
-                            value={header[milepostStartField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: milepostStartField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          />
-                        </div>
-                      )}
-                      {milepostEndField && (
-                        <div className="col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{milepostEndField.label}</label>
-                          <input
-                            type="text"
-                            name={milepostEndField.name}
-                            value={header[milepostEndField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: milepostEndField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          />
-                        </div>
-                      )}
-                      {stationStartField && (
-                        <div className="col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{stationStartField.label}</label>
-                          <input
-                            type="text"
-                            name={stationStartField.name}
-                            value={header[stationStartField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: stationStartField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          />
-                        </div>
-                      )}
-                      {stationEndField && (
-                        <div className="col-span-1">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{stationEndField.label}</label>
-                          <input
-                            type="text"
-                            name={stationEndField.name}
-                            value={header[stationEndField.name] || ''}
-                            onChange={e => handleHeaderChange({ target: { name: stationEndField.name, value: e.target.value } })}
-                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          />
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
               );
@@ -646,25 +726,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {field.type === 'dropdown' ? (
-                                <select
-                                  value={row[field.name] || ''}
-                                  onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                >
-                                  <option value="">Select {field.label}</option>
-                                  {(field.options || sectionConfig.dropdownOptions || []).map(option => (
-                                    <option key={option} value={option}>{option}</option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <input
-                                  type={field.type || 'text'}
-                                  value={row[field.name] || ''}
-                                  onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                />
-                              )}
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
                             </div>
                           );
                         })}
@@ -685,24 +747,18 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                                       <label className="block text-sm font-medium text-gray-600 mb-1">
                                         {subField.label}
                                       </label>
-                                      <input
-                                        type={subField.type}
-                                        value={item[subField.name] || ''}
-                                        onChange={e =>
-                                          handleSectionChange(
-                                            section.name,
-                                            rowIndex,
-                                            rainGaugeField.name,
-                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                              subIdx === idx
-                                                ? { ...subItem, [subField.name]: e.target.value }
-                                                : subItem
-                                            )
+                                      {renderField(subField, item[subField.name], (e) =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                            subIdx === idx
+                                              ? { ...subItem, [subField.name]: e.target.value }
+                                              : subItem
                                           )
-                                        }
-                                        className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                        placeholder={subField.label}
-                                      />
+                                        )
+                                      )}
                                     </div>
                                   ))}
                                   <button
@@ -842,26 +898,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {field.type === 'dropdown' ? (
-                                <select
-                                  value={row[field.name] || ''}
-                                  onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                >
-                                  <option value="">Select {field.label}</option>
-                                  {(field.options || sectionConfig.dropdownOptions || []).map(option => (
-                                    <option key={option} value={option}>{option}</option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <input
-                                  type={field.type || 'text'}
-                                  value={row[field.name] || ''}
-                                  onChange={e => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                  className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                  placeholder={field.placeholder}
-                                />
-                              )}
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
                             </div>
                           );
                         })}
@@ -869,21 +906,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                         <div className="col-span-1 md:col-span-2 flex gap-2">
                           <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-600 mb-1">Start Station</label>
-                            <input
-                              type="text"
-                              value={row['Start Station'] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            />
+                            {renderField(fields.find(f => f.name === 'Start Station'), row['Start Station'], (e) => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value))}
                           </div>
                           <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-600 mb-1">End Station</label>
-                            <input
-                              type="text"
-                              value={row['End Station'] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, 'End Station', e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            />
+                            {renderField(fields.find(f => f.name === 'End Station'), row['End Station'], (e) => handleSectionChange(section.name, rowIndex, 'End Station', e.target.value))}
                           </div>
                         </div>
                       </div>
@@ -895,7 +922,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                             </label>
                             <textarea
                               value={row[summaryField.name] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
+                              onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
                               className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
                               rows={3}
                             />
@@ -948,16 +975,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                         {/* Progress Item label and dropdown */}
                         <div className="w-full mb-2">
                           <label className="block text-sm font-medium text-gray-600 mb-1">{fields[0].label}</label>
-                          <select
-                            value={row[fields[0].name] || ''}
-                            onChange={e => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value)}
-                            className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          >
-                            <option value="">Select {fields[0].label}</option>
-                            {(fields[0].options || sectionConfig.dropdownOptions || []).map(option => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
+                          {renderField(fields[0], row[fields[0].name], (e) => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value))}
                         </div>
                         {/* Labels for Start/End Station */}
                         <div className="flex w-full gap-2 mt-2">
@@ -972,20 +990,10 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                         {/* Start/End Station and Trashcan */}
                         <div className="flex w-full gap-2 items-center">
                           <div className="flex-1">
-                            <input
-                              type="text"
-                              value={row[fields[1].name] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            />
+                            {renderField(fields[1], row[fields[1].name], (e) => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value))}
                           </div>
                           <div className="flex-1">
-                            <input
-                              type="text"
-                              value={row[fields[2].name] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            />
+                            {renderField(fields[2], row[fields[2].name], (e) => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value))}
                           </div>
                           {!sectionConfig.isStatic && (
                             <button
@@ -1016,32 +1024,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                         {/* Fields row */}
                         <div className="flex w-full gap-2 items-center">
                           <div className="flex-1">
-                            <select
-                              value={row[fields[0].name] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            >
-                              <option value="">Select {fields[0].label}</option>
-                              {(fields[0].options || sectionConfig.dropdownOptions || []).map(option => (
-                                <option key={option} value={option}>{option}</option>
-                              ))}
-                            </select>
+                            {renderField(fields[0], row[fields[0].name], (e) => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value))}
                           </div>
                           <div className="flex-1">
-                            <input
-                              type="text"
-                              value={row[fields[1].name] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            />
+                            {renderField(fields[1], row[fields[1].name], (e) => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value))}
                           </div>
                           <div className="flex-1">
-                            <input
-                              type="text"
-                              value={row[fields[2].name] || ''}
-                              onChange={e => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                            />
+                            {renderField(fields[2], row[fields[2].name], (e) => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value))}
                           </div>
                           {!sectionConfig.isStatic && (
                             <button
@@ -1095,144 +1084,14 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              <div className="space-y-2">
-                                {(row[field.name] || []).map((item, idx) => (
-                                  <div key={idx}>
-                                    {/* Large screens: all fields in one row */}
-                                    <div className="hidden lg:flex gap-2">
-                                      {field.subFields.map((subField, subFieldIndex) => (
-                                        <div key={`${field.name}-${subField.name}-${subFieldIndex}`} className="flex-1">
-                                          <label className="block text-sm font-medium text-gray-600 mb-1">
-                                            {subField.label}
-                                          </label>
-                                          <input
-                                            type={subField.type}
-                                            value={item[subField.name] || ''}
-                                            onChange={e =>
-                                              handleSectionChange(
-                                                section.name,
-                                                rowIndex,
-                                                field.name,
-                                                (row[field.name] || []).map((subItem, subIdx) =>
-                                                  subIdx === idx
-                                                    ? { ...subItem, [subField.name]: e.target.value }
-                                                    : subItem
-                                                )
-                                              )
-                                            }
-                                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                            placeholder={subField.label}
-                                          />
-                                        </div>
-                                      ))}
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleSectionChange(
-                                            section.name,
-                                            rowIndex,
-                                            field.name,
-                                            (row[field.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                          )
-                                        }
-                                        className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
-                                      >
-                                        <XMarkIcon className="h-5 w-5" />
-                                      </button>
-                                    </div>
-                                    {/* Mobile/tablet: location on one line, rain/snow/trash on next line */}
-                                    <div className="block lg:hidden">
-                                      <div className="mb-2">
-                                        <input
-                                          type={field.subFields[0].type}
-                                          value={item[field.subFields[0].name] || ''}
-                                          onChange={e =>
-                                            handleSectionChange(
-                                              section.name,
-                                              rowIndex,
-                                              field.name,
-                                              (row[field.name] || []).map((subItem, subIdx) =>
-                                                subIdx === idx
-                                                  ? { ...subItem, [field.subFields[0].name]: e.target.value }
-                                                  : subItem
-                                              )
-                                            )
-                                          }
-                                          className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                          placeholder={field.subFields[0].label}
-                                        />
-                                      </div>
-                                      <div className="flex w-full min-w-0 gap-2 items-center">
-                                        <input
-                                          type={field.subFields[1].type}
-                                          value={item[field.subFields[1].name] || ''}
-                                          onChange={e =>
-                                            handleSectionChange(
-                                              section.name,
-                                              rowIndex,
-                                              field.name,
-                                              (row[field.name] || []).map((subItem, subIdx) =>
-                                                subIdx === idx
-                                                  ? { ...subItem, [field.subFields[1].name]: e.target.value }
-                                                  : subItem
-                                              )
-                                            )
-                                          }
-                                          className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                          placeholder={field.subFields[1].label}
-                                        />
-                                        <input
-                                          type={field.subFields[2].type}
-                                          value={item[field.subFields[2].name] || ''}
-                                          onChange={e =>
-                                            handleSectionChange(
-                                              section.name,
-                                              rowIndex,
-                                              field.name,
-                                              (row[field.name] || []).map((subItem, subIdx) =>
-                                                subIdx === idx
-                                                  ? { ...subItem, [field.subFields[2].name]: e.target.value }
-                                                  : subItem
-                                              )
-                                            )
-                                          }
-                                          className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                          placeholder={field.subFields[2].label}
-                                        />
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            handleSectionChange(
-                                              section.name,
-                                              rowIndex,
-                                              field.name,
-                                              (row[field.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                            )
-                                          }
-                                          className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
-                                        >
-                                          <XMarkIcon className="h-5 w-5" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleSectionChange(
-                                      section.name,
-                                      rowIndex,
-                                      field.name,
-                                      [...(row[field.name] || []), Object.fromEntries(field.subFields.map(sf => [sf.name, '']))]
-                                    )
-                                  }
-                                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                                >
-                                  <PlusIcon className="h-5 w-5" />
-                                  Add {field.label}
-                                </button>
-                              </div>
+                              {renderField(field, row[field.name], (e) =>
+                                handleSectionChange(
+                                  section.name,
+                                  rowIndex,
+                                  field.name,
+                                  e.target.value
+                                )
+                              )}
                             </div>
                           );
                         }
@@ -1241,35 +1100,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                             <label className="block text-sm font-medium text-gray-600 mb-1">
                               {field.label}
                             </label>
-                            {field.type === 'dropdown' ? (
-                              <select
-                                value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                              >
-                                <option value="">Select {field.label}</option>
-                                {(field.options || sectionConfig.dropdownOptions || []).map((option) => (
-                                  <option key={`option-${option}`} value={option}>
-                                    {option}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : field.type === 'multiline' ? (
-                              <textarea
-                                value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                rows={3}
-                              />
-                            ) : (
-                              <input
-                                type={field.type || 'text'}
-                                value={row[field.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                placeholder={field.label}
-                              />
-                            )}
+                            {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
                           </div>
                         );
                       })}

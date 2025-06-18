@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ReportTemplateReview from '../../../templates/ReportTemplateReview';
-import swpppReportConfig from './swpppReportConfig';
+import swpppReportConfig from './SWPPPConfig';
 import { loadDraft } from '../../../../utils/draftUtils';
 
 const SWPPPReportReview = () => {

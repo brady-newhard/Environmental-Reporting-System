@@ -84,8 +84,8 @@ const EnvironmentalDashboard = () => {
       title: "SWPPP Report",
       icon: ClipboardList,
       description: "State SWPPP Inspection",
-      path: "/swppp/new",
-      draftPath: "/swppp-drafts",
+      path: "/environmental/swppp/new",
+      draftPath: "/environmental/swppp/drafts",
       draftCount: swpppDraftCount
     },
     {
