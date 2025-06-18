@@ -258,12 +258,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const formData = {
+      id: draftId,
       header,
       sections,
       summaries,
       photos,
       signature: sigPadRef.current ? sigPadRef.current.toDataURL() : '',
-      sigDate: sigDate || '', // Use raw sigDate string
+      sigDate: sigDate || '',
       preparedBy,
     };
     await handleSave(formData);
