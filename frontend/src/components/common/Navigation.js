@@ -34,7 +34,7 @@ const Navigation = () => {
           {/* Mobile Logo (left) */}
           <div className="flex items-center flex-shrink-0">
             <RouterLink to="/" className="flex items-center no-underline">
-              <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain" onError={(e) => {
+              <img src="/staticfiles/PIPE-Logo-bk.png" alt="PIPE Logo" className="h-20 w-auto object-contain" onError={(e) => {
                 console.error('Logo failed to load:', e.target.src);
                 e.target.src = '/PIPE-Logo.png';
               }} />
@@ -58,18 +58,18 @@ const Navigation = () => {
             <div className="flex items-center gap-x-2 md:hidden">
               <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-white">
-                    <Menu className="w-15 h-15" />
+                  <Button variant="ghost" size="icon" className="text-white w-14 h-14">
+                    <Menu className="w-10 h-10" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="p-0 w-64">
                   <div className="flex flex-col h-full">
-                    <div className="px-6 py-4 border-b flex flex-col items-start">
-                      <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto object-contain mb-2" onError={(e) => {
+                    <div className="px-6 py-4 border-b flex flex-col items-center">
+                      <img src="/PIPE-Logo-bk.png" alt="PIPE Logo" className="h-24 w-auto object-contain mb-2 mx-auto" onError={(e) => {
                         console.error('Logo failed to load:', e.target.src);
                         e.target.src = '/PIPE-Logo.png';
                       }} />
-                      <span className="text-left text-sm text-zinc-400 italic font-medium">"Streamline the report. Elevate the result."</span>
+                      <span className="text-center text-sm text-zinc-400 italic font-medium">"Streamline the report. Elevate the result."</span>
                     </div>
                     <div className="flex-1 overflow-y-auto">
                       <ul className="flex flex-col gap-y-1 mt-2">
