@@ -13,11 +13,11 @@ const swpppReportConfig = {
     { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
     
     // === Project Information ===
-    { name: 'project', label: 'Project', required: true },
-    { name: 'spread', label: 'Spread', required: false },
-    { name: 'facility', label: 'Facility', required: false },
-    { name: 'contractor', label: 'Contractor', required: false },
-    { name: 'inspector', label: 'Inspector', required: true },
+    { name: 'project', label: 'Project', required: true, className: 'md:w-1/3' },
+    { name: 'spread', label: 'Spread', required: false, className: 'md:w-1/3' },
+    { name: 'facility', label: 'Facility', required: false, className: 'md:w-1/3' },
+    { name: 'contractor', label: 'Contractor', required: false, className: 'md:w-1/2' },
+    { name: 'inspector', label: 'Inspector', required: true, className: 'md:w-1/2' },
   ],
   dynamicSections: [
     // Weather Information Section
@@ -31,8 +31,8 @@ const swpppReportConfig = {
           { value: 'Partly Sunny', label: 'Partly Sunny' },
           { value: 'Cloudy', label: 'Cloudy' },
           { value: 'Overcast', label: 'Overcast' }
-        ], required: false },
-        { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false },
+        ], required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
+        { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
         { name: 'precipitation_type', label: 'Precipitation Type', type: 'dropdown', options: [
           { value: 'none', label: 'none' },
           { value: 'drizzle', label: 'drizzle' },
@@ -40,21 +40,22 @@ const swpppReportConfig = {
           { value: 'snow', label: 'snow' },
           { value: 'sleet', label: 'sleet' },
           { value: 'hail', label: 'hail' }
-        ], required: false },
+        ], required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
         { name: 'soil_conditions', label: 'Soil Conditions', type: 'dropdown', options: [
           { value: 'Dry', label: 'Dry' },
           { value: 'Wet', label: 'Wet' },
           { value: 'Saturated', label: 'Saturated' },
           { value: 'Frozen', label: 'Frozen' }
-        ], required: false },
+        ], required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
         {
           name: 'rain_gauges',
           label: 'Rain Gauges',
           type: 'dynamicArray',
+          className: 'w-full',
           subfields: [
-            { name: 'location', label: 'Rain Gauge Location', type: 'text' },
-            { name: 'rain', label: 'Rain (in)', type: 'number' },
-            { name: 'snow', label: 'Snow (in)', type: 'number' }
+            { name: 'location', label: 'Rain Gauge Location', type: 'text', className: 'w-full md:flex-1' },
+            { name: 'rain', label: 'Rain (in)', type: 'number', className: 'flex-1 md:flex-1' },
+            { name: 'snow', label: 'Snow (in)', type: 'number', className: 'flex-1 md:flex-1' }
           ]
         }
       ],
