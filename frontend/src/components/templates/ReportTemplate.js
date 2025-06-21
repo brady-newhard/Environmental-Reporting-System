@@ -468,6 +468,26 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         );
+      case 'time':
+        return (
+          <input
+            type="time"
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        );
+      case 'multiline':
+        return (
+          <textarea
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        );
       case 'dynamicArray':
         return (
           <div className="space-y-4">
@@ -594,9 +614,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               {(sections.find(s => s.name === 'SWPPP Inspection Items')?.rows || []).map((row, rowIndex) => {
                 const sectionConfig = config.dynamicSections.find(s => s.name === 'SWPPP Inspection Items');
                 return (
-                  <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div key={rowIndex} className="flex flex-wrap -mx-2 border-b border-gray-200 pb-4 mb-4">
                     {sectionConfig.fields.map(field => (
-                      <div key={field.name} className="col-span-1">
+                      <div key={field.name} className={`w-full px-2 mb-4 ${field.className || 'md:w-1/2'}`}>
                         <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
                         {renderField(field, row[field.name], (e) => handleSectionChange('SWPPP Inspection Items', rowIndex, field.name, e.target.value))}
                       </div>
