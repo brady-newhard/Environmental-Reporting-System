@@ -13,11 +13,11 @@ const swpppReportConfig = {
     { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
     
     // === Project Information ===
-    { name: 'project', label: 'Project', required: true, className: 'md:w-1/3' },
-    { name: 'spread', label: 'Spread', required: false, className: 'md:w-1/3' },
-    { name: 'facility', label: 'Facility', required: false, className: 'md:w-1/3' },
-    { name: 'contractor', label: 'Contractor', required: false, className: 'md:w-1/2' },
-    { name: 'inspector', label: 'Inspector', required: true, className: 'md:w-1/2' },
+    { name: 'project', label: 'Project', required: true, className: 'w-1/2 md:w-1/3' },
+    { name: 'spread', label: 'Spread', required: false, className: 'w-1/2 md:w-1/3' },
+    { name: 'facility', label: 'Facility', required: false, className: 'w-full md:w-1/3' },
+    { name: 'contractor', label: 'Contractor', required: false, className: 'w-1/2' },
+    { name: 'inspector', label: 'Inspector', required: true, className: 'w-1/2' },
   ],
   dynamicSections: [
     // Weather Information Section
@@ -65,18 +65,18 @@ const swpppReportConfig = {
       name: 'SWPPP Inspection Items',
       fields: [
         // Row 1
-        { name: 'station_start', label: 'Station Start', type: 'text', required: true, className: 'md:w-1/3' },
-        { name: 'station_end', label: 'Station End', type: 'text', required: true, className: 'md:w-1/3' },
-        { name: 'feature_details', label: 'Feature Details', type: 'text', required: true, className: 'md:w-1/3' },
+        { name: 'station_start', label: 'Station Start', type: 'text', required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'station_end', label: 'Station End', type: 'text', required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'feature_details', label: 'Feature Details', type: 'text', required: true, className: 'w-full md:w-1/3' },
         
         // Row 2
-        { name: 'inspector_id', label: 'Inspector ID', type: 'text', required: true, className: 'md:w-1/2' },
-        { name: 'inspection_time', label: 'Inspection Time', type: 'time', required: true, className: 'md:w-1/2' },
+        { name: 'inspector_id', label: 'Inspector ID', type: 'text', required: true, className: 'w-1/2 md:w-1/2' },
+        { name: 'inspection_time', label: 'Inspection Time', type: 'time', required: true, className: 'w-1/2 md:w-1/2' },
         
         // Row 3
-        { name: 'ecd_functional', label: 'ECD Functional?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'md:w-1/3' },
-        { name: 'ecd_maintenance', label: 'ECD Needs Maintenance?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'md:w-1/3' },
-        { name: 'soil_disturbed', label: 'Soil Disturbed?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'md:w-1/3' },
+        { name: 'ecd_functional', label: 'ECD Functional?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'ecd_maintenance', label: 'ECD Needs Maintenance?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'soil_disturbed', label: 'Soil Disturbed?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'w-full md:w-1/3' },
         
         // Row 4
         { name: 'comments', label: 'Comments', type: 'multiline', required: false, className: 'w-full' }
