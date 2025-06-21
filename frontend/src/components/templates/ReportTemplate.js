@@ -472,9 +472,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
         return (
           <div className="space-y-4">
             {(value || []).map((item, index) => (
-              <div key={index} className="flex gap-4 items-start">
+              <div key={index} className="flex flex-wrap -mx-2 items-end">
                 {field.subfields?.map(subfield => (
-                  <div key={subfield.name} className="flex-1">
+                  <div key={subfield.name} className={`px-2 mb-2 ${subfield.className || 'flex-1'}`}>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       {subfield.label}
                     </label>
@@ -488,17 +488,19 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                     })}
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newValue = [...(value || [])];
-                    newValue.splice(index, 1);
-                    onChange({ target: { name: field.name, value: newValue } });
-                  }}
-                  className="mt-6 p-2 text-red-600 hover:text-red-800"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </button>
+                <div className="px-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newValue = [...(value || [])];
+                      newValue.splice(index, 1);
+                      onChange({ target: { name: field.name, value: newValue } });
+                    }}
+                    className="p-2 text-red-600 hover:text-red-800"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             ))}
             <button
@@ -548,9 +550,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
           {/* Project Information Section as its own card */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-wrap -mx-2">
               {config.headerFields.filter(field => ['project', 'spread', 'facility', 'contractor', 'inspector'].includes(field.name)).map(field => (
-                <div key={field.name} className="col-span-1">
+                <div key={field.name} className={`w-full px-2 mb-4 ${field.className || 'md:w-1/2'}`}>
                   <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
                   {renderField(field, header[field.name], handleHeaderChange)}
                 </div>
@@ -564,9 +566,18 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               {(sections.find(s => s.name === 'Weather Information')?.rows || []).map((row, rowIndex) => {
                 const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
                 return (
-                  <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    {sectionConfig.fields.map(field => (
-                      <div key={field.name} className="col-span-1">
+                  <div key={rowIndex} className="space-y-4">
+                    <div className="flex flex-wrap -mx-2">
+                      {sectionConfig.fields.filter(field => field.type !== 'dynamicArray').map(field => (
+                        <div key={field.name} className={`w-full px-2 mb-4 ${field.className || 'md:w-1/2'}`}>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                          {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
+                        </div>
+                      ))}
+                    </div>
+                    {/* Render dynamicArray fields separately */}
+                    {sectionConfig.fields.filter(field => field.type === 'dynamicArray').map(field => (
+                      <div key={field.name} className={`w-full px-2 ${field.className || 'w-full'}`}>
                         <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
                         {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
                       </div>
