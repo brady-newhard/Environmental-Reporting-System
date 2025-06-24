@@ -31,8 +31,8 @@ const swpppReportConfig = {
           { value: 'Partly Sunny', label: 'Partly Sunny' },
           { value: 'Cloudy', label: 'Cloudy' },
           { value: 'Overcast', label: 'Overcast' }
-        ], required: false },
-        { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false },
+        ], required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
+        { name: 'temperature', label: 'Temperature (°F)', type: 'number', required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
         { name: 'precipitation_type', label: 'Precipitation Type', type: 'dropdown', options: [
           { value: 'none', label: 'none' },
           { value: 'drizzle', label: 'drizzle' },
@@ -40,13 +40,13 @@ const swpppReportConfig = {
           { value: 'snow', label: 'snow' },
           { value: 'sleet', label: 'sleet' },
           { value: 'hail', label: 'hail' }
-        ], required: false },
+        ], required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
         { name: 'soil_conditions', label: 'Soil Conditions', type: 'dropdown', options: [
           { value: 'Dry', label: 'Dry' },
           { value: 'Wet', label: 'Wet' },
           { value: 'Saturated', label: 'Saturated' },
           { value: 'Frozen', label: 'Frozen' }
-        ], required: false },
+        ], required: false, className: 'w-1/2 md:w-1/2 lg:w-1/4' },
         {
           name: 'rain_gauges',
           label: 'Rain Gauges',
@@ -64,21 +64,21 @@ const swpppReportConfig = {
       name: 'SWPPP Inspection Items',
       fields: [
         // Row 1
-        { name: 'station_start', label: 'Station Start', type: 'text', required: true },
-        { name: 'station_end', label: 'Station End', type: 'text', required: true },
-        { name: 'feature_details', label: 'Feature Details', type: 'text', required: true },
+        { name: 'station_start', label: 'Station Start', type: 'text', required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'station_end', label: 'Station End', type: 'text', required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'feature_details', label: 'Feature Details', type: 'text', required: true, className: 'w-full md:w-1/3' },
         
         // Row 2
-        { name: 'inspector_id', label: 'Inspector ID', type: 'text', required: true },
-        { name: 'inspection_time', label: 'Inspection Time', type: 'time', required: true },
+        { name: 'inspector_id', label: 'Inspector ID', type: 'text', required: true, className: 'w-1/2 md:w-1/2' },
+        { name: 'inspection_time', label: 'Inspection Time', type: 'time', required: true, className: 'w-1/2 md:w-1/2' },
         
         // Row 3
-        { name: 'ecd_functional', label: 'ECD Functional?', type: 'dropdown', options: ['Yes', 'No'], required: true },
-        { name: 'ecd_maintenance', label: 'ECD Needs Maintenance?', type: 'dropdown', options: ['Yes', 'No'], required: true },
-        { name: 'soil_disturbed', label: 'Soil Disturbed?', type: 'dropdown', options: ['Yes', 'No'], required: true },
+        { name: 'ecd_functional', label: 'ECD Functional?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'ecd_maintenance', label: 'ECD Needs Maintenance?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'w-1/2 md:w-1/3' },
+        { name: 'soil_disturbed', label: 'Soil Disturbed?', type: 'dropdown', options: ['Yes', 'No'], required: true, className: 'w-full md:w-1/3' },
         
         // Row 4
-        { name: 'comments', label: 'Comments', type: 'multiline', required: false }
+        { name: 'comments', label: 'Comments', type: 'multiline', required: false, className: 'w-full' }
       ],
       defaultRow: () => ({
         station_start: '',
