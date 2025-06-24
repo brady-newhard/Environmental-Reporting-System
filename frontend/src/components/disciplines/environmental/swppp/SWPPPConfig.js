@@ -13,11 +13,11 @@ const swpppReportConfig = {
     { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
     
     // === Project Information ===
-    { name: 'project', label: 'Project', required: true },
-    { name: 'spread', label: 'Spread', required: false },
-    { name: 'facility', label: 'Facility', required: false },
-    { name: 'contractor', label: 'Contractor', required: false },
-    { name: 'inspector', label: 'Inspector', required: true },
+    { name: 'project', label: 'Project', required: true, className: 'w-full md:w-1/3' },
+    { name: 'spread', label: 'Spread', required: false, className: 'w-1/2 md:w-1/3' },
+    { name: 'facility', label: 'Facility', required: false, className: 'w-1/2 md:w-1/3' },
+    { name: 'inspector', label: 'Inspector', required: true, className: 'w-full md:w-1/2' },
+    { name: 'contractor', label: 'Contractor', required: false, className: 'w-full md:w-1/2' },
   ],
   dynamicSections: [
     // Weather Information Section
@@ -51,7 +51,7 @@ const swpppReportConfig = {
           name: 'rain_gauges',
           label: 'Rain Gauges',
           type: 'dynamicArray',
-          subfields: [
+          subFields: [
             { name: 'location', label: 'Rain Gauge Location', type: 'text' },
             { name: 'rain', label: 'Rain (in)', type: 'number' },
             { name: 'snow', label: 'Snow (in)', type: 'number' }
