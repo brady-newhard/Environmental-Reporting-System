@@ -719,6 +719,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
               const fields = sectionConfig ? sectionConfig.fields : [];
 
+
               // Validate section data
               if (!section || !section.name) {
                 console.warn('Invalid section data:', section);
@@ -845,6 +846,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                     <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                     {(section.rows || []).map((row, rowIndex) => (
                       <>
+
                         {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                           {weatherFields.map((field, idx) => {
@@ -982,6 +984,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                                       </button>
                                     </div>
                                   </div>
+
                                 </div>
                               ))}
                               <button
@@ -1209,6 +1212,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                             console.warn('Invalid field in ReportTemplate:', field, idx);
                             return null;
                           }
+
                           if (field.type === 'dynamicArray') {
                             return (
                               <div key={`field-${field.name}-${idx}`} className="col-span-full">
@@ -1223,6 +1227,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                                     e.target.value
                                   )
                                 )}
+
                               </div>
                             );
                           }
@@ -1283,8 +1288,10 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               </div>
             </div>
 
+
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 justify-end">
+
               <button
                 type="button"
                 onClick={handleExit}
