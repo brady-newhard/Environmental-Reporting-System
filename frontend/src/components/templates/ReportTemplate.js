@@ -531,7 +531,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
   return (
     <div className="bg-black min-h-screen pt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <form onSubmit={handleFormSubmit} className="space-y-6">
+        <div>
           {/* Dynamic Sections */}
           {(sections || []).map((section, sectionIdx) => {
             const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
@@ -599,16 +599,39 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                             ))}
                           </div>
                         </div>
-                        {/* Project Information Section */}
+                        {/* Project Information Section as its own card */}
                         <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                           <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {config.headerFields.filter(field => ['project', 'spread', 'facility', 'contractor', 'inspector'].includes(field.name)).map(field => (
-                              <div key={field.name} className="col-span-1">
-                                <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                                {renderField(field, header[field.name], handleHeaderChange)}
-                              </div>
-                            ))}
+                          {/* Row 1: Project, Spread, Facility */}
+                          <div className="flex flex-wrap -mx-2">
+                            {(() => {
+                              const fields = [
+                                config.headerFields.find(f => f.name === 'project'),
+                                config.headerFields.find(f => f.name === 'spread'),
+                                config.headerFields.find(f => f.name === 'facility'),
+                              ];
+                              return fields.map(field => (
+                                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
+                                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                  {renderField(field, header[field.name], handleHeaderChange)}
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                          {/* Row 2: Inspector, Contractor */}
+                          <div className="flex flex-wrap -mx-2">
+                            {(() => {
+                              const fields = [
+                                config.headerFields.find(f => f.name === 'inspector'),
+                                config.headerFields.find(f => f.name === 'contractor'),
+                              ];
+                              return fields.map(field => (
+                                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
+                                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                  {renderField(field, header[field.name], handleHeaderChange)}
+                                </div>
+                              ));
+                            })()}
                           </div>
                         </div>
                         {/* Weather Information Section from dynamicSections */}
@@ -617,14 +640,87 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Weather Information</h2>
                             {(sections.find(s => s.name === 'Weather Information')?.rows || []).map((row, rowIndex) => {
                               const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
+                              const weatherFields = fields.filter(f => f.name !== 'rain_gauges');
+                              const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
                               return (
                                 <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                  {sectionConfig.fields.map(field => (
-                                    <div key={field.name} className="col-span-1">
-                                      <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                                      {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
+                                  {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
+                                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                                    {weatherFields.map((field, idx) => {
+                                      if (!field || !field.label) {
+                                        console.warn('Invalid field in ReportTemplate:', field, idx);
+                                        return null;
+                                      }
+                                      return (
+                                        <div key={field.name} className="col-span-1">
+                                          <label className="block text-sm font-medium text-gray-600 mb-1">
+                                            {field.label}
+                                          </label>
+                                          {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  {/* Rain Gauges section below the weather fields grid */}
+                                  {rainGaugeField && (
+                                    <div className="mb-4">
+                                      <label className="block text-sm font-medium text-gray-600 mb-1">
+                                        {rainGaugeField.label}
+                                      </label>
+                                      <div className="space-y-2">
+                                        {(row[rainGaugeField.name] || []).map((item, idx) => (
+                                          <div key={idx} className="flex gap-2 items-center">
+                                            {rainGaugeField.subFields.map((subField, subFieldIndex) => (
+                                              <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`}>
+                                                <label className="sr-only">{subField.label}</label>
+                                                {renderField(subField, item[subField.name], (e) =>
+                                                  handleSectionChange(
+                                                    'Weather Information',
+                                                    rowIndex,
+                                                    rainGaugeField.name,
+                                                    (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                                      subIdx === idx
+                                                        ? { ...subItem, [subField.name]: e.target.value }
+                                                        : subItem
+                                                    )
+                                                  )
+                                                )}
+                                              </div>
+                                            ))}
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                handleSectionChange(
+                                                  'Weather Information',
+                                                  rowIndex,
+                                                  rainGaugeField.name,
+                                                  (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                                )
+                                              }
+                                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
+                                            >
+                                              <XMarkIcon className="h-5 w-5" />
+                                            </button>
+                                          </div>
+                                        ))}
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleSectionChange(
+                                              'Weather Information',
+                                              rowIndex,
+                                              rainGaugeField.name,
+                                              [...(row[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
+                                            )
+                                          }
+                                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                                        >
+                                          <PlusIcon className="h-5 w-5" />
+                                          Add {rainGaugeField.label}
+                                        </button>
+                                      </div>
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
                               );
                             })}
@@ -731,7 +827,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                           );
                         })}
                       </div>
-                      {/* Rain gauges on their own line */}
+                      {/* Rain Gauges section below the weather fields grid */}
                       {rainGaugeField && (
                         <div className="mb-4">
                           <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -739,118 +835,38 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                           </label>
                           <div className="space-y-2">
                             {(row[rainGaugeField.name] || []).map((item, idx) => (
-                              <div key={idx}>
-                                {/* Large screens: all fields in one row */}
-                                <div className="hidden lg:flex gap-2">
-                                  {rainGaugeField.subFields.map((subField, subFieldIndex) => (
-                                    <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`} className="flex-1">
-                                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                                        {subField.label}
-                                      </label>
-                                      {renderField(subField, item[subField.name], (e) =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          rainGaugeField.name,
-                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                            subIdx === idx
-                                              ? { ...subItem, [subField.name]: e.target.value }
-                                              : subItem
-                                          )
-                                        )
-                                      )}
-                                    </div>
-                                  ))}
-                                  <button
-                                    type="button"
-                                    onClick={() =>
+                              <div key={idx} className="flex gap-2 items-center">
+                                {rainGaugeField.subFields.map((subField, subFieldIndex) => (
+                                  <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`}>
+                                    <label className="sr-only">{subField.label}</label>
+                                    {renderField(subField, item[subField.name], (e) =>
                                       handleSectionChange(
                                         section.name,
                                         rowIndex,
                                         rainGaugeField.name,
-                                        (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                        (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                          subIdx === idx
+                                            ? { ...subItem, [subField.name]: e.target.value }
+                                            : subItem
+                                        )
                                       )
-                                    }
-                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
-                                  >
-                                    <XMarkIcon className="h-5 w-5" />
-                                  </button>
-                                </div>
-                                {/* Mobile/tablet: location on one line, rain/snow/trash on next line */}
-                                <div className="block lg:hidden">
-                                  <div className="mb-2">
-                                    <input
-                                      type={rainGaugeField.subFields[0].type}
-                                      value={item[rainGaugeField.subFields[0].name] || ''}
-                                      onChange={e =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          rainGaugeField.name,
-                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                            subIdx === idx
-                                              ? { ...subItem, [rainGaugeField.subFields[0].name]: e.target.value }
-                                              : subItem
-                                          )
-                                        )
-                                      }
-                                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                      placeholder={rainGaugeField.subFields[0].label}
-                                    />
+                                    )}
                                   </div>
-                                  <div className="flex w-full min-w-0 gap-2 items-center">
-                                    <input
-                                      type={rainGaugeField.subFields[1].type}
-                                      value={item[rainGaugeField.subFields[1].name] || ''}
-                                      onChange={e =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          rainGaugeField.name,
-                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                            subIdx === idx
-                                              ? { ...subItem, [rainGaugeField.subFields[1].name]: e.target.value }
-                                              : subItem
-                                          )
-                                        )
-                                      }
-                                      className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                      placeholder={rainGaugeField.subFields[1].label}
-                                    />
-                                    <input
-                                      type={rainGaugeField.subFields[2].type}
-                                      value={item[rainGaugeField.subFields[2].name] || ''}
-                                      onChange={e =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          rainGaugeField.name,
-                                          (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                            subIdx === idx
-                                              ? { ...subItem, [rainGaugeField.subFields[2].name]: e.target.value }
-                                              : subItem
-                                          )
-                                        )
-                                      }
-                                      className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                      placeholder={rainGaugeField.subFields[2].label}
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          rainGaugeField.name,
-                                          (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                        )
-                                      }
-                                      className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
-                                    >
-                                      <XMarkIcon className="h-5 w-5" />
-                                    </button>
-                                  </div>
-                                </div>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleSectionChange(
+                                      section.name,
+                                      rowIndex,
+                                      rainGaugeField.name,
+                                      (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                    )
+                                  }
+                                  className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
+                                >
+                                  <XMarkIcon className="h-5 w-5" />
+                                </button>
                               </div>
                             ))}
                             <button
@@ -1254,7 +1270,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
             </button>
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
