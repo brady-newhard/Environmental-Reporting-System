@@ -59,7 +59,22 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   
   // Initialize state with default values from config
   const [header, setHeader] = useState(() => {
-    const defaultHeader = config.headerFields.reduce((acc, field) => {
+    // For SWPPP reports, headerFields is empty, so we need to get header data from dynamicSections
+    let headerFields = config.headerFields;
+    if (config.reportType === 'swppp' && config.headerFields.length === 0) {
+      // Extract fields from the first two sections (Inspection Information and Project Information)
+      const inspectionSection = config.dynamicSections.find(s => s.name === 'Inspection Information');
+      const projectSection = config.dynamicSections.find(s => s.name === 'Project Information');
+      
+      if (inspectionSection) {
+        headerFields = [...headerFields, ...inspectionSection.fields];
+      }
+      if (projectSection) {
+        headerFields = [...headerFields, ...projectSection.fields];
+      }
+    }
+
+    const defaultHeader = headerFields.reduce((acc, field) => {
       if (field.type === 'dynamicArray') {
         return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
       }
@@ -68,8 +83,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     
     if (initialData?.header) {
       const mergedHeader = { ...defaultHeader, ...initialData.header };
-      if (config.headerFields.some(field => field.type === 'dynamicArray')) {
-        config.headerFields.forEach(field => {
+      if (headerFields.some(field => field.type === 'dynamicArray')) {
+        headerFields.forEach(field => {
           if (field.type === 'dynamicArray') {
             mergedHeader[field.name] = Array.isArray(mergedHeader[field.name]) && mergedHeader[field.name].length > 0
               ? mergedHeader[field.name] 
@@ -141,7 +156,22 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     
     console.log('ReportTemplate initialData changed:', initialData);
     
-    const defaultHeader = config.headerFields.reduce((acc, field) => {
+    // For SWPPP reports, headerFields is empty, so we need to get header data from dynamicSections
+    let headerFields = config.headerFields;
+    if (config.reportType === 'swppp' && config.headerFields.length === 0) {
+      // Extract fields from the first two sections (Inspection Information and Project Information)
+      const inspectionSection = config.dynamicSections.find(s => s.name === 'Inspection Information');
+      const projectSection = config.dynamicSections.find(s => s.name === 'Project Information');
+      
+      if (inspectionSection) {
+        headerFields = [...headerFields, ...inspectionSection.fields];
+      }
+      if (projectSection) {
+        headerFields = [...headerFields, ...projectSection.fields];
+      }
+    }
+    
+    const defaultHeader = headerFields.reduce((acc, field) => {
       if (field.type === 'dynamicArray') {
         return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
       }
@@ -155,7 +185,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     console.log('Updated header:', updatedHeader);
     setHeader(updatedHeader);
 
-    if (initialData.sections && initialData.sections.length > 0) {
+    if (initialData.sections && initialData.sections.length > 0 && config.reportType !== 'swppp') {
       const updatedSections = initialData.sections.map(section => ({
         ...section,
         rows: section.rows && section.rows.length > 0 ? section.rows : [section.defaultRow ? section.defaultRow() : {}]
@@ -163,7 +193,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       console.log('Updated sections:', updatedSections);
       setSections(updatedSections);
     } else if (config.dynamicSections) {
-      // Fallback: initialize from config if sections is empty or missing
+      // For SWPPP reports or when sections are empty/missing, always use config
       const fallbackSections = config.dynamicSections.map(section => ({
         name: section.name,
         rows: [section.defaultRow ? section.defaultRow() : {}]
@@ -551,177 +581,18 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   };
 
   return (
-    config.reportType === 'swppp' ? (
-      <div className="bg-black min-h-screen pt-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <form onSubmit={handleFormSubmit} className="space-y-6">
-            {/* Dynamically render all SWPPP sections */}
-            {config.dynamicSections.map((sectionConfig, idx) => (
-              <div key={sectionConfig.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{sectionConfig.name}</h2>
-                {(sections.find(s => s.name === sectionConfig.name)?.rows || []).map((row, rowIndex) => (
-                  <div key={rowIndex} className="flex flex-wrap -mx-2">
-                    {sectionConfig.fields.map(field => (
-                      <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full md:w-1/2'}`}>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                        {renderField(field, row[field.name], (e) => handleSectionChange(sectionConfig.name, rowIndex, field.name, e.target.value))}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-                {/* Add Row button for non-static sections */}
-                {!sectionConfig.isStatic && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddRow(sectionConfig.name)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2 mt-2"
-                  >
-                    <PlusIcon className="h-5 w-5" />
-                    Add Row
-                  </button>
-                )}
-              </div>
-            ))}
-            {/* Summary Section, Signature, Photos, and Action Buttons remain unchanged */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle || 'Summary'}</h2>
-              <div className="space-y-4">
-                {config.summaryFields.map((field) => (
-                  <div key={field.name}>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      {field.label}
-                    </label>
-                    <textarea
-                      value={summaries[field.name] || ''}
-                      onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                      rows={4}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+    <div className="bg-black min-h-screen pt-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          {/* Dynamic Sections */}
+          {console.log('Rendering sections:', sections)}
+          {(sections || []).map((section, sectionIdx) => {
+            console.log(`Processing section ${sectionIdx}:`, section.name);
+            const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+            const fields = sectionConfig ? sectionConfig.fields : [];
 
-            {config.requiresSignature && (
-              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Prepared By
-                    </label>
-                    <input
-                      type="text"
-                      value={preparedBy}
-                      onChange={(e) => setPreparedBy(e.target.value)}
-                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Signature
-                    </label>
-                    <div className="mt-1 border border-gray-300 rounded-md">
-                      <SignaturePad
-                        ref={sigPadRef}
-                        canvasProps={{
-                          className: 'w-full h-48 rounded-md'
-                        }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleClearSignature}
-                      className="mt-2 text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      Clear Signature
-                    </button>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      value={sigDate || ''}
-                      onChange={handleSigDateChange}
-                      className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-            {config.requiresPhotos && (
-              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
-                <ReportPhotoSection
-                  photos={photos}
-                  onPhotosChange={setPhotos}
-                  content_type={config.reportType || 'template'}
-                  object_id={draftId || id}
-                  editable={true}
-                />
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-4 justify-end">
-              <button
-                type="button"
-                onClick={handleExit}
-                className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-              >
-                <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">Exit</span>
-              </button>
-              {draftId && !String(draftId).startsWith('temp_') && (
-                <>
-                  <button
-                    type="button"
-                    onClick={typeof onDelete === 'function' ? () => onDelete({ id: draftId }) : handleDelete}
-                    className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                  >
-                    <TrashIcon className="w-5 h-5 mr-2" />
-                    <span className="hidden sm:inline">Delete</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={typeof onReview === 'function' ? () => onReview({
-                      id: draftId,
-                      header,
-                      sections,
-                      summaries,
-                      preparedBy,
-                      signature,
-                      sigDate,
-                      photos
-                    }) : handleReview}
-                    className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
-                  >
-                    <CheckIcon className="h-5 w-5 mr-2" />
-                    <span className="hidden sm:inline">Review</span>
-                  </button>
-                </>
-              )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                <PencilIcon className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    ) : (
-      <div className="bg-black min-h-screen pt-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <form onSubmit={handleFormSubmit} className="space-y-6">
-            {/* Dynamic Sections */}
-            {(sections || []).map((section, sectionIdx) => {
-              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              const fields = sectionConfig ? sectionConfig.fields : [];
+            // Debug logging for section rendering
+            console.log(`Rendering section ${sectionIdx}:`, section.name, 'with fields:', fields.length);
 
             // Validate section data
             if (!section || !section.name) {
@@ -741,8 +612,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               return null;
             }
 
-            // SWPPP: Render Inspection Information as a normal card, not custom layout
-            if (sectionIdx === 0 && config.reportType === 'swppp' && section.name === 'Inspection Information') {
+            // SWPPP: Render Inspection Information as a normal card
+            if (config.reportType === 'swppp' && section.name === 'Inspection Information') {
               return (
                 <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
@@ -760,8 +631,53 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               );
             }
 
-            // Render first section (header/project info) with white card wrapper
-            if (sectionIdx === 0) {
+            // SWPPP: Render Project Information as a normal card
+            if (config.reportType === 'swppp' && section.name === 'Project Information') {
+              return (
+                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  
+                  {/* Line 1: Project, Spread, Facility */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {fields.filter(f => ['project', 'spread', 'facility'].includes(f.name)).map(field => (
+                      <div key={field.name} className="col-span-1">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                        {renderField(field, section.rows[0][field.name], e =>
+                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Line 2: Inspector, Contractor */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {fields.filter(f => ['inspector', 'contractor'].includes(f.name)).map(field => (
+                      <div key={field.name} className="col-span-1">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                        {renderField(field, section.rows[0][field.name], e =>
+                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Line 3: Milepost Start, Milepost End, Station Start, Station End */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {fields.filter(f => ['milepost_start', 'milepost_end', 'station_start', 'station_end'].includes(f.name)).map(field => (
+                      <div key={field.name} className="col-span-1">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                        {renderField(field, section.rows[0][field.name], e =>
+                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
+            // Render first section (header/project info) with white card wrapper for non-SWPPP reports
+            if (sectionIdx === 0 && config.reportType !== 'swppp') {
               const inspectorField = fields.find(f => f.name === 'inspector');
               const projectField = fields.find(f => f.name === 'project');
               const contractorField = fields.find(f => f.name === 'contractor');
@@ -790,58 +706,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     </div>
                   </div>
                   <div className="flex flex-col gap-4">
-                    {config.reportType === 'swppp' ? (
-                      <>
-                        {/* Inspection Information Section */}
-                        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Inspection Information</h2>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {config.headerFields.filter(field => ['inspection_type', 'inspection_date'].includes(field.name)).map(field => (
-                              <div key={field.name} className="col-span-1">
-                                <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                                {renderField(field, header[field.name], handleHeaderChange)}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        {/* Project Information Section as its own card */}
-                        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-                          {/* Row 1: Project, Spread, Facility */}
-                          <div className="flex flex-wrap -mx-2">
-                            {(() => {
-                              const fields = [
-                                config.headerFields.find(f => f.name === 'project'),
-                                config.headerFields.find(f => f.name === 'spread'),
-                                config.headerFields.find(f => f.name === 'facility'),
-                              ];
-                              return fields.filter(Boolean).map(field => (
-                                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
-                                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                                  {renderField(field, header[field.name], handleHeaderChange)}
-                                </div>
-                              ));
-                            })()}
-                          </div>
-                          {/* Row 2: Inspector, Contractor */}
-                          <div className="flex flex-wrap -mx-2">
-                            {(() => {
-                              const fields = [
-                                config.headerFields.find(f => f.name === 'inspector'),
-                                config.headerFields.find(f => f.name === 'contractor'),
-                              ];
-                              return fields.filter(Boolean).map(field => (
-                                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
-                                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                                  {renderField(field, header[field.name], handleHeaderChange)}
-                                </div>
-                              ));
-                            })()}
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      // Original daily report layout
+                      {/* Original daily report layout */}
                       <>
                         {/* Inspector and Project on one line for md+ */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -908,198 +773,27 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                           )}
                         </div>
                       </>
-                    )}
                   </div>
                 </div>
               );
             }
 
-              // Custom layout for Weather Information
-              if (section.name === 'Weather Information') {
-                const weatherFields = fields.filter(f => f.name !== 'rain_gauges');
-                const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
-                return (
-                  <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
-                    {(section.rows || []).map((row, rowIndex) => (
-                      <>
-
-                        {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                          {weatherFields.map((field, idx) => {
-                            if (!field || !field.label) {
-                              console.warn('Invalid field in ReportTemplate:', field, idx);
-                              return null;
-                            }
-                            return (
-                              <div key={field.name} className="col-span-1">
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                  {field.label}
-                                </label>
-                                {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        {/* Rain gauges on their own line */}
-                        {rainGaugeField && (
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                              {rainGaugeField.label}
-                            </label>
-                            <div className="space-y-2">
-                              {(row[rainGaugeField.name] || []).map((item, idx) => (
-                                <div key={idx}>
-                                  {/* Large screens: all fields in one row */}
-                                  <div className="hidden lg:flex gap-2">
-                                    {rainGaugeField.subFields.map((subField, subFieldIndex) => (
-                                      <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`} className="flex-1">
-                                        <label className="block text-sm font-medium text-gray-600 mb-1">
-                                          {subField.label}
-                                        </label>
-                                        {renderField(subField, item[subField.name], (e) =>
-                                          handleSectionChange(
-                                            section.name,
-                                            rowIndex,
-                                            rainGaugeField.name,
-                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                              subIdx === idx
-                                                ? { ...subItem, [subField.name]: e.target.value }
-                                                : subItem
-                                            )
-                                          )
-                                        )}
-                                      </div>
-                                    ))}
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleSectionChange(
-                                          section.name,
-                                          rowIndex,
-                                          rainGaugeField.name,
-                                          (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                        )
-                                      }
-                                      className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
-                                    >
-                                      <XMarkIcon className="h-5 w-5" />
-                                    </button>
-                                  </div>
-                                  {/* Mobile/tablet: location on one line, rain/snow/trash on next line */}
-                                  <div className="block lg:hidden">
-                                    <div className="mb-2">
-                                      <input
-                                        type={rainGaugeField.subFields[0].type}
-                                        value={item[rainGaugeField.subFields[0].name] || ''}
-                                        onChange={e =>
-                                          handleSectionChange(
-                                            section.name,
-                                            rowIndex,
-                                            rainGaugeField.name,
-                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                              subIdx === idx
-                                                ? { ...subItem, [rainGaugeField.subFields[0].name]: e.target.value }
-                                                : subItem
-                                            )
-                                          )
-                                        }
-                                        className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                        placeholder={rainGaugeField.subFields[0].label}
-                                      />
-                                    </div>
-                                    <div className="flex w-full min-w-0 gap-2 items-center">
-                                      <input
-                                        type={rainGaugeField.subFields[1].type}
-                                        value={item[rainGaugeField.subFields[1].name] || ''}
-                                        onChange={e =>
-                                          handleSectionChange(
-                                            section.name,
-                                            rowIndex,
-                                            rainGaugeField.name,
-                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                              subIdx === idx
-                                                ? { ...subItem, [rainGaugeField.subFields[1].name]: e.target.value }
-                                                : subItem
-                                            )
-                                          )
-                                        }
-                                        className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                        placeholder={rainGaugeField.subFields[1].label}
-                                      />
-                                      <input
-                                        type={rainGaugeField.subFields[2].type}
-                                        value={item[rainGaugeField.subFields[2].name] || ''}
-                                        onChange={e =>
-                                          handleSectionChange(
-                                            section.name,
-                                            rowIndex,
-                                            rainGaugeField.name,
-                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                              subIdx === idx
-                                                ? { ...subItem, [rainGaugeField.subFields[2].name]: e.target.value }
-                                                : subItem
-                                            )
-                                          )
-                                        }
-                                        className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                        placeholder={rainGaugeField.subFields[2].label}
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          handleSectionChange(
-                                            section.name,
-                                            rowIndex,
-                                            rainGaugeField.name,
-                                            (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                          )
-                                        }
-                                        className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
-                                      >
-                                        <XMarkIcon className="h-5 w-5" />
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                </div>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleSectionChange(
-                                    section.name,
-                                    rowIndex,
-                                    rainGaugeField.name,
-                                    [...(row[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
-                                  )
-                                }
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                              >
-                                <PlusIcon className="h-5 w-5" />
-                                Add {rainGaugeField.label}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ))}
-                  </div>
-                );
-              }
             // Custom layout for Weather Information
             if (section.name === 'Weather Information') {
               // Debug logging
               console.log('Rendering Weather Information section:', section);
-              const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
-              let fields = sectionConfig ? sectionConfig.fields : [];
-              // For SWPPP, ensure fields are always from config.dynamicSections
-              if (config.reportType === 'swppp') {
-                fields = (config.dynamicSections.find(s => s.name === 'Weather Information') || {}).fields || [];
-              }
               console.log('Weather Information sectionConfig:', sectionConfig);
               console.log('Weather Information fields:', fields);
-              const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
+              
+              // Ensure we have the correct fields for SWPPP
+              let weatherFields = fields;
+              if (config.reportType === 'swppp') {
+                const swpppWeatherSection = config.dynamicSections.find(s => s.name === 'Weather Information');
+                weatherFields = swpppWeatherSection ? swpppWeatherSection.fields : fields;
+                console.log('SWPPP Weather fields:', weatherFields);
+              }
+              
+              const rainGaugeField = weatherFields.find(f => f.name === 'rain_gauges');
               return (
                 <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
@@ -1118,7 +812,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                       <>
                         {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                          {fields.filter(Boolean).filter(field => field.name !== 'rain_gauges').map((field, idx) => {
+                          {weatherFields.filter(Boolean).filter(field => field.name !== 'rain_gauges').map((field, idx) => {
                             if (!field || !field.label) {
                               console.warn('Invalid field in ReportTemplate:', field, idx);
                               return null;
@@ -1133,7 +827,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                             );
                           })}
                         </div>
-                        {/* Rain Gauges section below the weather fields grid */}
+                        {/* Rain gauges on their own line */}
                         {rainGaugeField && (
                           <div className="mb-4">
                             <label className="block text-sm font-bold text-gray-600 mb-1">
@@ -1464,136 +1158,134 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
             );
           })}
 
-            {/* Summary Section */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle || 'Summary'}</h2>
-              <div className="space-y-4">
-                {config.summaryFields.map((field) => (
-                  <div key={field.name}>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      {field.label}
-                    </label>
-                    <textarea
-                      value={summaries[field.name] || ''}
-                      onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                      rows={4}
-                    />
-                  </div>
-                ))}
-              </div>
+          {/* Summary Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle || 'Summary'}</h2>
+            <div className="space-y-4">
+              {config.summaryFields.map((field) => (
+                <div key={field.name}>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    {field.label}
+                  </label>
+                  <textarea
+                    value={summaries[field.name] || ''}
+                    onChange={(e) => handleSummaryChange(field.name, e.target.value)}
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                    rows={4}
+                  />
+                </div>
+              ))}
             </div>
+          </div>
 
-            {/* Signature Section */}
-            {config.requiresSignature && (
-              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Prepared By</label>
-                    <input
-                      type="text"
-                      value={preparedBy}
-                      onChange={(e) => setPreparedBy(e.target.value)}
-                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+          {/* Signature Section */}
+          {config.requiresSignature && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Prepared By</label>
+                  <input
+                    type="text"
+                    value={preparedBy}
+                    onChange={(e) => setPreparedBy(e.target.value)}
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Signature</label>
+                  <div className="mt-1 border border-gray-300 rounded-md">
+                    <SignaturePad
+                      ref={sigPadRef}
+                      canvasProps={{ className: 'w-full h-48 rounded-md' }}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Signature</label>
-                    <div className="mt-1 border border-gray-300 rounded-md">
-                      <SignaturePad
-                        ref={sigPadRef}
-                        canvasProps={{ className: 'w-full h-48 rounded-md' }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleClearSignature}
-                      className="mt-2 text-sm text-gray-500 hover:text-gray-700"
-                    >
-                      Clear Signature
-                    </button>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">Date</label>
-                    <input
-                      type="date"
-                      value={sigDate || ''}
-                      onChange={handleSigDateChange}
-                      className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearSignature}
+                    className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Clear Signature
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={sigDate || ''}
+                    onChange={handleSigDateChange}
+                    className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                  />
                 </div>
               </div>
-            )}
-
-            {/* Photo Upload Section */}
-            {config.requiresPhotos && (
-              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
-                <ReportPhotoSection
-                  photos={photos}
-                  onPhotosChange={setPhotos}
-                  content_type={config.reportType || 'template'}
-                  object_id={draftId || id}
-                  editable={true}
-                />
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-4 justify-end">
-
-              <button
-                type="button"
-                onClick={handleExit}
-                className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-              >
-                <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">Exit</span>
-              </button>
-              {draftId && !String(draftId).startsWith('temp_') && (
-                <>
-                  <button
-                    type="button"
-                    onClick={typeof onDelete === 'function' ? () => onDelete({ id: draftId }) : handleDelete}
-                    className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                  >
-                    <TrashIcon className="w-5 h-5 mr-2" />
-                    <span className="hidden sm:inline">Delete</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={typeof onReview === 'function' ? () => onReview({
-                      id: draftId,
-                      header,
-                      sections,
-                      summaries,
-                      preparedBy,
-                      signature,
-                      sigDate,
-                      photos
-                    }) : handleReview}
-                    className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
-                  >
-                    <CheckIcon className="h-5 w-5 mr-2" />
-                    <span className="hidden sm:inline">Review</span>
-                  </button>
-                </>
-              )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                <PencilIcon className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
-              </button>
             </div>
-          </form>
-        </div>
+          )}
+
+          {/* Photo Upload Section */}
+          {config.requiresPhotos && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
+              <ReportPhotoSection
+                photos={photos}
+                onPhotosChange={setPhotos}
+                content_type={config.reportType || 'template'}
+                object_id={draftId || id}
+                editable={true}
+              />
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4 justify-end">
+            <button
+              type="button"
+              onClick={handleExit}
+              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+            >
+              <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
+              <span className="hidden sm:inline">Exit</span>
+            </button>
+            {draftId && !String(draftId).startsWith('temp_') && (
+              <>
+                <button
+                  type="button"
+                  onClick={typeof onDelete === 'function' ? () => onDelete({ id: draftId }) : handleDelete}
+                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  <TrashIcon className="w-5 h-5 mr-2" />
+                  <span className="hidden sm:inline">Delete</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={typeof onReview === 'function' ? () => onReview({
+                    id: draftId,
+                    header,
+                    sections,
+                    summaries,
+                    preparedBy,
+                    signature,
+                    sigDate,
+                    photos
+                  }) : handleReview}
+                  className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
+                >
+                  <CheckIcon className="h-5 w-5 mr-2" />
+                  <span className="hidden sm:inline">Review</span>
+                </button>
+              </>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              <PencilIcon className="h-5 h-5 mr-2" />
+              <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
+            </button>
+          </div>
+        </form>
       </div>
-    )
+    </div>
   );
 };
 

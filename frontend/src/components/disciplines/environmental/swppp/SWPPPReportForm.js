@@ -42,8 +42,35 @@ export default function SWPPPReportForm() {
             header: {},
             sections: [
               {
+                name: 'Inspection Information',
+                rows: [{
+                  inspection_type: '',
+                  inspection_date: ''
+                }]
+              },
+              {
+                name: 'Project Information',
+                rows: [{
+                  project: '',
+                  spread: '',
+                  facility: '',
+                  contractor: '',
+                  inspector: '',
+                  milepost_start: '',
+                  milepost_end: '',
+                  station_start: '',
+                  station_end: ''
+                }]
+              },
+              {
                 name: 'Weather Information',
-                rows: [{}]
+                rows: [{
+                  weather_conditions: '',
+                  temperature: '',
+                  precipitation_type: '',
+                  soil_conditions: '',
+                  rain_gauges: []
+                }]
               },
               {
                 name: 'SWPPP Inspection Items',
