@@ -551,19 +551,184 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
   };
 
   return (
-    <div className="bg-black min-h-screen pt-2">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div>
-          {/* Debug: Print sections array before rendering */}
-          {console.log('Dynamic Sections to Render:', sections)}
-          {/* Dynamic Sections */}
-          {(sections || []).map((section, sectionIdx) => {
-            // Debug: Print section name
-            console.log('Rendering section:', section.name, section);
-            const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-            const fields = sectionConfig ? sectionConfig.fields : [];
-            // Debug: Print fields for this section
-            console.log('Fields for section', section.name, ':', fields);
+    config.reportType === 'swppp' ? (
+      <div className="bg-black min-h-screen pt-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <PageHeader title="SWPPP Report" backPath="/environmental/reports" />
+
+          {/* Inspection Information Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Inspection Information</h2>
+            <div className="flex flex-wrap -mx-2">
+              {config.headerFields.filter(field => ['inspection_type', 'inspection_date'].includes(field.name)).map(field => (
+                <div key={field.name} className="w-full md:w-1/2 px-2 mb-4">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                  {renderField(field, header[field.name], handleHeaderChange)}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Project Information Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
+            <div className="flex flex-wrap -mx-2">
+              {config.headerFields.filter(field => ['project', 'spread', 'facility', 'contractor', 'inspector'].includes(field.name)).map(field => (
+                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full md:w-1/2'}`}>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                  {renderField(field, header[field.name], handleHeaderChange)}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Weather Information Section */}
+          {config.dynamicSections && config.dynamicSections.find(s => s.name === 'Weather Information') && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Weather Information</h2>
+              {(sections.find(s => s.name === 'Weather Information')?.rows || []).map((row, rowIndex) => {
+                const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
+                return (
+                  <div key={rowIndex} className="space-y-4">
+                    <div className="flex flex-wrap -mx-2">
+                      {sectionConfig.fields.filter(field => field.type !== 'dynamicArray').map(field => (
+                        <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full md:w-1/2'}`}>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                          {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
+                        </div>
+                      ))}
+                    </div>
+                    {sectionConfig.fields.filter(field => field.type === 'dynamicArray').map(field => (
+                      <div key={field.name} className={`w-full px-2 ${field.className || 'w-full'}`}>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                        {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* SWPPP Inspection Items Section */}
+          {config.dynamicSections && config.dynamicSections.find(s => s.name === 'SWPPP Inspection Items') && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">SWPPP Inspection Items</h2>
+              {(sections.find(s => s.name === 'SWPPP Inspection Items')?.rows || []).map((row, rowIndex) => (
+                <div key={rowIndex} className="flex flex-wrap -mx-2 border-b border-gray-200 pb-4 mb-4">
+                  {config.dynamicSections.find(s => s.name === 'SWPPP Inspection Items').fields.map(field => {
+                    if (field.name === 'comments') {
+                      return (
+                        <div key={field.name} className={`w-full px-2 mb-4 ${field.className || 'md:w-1/2'}`}>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                          <div className="flex items-center gap-x-2">
+                            <div className="flex-grow">
+                              {renderField(field, row[field.name], (e) => handleSectionChange('SWPPP Inspection Items', rowIndex, field.name, e.target.value))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRow('SWPPP Inspection Items', rowIndex)}
+                              className="p-2 text-red-600 hover:text-red-800"
+                              aria-label="Delete row"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full md:w-1/2'}`}>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                        {renderField(field, row[field.name], (e) => handleSectionChange('SWPPP Inspection Items', rowIndex, field.name, e.target.value))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => handleAddRow('SWPPP Inspection Items')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2 mt-2"
+              >
+                <PlusIcon className="h-5 w-5" />
+                Add Row
+              </button>
+            </div>
+          )}
+
+          {/* Signature and Photos Sections */}
+          {config.requiresSignature && (
+             <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Prepared By
+                  </label>
+                  <input
+                    type="text"
+                    value={preparedBy}
+                    onChange={(e) => setPreparedBy(e.target.value)}
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Signature
+                  </label>
+                  <div className="mt-1 border border-gray-300 rounded-md">
+                    <SignaturePad
+                      ref={sigPadRef}
+                      canvasProps={{
+                        className: 'w-full h-48 rounded-md'
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearSignature}
+                    className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Clear Signature
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={sigDate || ''}
+                    onChange={handleSigDateChange}
+                    className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          {config.requiresPhotos && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
+              <ReportPhotoSection
+                photos={photos}
+                onPhotosChange={setPhotos}
+                content_type={config.reportType || 'template'}
+                object_id={draftId || id}
+                editable={true}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div className="bg-black min-h-screen pt-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <form onSubmit={handleFormSubmit} className="space-y-6">
+            {/* Dynamic Sections */}
+            {(sections || []).map((section, sectionIdx) => {
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              const fields = sectionConfig ? sectionConfig.fields : [];
 
             // Validate section data
             if (!section || !section.name) {
@@ -1306,88 +1471,82 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             );
           })}
 
-          {/* Summary Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle}</h2>
-            <div className="space-y-4">
-              {config.summaryFields.map((field) => (
-                <div key={field.name}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    {field.label}
-                  </label>
-                  <textarea
-                    value={summaries[field.name] || ''}
-                    onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                    rows={4}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Signature Section */}
-          {config.requiresSignature && (
+            {/* Summary Section */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle}</h2>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Prepared By
-                  </label>
-                  <input
-                    type="text"
-                    value={preparedBy}
-                    onChange={(e) => setPreparedBy(e.target.value)}
-                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Signature
-                  </label>
-                  <div className="mt-1 border border-gray-300 rounded-md">
-                    <SignaturePad
-                      ref={sigPadRef}
-                      canvasProps={{
-                        className: 'w-full h-48 rounded-md'
-                      }}
+                {config.summaryFields.map((field) => (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      {field.label}
+                    </label>
+                    <textarea
+                      value={summaries[field.name] || ''}
+                      onChange={(e) => handleSummaryChange(field.name, e.target.value)}
+                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                      rows={4}
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleClearSignature}
-                    className="mt-2 text-sm text-gray-500 hover:text-gray-700"
-                  >
-                    Clear Signature
-                  </button>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={sigDate || ''}
-                    onChange={handleSigDateChange}
-                    className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                  />
-                </div>
+                ))}
               </div>
             </div>
-          )}
 
-          {/* Photo Upload Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
-            <ReportPhotoSection
-              photos={photos}
-              onPhotosChange={setPhotos}
-              content_type={config.reportType || 'template'}
-              object_id={draftId || id}
-              editable={true}
-            />
-          </div>
+            {/* Signature Section */}
+            {config.requiresSignature && (
+              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Prepared By</label>
+                    <input
+                      type="text"
+                      value={preparedBy}
+                      onChange={(e) => setPreparedBy(e.target.value)}
+                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Signature</label>
+                    <div className="mt-1 border border-gray-300 rounded-md">
+                      <SignaturePad
+                        ref={sigPadRef}
+                        canvasProps={{ className: 'w-full h-48 rounded-md' }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClearSignature}
+                      className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      Clear Signature
+                    </button>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={sigDate || ''}
+                      onChange={handleSigDateChange}
+                      className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Photo Upload Section */}
+            {config.requiresPhotos && (
+              <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
+                <ReportPhotoSection
+                  photos={photos}
+                  onPhotosChange={setPhotos}
+                  content_type={config.reportType || 'template'}
+                  object_id={draftId || id}
+                  editable={true}
+                />
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 justify-end">
