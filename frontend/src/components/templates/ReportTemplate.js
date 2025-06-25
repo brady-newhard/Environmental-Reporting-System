@@ -468,13 +468,33 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         );
+      case 'time':
+        return (
+          <input
+            type="time"
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        );
+      case 'multiline':
+        return (
+          <textarea
+            name={field.name}
+            value={value || ''}
+            onChange={onChange}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        );
       case 'dynamicArray':
         return (
           <div className="space-y-4">
             {(value || []).map((item, index) => (
-              <div key={index} className="flex gap-4 items-start">
+              <div key={index} className="flex flex-wrap -mx-2 items-end">
                 {field.subfields?.map(subfield => (
-                  <div key={subfield.name} className="flex-1">
+                  <div key={subfield.name} className={`px-2 mb-2 ${subfield.className || 'flex-1'}`}>
                     <label className="block text-sm font-medium text-gray-600 mb-1">
                       {subfield.label}
                     </label>
@@ -488,17 +508,19 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                     })}
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newValue = [...(value || [])];
-                    newValue.splice(index, 1);
-                    onChange({ target: { name: field.name, value: newValue } });
-                  }}
-                  className="mt-6 p-2 text-red-600 hover:text-red-800"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </button>
+                <div className="px-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newValue = [...(value || [])];
+                      newValue.splice(index, 1);
+                      onChange({ target: { name: field.name, value: newValue } });
+                    }}
+                    className="p-2 text-red-600 hover:text-red-800"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             ))}
             <button
@@ -734,6 +756,179 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
               );
             }
 
+              // Custom layout for Weather Information
+              if (section.name === 'Weather Information') {
+                const weatherFields = fields.filter(f => f.name !== 'rain_gauges');
+                const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
+                return (
+                  <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                    {(section.rows || []).map((row, rowIndex) => (
+                      <>
+
+                        {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                          {weatherFields.map((field, idx) => {
+                            if (!field || !field.label) {
+                              console.warn('Invalid field in ReportTemplate:', field, idx);
+                              return null;
+                            }
+                            return (
+                              <div key={field.name} className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                  {field.label}
+                                </label>
+                                {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* Rain gauges on their own line */}
+                        {rainGaugeField && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                              {rainGaugeField.label}
+                            </label>
+                            <div className="space-y-2">
+                              {(row[rainGaugeField.name] || []).map((item, idx) => (
+                                <div key={idx}>
+                                  {/* Large screens: all fields in one row */}
+                                  <div className="hidden lg:flex gap-2">
+                                    {rainGaugeField.subFields.map((subField, subFieldIndex) => (
+                                      <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`} className="flex-1">
+                                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                                          {subField.label}
+                                        </label>
+                                        {renderField(subField, item[subField.name], (e) =>
+                                          handleSectionChange(
+                                            section.name,
+                                            rowIndex,
+                                            rainGaugeField.name,
+                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                              subIdx === idx
+                                                ? { ...subItem, [subField.name]: e.target.value }
+                                                : subItem
+                                            )
+                                          )
+                                        )}
+                                      </div>
+                                    ))}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                        )
+                                      }
+                                      className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
+                                    >
+                                      <XMarkIcon className="h-5 w-5" />
+                                    </button>
+                                  </div>
+                                  {/* Mobile/tablet: location on one line, rain/snow/trash on next line */}
+                                  <div className="block lg:hidden">
+                                    <div className="mb-2">
+                                      <input
+                                        type={rainGaugeField.subFields[0].type}
+                                        value={item[rainGaugeField.subFields[0].name] || ''}
+                                        onChange={e =>
+                                          handleSectionChange(
+                                            section.name,
+                                            rowIndex,
+                                            rainGaugeField.name,
+                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                              subIdx === idx
+                                                ? { ...subItem, [rainGaugeField.subFields[0].name]: e.target.value }
+                                                : subItem
+                                            )
+                                          )
+                                        }
+                                        className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                        placeholder={rainGaugeField.subFields[0].label}
+                                      />
+                                    </div>
+                                    <div className="flex w-full min-w-0 gap-2 items-center">
+                                      <input
+                                        type={rainGaugeField.subFields[1].type}
+                                        value={item[rainGaugeField.subFields[1].name] || ''}
+                                        onChange={e =>
+                                          handleSectionChange(
+                                            section.name,
+                                            rowIndex,
+                                            rainGaugeField.name,
+                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                              subIdx === idx
+                                                ? { ...subItem, [rainGaugeField.subFields[1].name]: e.target.value }
+                                                : subItem
+                                            )
+                                          )
+                                        }
+                                        className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                        placeholder={rainGaugeField.subFields[1].label}
+                                      />
+                                      <input
+                                        type={rainGaugeField.subFields[2].type}
+                                        value={item[rainGaugeField.subFields[2].name] || ''}
+                                        onChange={e =>
+                                          handleSectionChange(
+                                            section.name,
+                                            rowIndex,
+                                            rainGaugeField.name,
+                                            (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                              subIdx === idx
+                                                ? { ...subItem, [rainGaugeField.subFields[2].name]: e.target.value }
+                                                : subItem
+                                            )
+                                          )
+                                        }
+                                        className="flex-1 min-w-0 bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                                        placeholder={rainGaugeField.subFields[2].label}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleSectionChange(
+                                            section.name,
+                                            rowIndex,
+                                            rainGaugeField.name,
+                                            (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                          )
+                                        }
+                                        className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
+                                      >
+                                        <XMarkIcon className="h-5 w-5" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleSectionChange(
+                                    section.name,
+                                    rowIndex,
+                                    rainGaugeField.name,
+                                    [...(row[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
+                                  )
+                                }
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                              >
+                                <PlusIcon className="h-5 w-5" />
+                                Add {rainGaugeField.label}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ))}
+                  </div>
+                );
+              }
             // Custom layout for Weather Information
             if (section.name === 'Weather Information') {
               // Debug logging
@@ -1194,111 +1389,50 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-4 justify-end">
-            <button
-              type="button"
-              onClick={handleExit}
-              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-            >
-              <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
-              <span className="hidden sm:inline">Exit</span>
-            </button>
-            {draftId && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                >
-                  <TrashIcon className="w-5 h-5 mr-2" />
-                  <span className="hidden sm:inline">Delete</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleReview}
-                  className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
-                >
-                  <CheckIcon className="w-5 h-5 mr-2" />
-                  <span className="hidden sm:inline">Review</span>
-                </button>
-              </>
-            )}
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              <PencilIcon className="w-5 h-5 mr-2" />
-              <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
-            </button>
-          </div>
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-4 justify-end">
+
+              <button
+                type="button"
+                onClick={handleExit}
+                className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
+                <span className="hidden sm:inline">Exit</span>
+              </button>
+              {draftId && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    <TrashIcon className="w-5 h-5 mr-2" />
+                    <span className="hidden sm:inline">Delete</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleReview}
+                    className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors"
+                  >
+                    <CheckIcon className="w-5 h-5 mr-2" />
+                    <span className="hidden sm:inline">Review</span>
+                  </button>
+                </>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                <PencilIcon className="w-5 h-5 mr-2" />
+                <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      {deleteDialogOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Report</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Are you sure you want to delete this report? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={() => setDeleteDialogOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteConfirm}
-                className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Exit Confirmation Dialog */}
-      {exitDialogOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Exit Report</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Do you want to save your changes before exiting?
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={() => setExitDialogOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => handleExitConfirm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Don't Save
-              </button>
-              <button
-                type="button"
-                onClick={() => handleExitConfirm(true)}
-                className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    )
   );
 };
 
