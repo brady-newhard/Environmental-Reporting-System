@@ -1087,6 +1087,95 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               );
             }
 
+            // Custom layout for SWPPP Inspection Items
+            if (config.reportType === 'swppp' && section.name === 'SWPPP Inspection Items') {
+              return (
+                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  {(section.rows || []).map((row, rowIndex) => {
+                    // Validate row data
+                    if (!row || typeof row !== 'object') {
+                      console.warn(`Invalid row data in section "${section.name}" at index ${rowIndex}:`, row);
+                      return null;
+                    }
+
+                    return (
+                      <div key={`row-${section.name}-${rowIndex}`} className="space-y-4">
+                        {/* Line 1: Station Start, Station End, Feature Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {fields.filter(f => ['station_start', 'station_end', 'feature_details'].includes(f.name)).map((field, idx) => (
+                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 2: Inspector ID, Inspection Time */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {fields.filter(f => ['inspector_id', 'inspection_time'].includes(f.name)).map((field, idx) => (
+                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 3: ECD Functional?, ECD Needs Maintenance?, Soil Disturbed? (3 dropdowns) */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {fields.filter(f => ['ecd_functional', 'ecd_maintenance', 'soil_disturbed'].includes(f.name)).map((field, idx) => (
+                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 4: Comments (100% width) with trashcan vertically centered */}
+                        <div className="flex items-start gap-4">
+                          <div className="flex-1">
+                            {fields.filter(f => f.name === 'comments').map((field, idx) => (
+                              <div key={`field-${field.name}-${idx}`}>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                  {field.label}
+                                </label>
+                                {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              </div>
+                            ))}
+                          </div>
+                          {!sectionConfig.isStatic && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRow(section.name, rowIndex)}
+                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-6"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {!sectionConfig.isStatic && (
+                    <button
+                      type="button"
+                      onClick={() => handleAddRow(section.name)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                    >
+                      <PlusIcon className="h-5 w-5" />
+                      Add Row
+                    </button>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
