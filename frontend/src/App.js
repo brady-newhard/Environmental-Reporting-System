@@ -29,6 +29,7 @@ import PunchlistDrafts from './components/disciplines/environmental/punchlists/P
 import PunchlistDraftView from './components/disciplines/environmental/punchlists/PunchlistDraftView';
 // import NewSWPPP from './components/disciplines/environmental/swppp/NewSWPPP';
 import SWPPPReport from './components/disciplines/environmental/swppp/SWPPPReport';
+import SWPPPReportForm from './components/disciplines/environmental/swppp/SWPPPReportForm';
 import SWPPPPhotoPage from './components/disciplines/environmental/swppp/SWPPPPhotoPage';
 import SWPPPDrafts from './components/disciplines/environmental/swppp/SWPPPDrafts';
 import NewProgressReport from './components/disciplines/environmental/progress/NewProgressReport';
@@ -467,7 +468,31 @@ function AppContent() {
           path="/environmental/swppp/new"
           element={
             <PrivateRoute>
-              <SWPPPReport />
+              <SWPPPReportForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/swppp/edit/:id"
+          element={
+            <PrivateRoute>
+              <SWPPPReportForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/swppp/drafts"
+          element={
+            <PrivateRoute>
+              <SWPPPDrafts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/swppp/review/:draftId"
+          element={
+            <PrivateRoute>
+              <SWPPPReportReview />
             </PrivateRoute>
           }
         />
@@ -557,14 +582,6 @@ function AppContent() {
           element={
             <PrivateRoute>
               <EnvironmentalDailyReportDrafts />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/swppp/review/:draftId"
-          element={
-            <PrivateRoute>
-              <SWPPPReportReview />
             </PrivateRoute>
           }
         />

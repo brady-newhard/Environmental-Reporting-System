@@ -1,74 +1,179 @@
-import React, { useState } from 'react';
-import { TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
-import SignaturePad from 'react-signature-canvas';
-import ReportPhotoSection from '../../../common/ReportPhotoSection';
+import React, { useState, useEffect } from 'react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import ReportTemplate from '../../../templates/ReportTemplate';
+import { saveDraft, normalizeDraft, loadDraft } from '../../../../utils/draftUtils';
+import swpppReportConfig from './SWPPPConfig';
+import ReportPhotoSection from '../../../../components/common/ReportPhotoSection';
+import PageHeader from '../../../common/PageHeader';
+import api from '../../../../services/api';
 
-const SWPPPReportForm = ({ config, initialData, onSave, onReview, onDelete }) => {
+export default function SWPPPReportForm() {
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [draft, setDraft] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const reportType = 'swppp';
+  const [photos, setPhotos] = useState([]);
 
-  const [header, setHeader] = useState(initialData?.header || {});
-  const [sections, setSections] = useState(initialData?.sections || {});
-  const [preparedBy, setPreparedBy] = useState(initialData?.preparedBy || '');
-  const [signature, setSignature] = useState(initialData?.signature || '');
-  const [sigDate, setSigDate] = useState(initialData?.sigDate || null);
-  const sigPadRef = React.useRef(null);
-
-  const handleHeaderChange = (e) => setHeader({ ...header, [e.target.name]: e.target.value });
-
-  const renderField = (field, value, onChange) => {
-    // Simplified field renderer for this form
-    const commonProps = {
-      name: field.name,
-      value: value || '',
-      onChange: onChange,
-      className: "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+  useEffect(() => {
+    const initializeDraft = async () => {
+      try {
+        if (location.state && location.state.draft) {
+          setDraft(normalizeDraft(location.state.draft));
+        } else if (id) {
+          // Load existing draft
+          const loadedDraft = await loadDraft(reportType, id);
+          if (loadedDraft) {
+            setDraft(normalizeDraft(loadedDraft));
+          } else {
+            console.error('Failed to load draft with ID:', id);
+            setSnackbar({
+              open: true,
+              message: 'Failed to load draft',
+              severity: 'error'
+            });
+          }
+        } else {
+          // Create new draft only if we don't have an ID
+          const emptyDraft = {
+            header: {},
+            sections: [
+              {
+                name: 'Weather Information',
+                rows: [{}]
+              },
+              {
+                name: 'SWPPP Inspection Items',
+                rows: [{
+                  station_start: '',
+                  station_end: '',
+                  feature_details: '',
+                  inspector_id: '',
+                  inspection_time: '',
+                  ecd_functional: '',
+                  ecd_maintenance: '',
+                  soil_disturbed: '',
+                  comments: ''
+                }]
+              }
+            ],
+            summaries: {},
+            photos: [],
+            signature: '',
+            sigDate: '',
+            preparedBy: '',
+            id: `temp_${Date.now()}`
+          };
+          setDraft(normalizeDraft(emptyDraft));
+        }
+      } catch (error) {
+        console.error('Error initializing draft:', error);
+        setSnackbar({
+          open: true,
+          message: 'Error initializing draft',
+          severity: 'error'
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
-    switch (field.type) {
-      case 'dropdown':
-        return (
-          <select {...commonProps}>
-            <option value="">Select {field.label}</option>
-            {(field.options || []).map(option => (
-              <option key={option.value || option} value={option.value || option}>{option.label || option}</option>
-            ))}
-          </select>
-        );
-      case 'multiline': return <textarea {...commonProps} rows={4} />;
-      default: return <input type={field.type} {...commonProps} />;
+
+    initializeDraft();
+  }, [id, reportType, location.state]);
+
+  const handleSave = async (formData) => {
+    try {
+      const dataToSave = normalizeDraft(formData);
+      const savedDraft = await saveDraft(reportType, dataToSave);
+
+      // If the saved draft has a real ID, update the URL and state
+      if (savedDraft.id && !String(savedDraft.id).startsWith('temp_')) {
+        if (id !== savedDraft.id) {
+          navigate(`/environmental/swppp/edit/${savedDraft.id}`, {
+            state: { draft: { ...savedDraft.data, id: savedDraft.id } }
+          });
+        }
+        setDraft(normalizeDraft({ ...savedDraft.data, id: savedDraft.id }));
+      }
+
+      setSnackbar({
+        open: true,
+        message: 'Draft saved successfully',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error saving report:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error saving draft: ' + (error.response?.data?.message || error.message),
+        severity: 'error'
+      });
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleReview = () => {
+    console.log('Navigating to review with draft ID:', draft.id);
+    navigate(`/environmental/swppp/review/${draft.id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!draft?.id) return;
+    if (!window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) return;
+    try {
+      await api.delete(`/drafts/${draft.id}/`);
+      setSnackbar({ open: true, message: 'Draft deleted successfully', severity: 'success' });
+      setTimeout(() => {
+        navigate('/environmental/swppp/drafts');
+      }, 500);
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.detail || 'Error deleting draft', 
+        severity: 'error' 
+      });
+    }
+  };
+
+  if (isLoading || !draft) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Inspection Information */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Inspection Information</h2>
-        <div className="flex flex-wrap -mx-2">
-          {config.headerFields.filter(f => ['inspection_type', 'inspection_date'].includes(f.name)).map(field => (
-            <div key={field.name} className="w-full md:w-1/2 px-2 mb-4">
-              <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-              {renderField(field, header[field.name], handleHeaderChange)}
-            </div>
-          ))}
+    <div className="min-h-[calc(100vh-64px)] overflow-auto p-4 sm:p-6">
+      <PageHeader 
+        title={<span className="text-white">{id ? 'Edit SWPPP Report' : 'SWPPP Report'}</span>}
+        backPath={id ? "/environmental/swppp/drafts" : "/environmental/reports"}
+        backButtonStyle={{
+          backgroundColor: '#000000',
+          color: '#ffffff',
+          '&:hover': { backgroundColor: '#333333' }
+        }}
+      />
+      <ReportTemplate 
+        initialData={draft}
+        onChange={setDraft}
+        onSave={handleSave}
+        onReview={id ? handleReview : undefined}
+        onDelete={id ? handleDelete : undefined}
+        onCancel={handleCloseSnackbar}
+        config={swpppReportConfig}
+      />
+      {/* Tailwind notification */}
+      {snackbar.open && (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-center transition-all duration-300 ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+             onClick={handleCloseSnackbar}
+        >
+          {snackbar.message}
         </div>
-      </div>
-
-      {/* Project Information */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-        <div className="flex flex-wrap -mx-2">
-          {config.headerFields.filter(f => ['project', 'spread', 'facility', 'contractor', 'inspector'].includes(f.name)).map(field => (
-            <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
-              <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-              {renderField(field, header[field.name], handleHeaderChange)}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* More sections will be added here */}
-
+      )}
     </div>
   );
-};
-
-export default SWPPPReportForm; 
+} 

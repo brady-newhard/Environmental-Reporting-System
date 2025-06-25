@@ -23,7 +23,7 @@ const SWPPPDrafts = () => {
   }, [loading, isAuthenticated]);
 
   const handleResume = (draftId) => {
-    navigate(`/swppp/new?draftId=${draftId}`);
+    navigate(`/environmental/swppp/edit/${draftId}`);
   };
 
   const handleDelete = async (draftId) => {
