@@ -551,291 +551,210 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
   };
 
   return (
-    config.reportType === 'swppp' ? (
-      <div className="bg-black min-h-screen pt-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <PageHeader title="SWPPP Report" backPath="/environmental/reports" />
+    <div className="bg-black min-h-screen pt-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div>
+          {/* Debug: Print sections array before rendering */}
+          {console.log('Dynamic Sections to Render:', sections)}
+          {/* Dynamic Sections */}
+          {(sections || []).map((section, sectionIdx) => {
+            // Debug: Print section name
+            console.log('Rendering section:', section.name, section);
+            const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+            const fields = sectionConfig ? sectionConfig.fields : [];
+            // Debug: Print fields for this section
+            console.log('Fields for section', section.name, ':', fields);
 
-          {/* Inspection Information Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Inspection Information</h2>
-            <div className="flex flex-wrap -mx-2">
-              {config.headerFields.filter(field => ['inspection_type', 'inspection_date'].includes(field.name)).map(field => (
-                <div key={field.name} className="w-full md:w-1/2 px-2 mb-4">
-                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                  {renderField(field, header[field.name], handleHeaderChange)}
-                </div>
-              ))}
-            </div>
-          </div>
+            // Validate section data
+            if (!section || !section.name) {
+              console.warn('Invalid section data:', section);
+              return null;
+            }
 
-          {/* Project Information Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-            <div className="flex flex-wrap -mx-2">
-              {config.headerFields.filter(field => ['project', 'spread', 'facility', 'contractor', 'inspector'].includes(field.name)).map(field => (
-                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full md:w-1/2'}`}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                  {renderField(field, header[field.name], handleHeaderChange)}
-                </div>
-              ))}
-            </div>
-          </div>
+            // Find matching section config
+            if (!sectionConfig) {
+              console.warn(`Section "${section.name}" not found in config.dynamicSections`);
+              return null;
+            }
 
-          {/* Weather Information Section */}
-          {config.dynamicSections && config.dynamicSections.find(s => s.name === 'Weather Information') && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Weather Information</h2>
-              {(sections.find(s => s.name === 'Weather Information')?.rows || []).map((row, rowIndex) => {
-                const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
-                return (
-                  <div key={rowIndex} className="space-y-4">
-                    <div className="flex flex-wrap -mx-2">
-                      {sectionConfig.fields.filter(field => field.type !== 'dynamicArray').map(field => (
-                        <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full md:w-1/2'}`}>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                          {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
-                        </div>
-                      ))}
-                    </div>
-                    {sectionConfig.fields.filter(field => field.type === 'dynamicArray').map(field => (
-                      <div key={field.name} className={`w-full px-2 ${field.className || 'w-full'}`}>
+            // Validate section fields
+            if (!Array.isArray(fields)) {
+              console.warn(`Invalid fields for section "${section.name}":`, fields);
+              return null;
+            }
+
+            // SWPPP: Render Inspection Information as a normal card, not custom layout
+            if (sectionIdx === 0 && config.reportType === 'swppp' && section.name === 'Inspection Information') {
+              return (
+                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {fields.filter(Boolean).map(field => (
+                      <div key={field.name} className="col-span-1">
                         <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                        {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
+                        {renderField(field, section.rows[0][field.name], e =>
+                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        )}
                       </div>
                     ))}
                   </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* SWPPP Inspection Items Section */}
-          {config.dynamicSections && config.dynamicSections.find(s => s.name === 'SWPPP Inspection Items') && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">SWPPP Inspection Items</h2>
-              {(sections.find(s => s.name === 'SWPPP Inspection Items')?.rows || []).map((row, rowIndex) => (
-                <div key={rowIndex} className="flex flex-wrap -mx-2 border-b border-gray-200 pb-4 mb-4">
-                  {config.dynamicSections.find(s => s.name === 'SWPPP Inspection Items').fields.map(field => {
-                    if (field.name === 'comments') {
-                      return (
-                        <div key={field.name} className={`w-full px-2 mb-4 ${field.className || 'md:w-1/2'}`}>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                          <div className="flex items-center gap-x-2">
-                            <div className="flex-grow">
-                              {renderField(field, row[field.name], (e) => handleSectionChange('SWPPP Inspection Items', rowIndex, field.name, e.target.value))}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveRow('SWPPP Inspection Items', rowIndex)}
-                              className="p-2 text-red-600 hover:text-red-800"
-                              aria-label="Delete row"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full md:w-1/2'}`}>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                        {renderField(field, row[field.name], (e) => handleSectionChange('SWPPP Inspection Items', rowIndex, field.name, e.target.value))}
-                      </div>
-                    );
-                  })}
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => handleAddRow('SWPPP Inspection Items')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2 mt-2"
-              >
-                <PlusIcon className="h-5 w-5" />
-                Add Row
-              </button>
-            </div>
-          )}
+              );
+            }
 
-          {/* Signature and Photos Sections */}
-          {config.requiresSignature && (
-             <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Prepared By</label>
-                <input
-                  type="text"
-                  name="preparedBy"
-                  value={preparedBy}
-                  onChange={e => setPreparedBy(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Signature</label>
-                <SignaturePad
-                  ref={sigPadRef}
-                  canvasProps={{ width: 500, height: 150, className: 'border border-gray-300 rounded-md bg-white' }}
-                  onEnd={() => setSignature(sigPadRef.current?.toDataURL() || '')}
-                />
-                <button
-                  type="button"
-                  onClick={handleClearSignature}
-                  className="mt-2 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                >
-                  Clear Signature
-                </button>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-600 mb-1">Date</label>
-                <input
-                  type="date"
-                  name="sigDate"
-                  value={sigDate ? new Date(sigDate).toISOString().split('T')[0] : ''}
-                  onChange={handleSigDateChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-          )}
-          {config.requiresPhotos && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
-              <ReportPhotoSection
-                photos={photos}
-                setPhotos={setPhotos}
-                editable={true}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    ) : (
-      <div className="bg-black min-h-screen pt-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <form onSubmit={handleFormSubmit} className="space-y-6">
-            {/* Dynamic Sections */}
-            {(sections || []).map((section, sectionIdx) => {
-              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-              const fields = sectionConfig ? sectionConfig.fields : [];
+            // Render first section (header/project info) with white card wrapper
+            if (sectionIdx === 0) {
+              const inspectorField = fields.find(f => f.name === 'inspector');
+              const projectField = fields.find(f => f.name === 'project');
+              const contractorField = fields.find(f => f.name === 'contractor');
+              const spreadField = fields.find(f => f.name === 'spread');
+              const facilityField = fields.find(f => f.name === 'facility');
+              const milepostStartField = fields.find(f => f.name === 'milepost_start');
+              const milepostEndField = fields.find(f => f.name === 'milepost_end');
+              const stationStartField = fields.find(f => f.name === 'station_start');
+              const stationEndField = fields.find(f => f.name === 'station_end');
+              const dateField = fields.find(f => f.name === 'date');
 
-
-              // Validate section data
-              if (!section || !section.name) {
-                console.warn('Invalid section data:', section);
-                return null;
-              }
-
-              // Find matching section config
-              if (!sectionConfig) {
-                console.warn(`Section "${section.name}" not found in config.dynamicSections`);
-                return null;
-              }
-
-              // Validate section fields
-              if (!Array.isArray(fields)) {
-                console.warn(`Invalid fields for section "${section.name}":`, fields);
-                return null;
-              }
-
-              // Render first section (header/project info) with white card wrapper
-              if (sectionIdx === 0) {
-                const inspectorField = fields.find(f => f.name === 'inspector');
-                const projectField = fields.find(f => f.name === 'project');
-                const contractorField = fields.find(f => f.name === 'contractor');
-                const spreadField = fields.find(f => f.name === 'spread');
-                const facilityField = fields.find(f => f.name === 'facility');
-                const milepostStartField = fields.find(f => f.name === 'milepost_start');
-                const milepostEndField = fields.find(f => f.name === 'milepost_end');
-                const stationStartField = fields.find(f => f.name === 'station_start');
-                const stationEndField = fields.find(f => f.name === 'station_end');
-                const dateField = fields.find(f => f.name === 'date');
-
-                return (
-                  <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xl md:text-2xl font-bold text-gray-800">{section.name}</h2>
-                      <div className="flex items-center">
-                        <label className="text-sm font-medium text-gray-600 mr-2">Date:</label>
-                        <input
-                          type="date"
-                          name="date"
-                          value={header.date ? new Date(header.date).toISOString().split('T')[0] : ''}
-                          onChange={handleDateChange}
-                          className="bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-4">
-                      {/* Inspector and Project on one line for md+ */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {inspectorField && (
-                          <div className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{inspectorField.label}</label>
-                            {renderField(inspectorField, header[inspectorField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                        {projectField && (
-                          <div className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{projectField.label}</label>
-                            {renderField(projectField, header[projectField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                      </div>
-                      {/* Spread and Facility on one line for mobile, revert to original for md+ */}
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {spreadField && (
-                          <div className="col-span-1 md:col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{spreadField.label}</label>
-                            {renderField(spreadField, header[spreadField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                        {facilityField && (
-                          <div className="col-span-1 md:col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{facilityField.label}</label>
-                            {renderField(facilityField, header[facilityField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                        {/* Contractor only on md+ as third column */}
-                        {contractorField && (
-                          <div className="hidden md:block md:col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{contractorField.label}</label>
-                            {renderField(contractorField, header[contractorField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                      </div>
-                      {/* Milepost and Station fields: 4 fields in one line on md+, two pairs on mobile */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {milepostStartField && (
-                          <div className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{milepostStartField.label}</label>
-                            {renderField(milepostStartField, header[milepostStartField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                        {milepostEndField && (
-                          <div className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{milepostEndField.label}</label>
-                            {renderField(milepostEndField, header[milepostEndField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                        {stationStartField && (
-                          <div className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{stationStartField.label}</label>
-                            {renderField(stationStartField, header[stationStartField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                        {stationEndField && (
-                          <div className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{stationEndField.label}</label>
-                            {renderField(stationEndField, header[stationEndField.name], handleHeaderChange)}
-                          </div>
-                        )}
-                      </div>
+              return (
+                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-800">{section.name}</h2>
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-600 mr-2">Date:</label>
+                      <input
+                        type="date"
+                        name="date"
+                        value={header.date ? new Date(header.date).toISOString().split('T')[0] : ''}
+                        onChange={handleDateChange}
+                        className="bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                        required
+                      />
                     </div>
                   </div>
-                );
-              }
+                  <div className="flex flex-col gap-4">
+                    {config.reportType === 'swppp' ? (
+                      <>
+                        {/* Inspection Information Section */}
+                        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Inspection Information</h2>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {config.headerFields.filter(field => ['inspection_type', 'inspection_date'].includes(field.name)).map(field => (
+                              <div key={field.name} className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                {renderField(field, header[field.name], handleHeaderChange)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Project Information Section as its own card */}
+                        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                          <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
+                          {/* Row 1: Project, Spread, Facility */}
+                          <div className="flex flex-wrap -mx-2">
+                            {(() => {
+                              const fields = [
+                                config.headerFields.find(f => f.name === 'project'),
+                                config.headerFields.find(f => f.name === 'spread'),
+                                config.headerFields.find(f => f.name === 'facility'),
+                              ];
+                              return fields.filter(Boolean).map(field => (
+                                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
+                                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                  {renderField(field, header[field.name], handleHeaderChange)}
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                          {/* Row 2: Inspector, Contractor */}
+                          <div className="flex flex-wrap -mx-2">
+                            {(() => {
+                              const fields = [
+                                config.headerFields.find(f => f.name === 'inspector'),
+                                config.headerFields.find(f => f.name === 'contractor'),
+                              ];
+                              return fields.filter(Boolean).map(field => (
+                                <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
+                                  <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                                  {renderField(field, header[field.name], handleHeaderChange)}
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      // Original daily report layout
+                      <>
+                        {/* Inspector and Project on one line for md+ */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {inspectorField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{inspectorField.label}</label>
+                              {renderField(inspectorField, header[inspectorField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {projectField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{projectField.label}</label>
+                              {renderField(projectField, header[projectField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                        </div>
+                        {/* Spread and Facility on one line for mobile, revert to original for md+ */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {spreadField && (
+                            <div className="col-span-1 md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{spreadField.label}</label>
+                              {renderField(spreadField, header[spreadField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {facilityField && (
+                            <div className="col-span-1 md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{facilityField.label}</label>
+                              {renderField(facilityField, header[facilityField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {/* Contractor only on md+ as third column */}
+                          {contractorField && (
+                            <div className="hidden md:block md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{contractorField.label}</label>
+                              {renderField(contractorField, header[contractorField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                        </div>
+                        {/* Milepost and Station fields: 4 fields in one line on md+, two pairs on mobile */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {milepostStartField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{milepostStartField.label}</label>
+                              {renderField(milepostStartField, header[milepostStartField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {milepostEndField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{milepostEndField.label}</label>
+                              {renderField(milepostEndField, header[milepostEndField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {stationStartField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{stationStartField.label}</label>
+                              {renderField(stationStartField, header[stationStartField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                          {stationEndField && (
+                            <div className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">{stationEndField.label}</label>
+                              {renderField(stationEndField, header[stationEndField.name], handleHeaderChange)}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            }
 
               // Custom layout for Weather Information
               if (section.name === 'Weather Information') {
@@ -1010,19 +929,38 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                   </div>
                 );
               }
-
-              // Custom layout for Crew Daily Summaries
-              if (section.name === 'Crew Daily Summaries') {
-                const crewFields = fields.filter(f => f.name !== 'Summary');
-                const summaryField = fields.find(f => f.name === 'Summary');
-                return (
-                  <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
-                    {(section.rows || []).map((row, rowIndex) => (
+            // Custom layout for Weather Information
+            if (section.name === 'Weather Information') {
+              // Debug logging
+              console.log('Rendering Weather Information section:', section);
+              const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
+              let fields = sectionConfig ? sectionConfig.fields : [];
+              // For SWPPP, ensure fields are always from config.dynamicSections
+              if (config.reportType === 'swppp') {
+                fields = (config.dynamicSections.find(s => s.name === 'Weather Information') || {}).fields || [];
+              }
+              console.log('Weather Information sectionConfig:', sectionConfig);
+              console.log('Weather Information fields:', fields);
+              const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
+              return (
+                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  {(section.rows || []).map((row, rowIndex) => {
+                    // Ensure all expected keys are present in the row
+                    const defaultWeatherRow = {
+                      weather_conditions: '',
+                      temperature: '',
+                      precipitation_type: '',
+                      soil_conditions: '',
+                      rain_gauges: []
+                    };
+                    const safeRow = { ...defaultWeatherRow, ...row };
+                    console.log('Weather Information row:', safeRow);
+                    return (
                       <>
-                        {/* All fields except Start/End Station */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                          {crewFields.filter(f => f.name !== 'Start Station' && f.name !== 'End Station').map((field, idx) => {
+                        {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                          {fields.filter(Boolean).filter(field => field.name !== 'rain_gauges').map((field, idx) => {
                             if (!field || !field.label) {
                               console.warn('Invalid field in ReportTemplate:', field, idx);
                               return null;
@@ -1032,262 +970,424 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                                 <label className="block text-sm font-medium text-gray-600 mb-1">
                                   {field.label}
                                 </label>
-                                {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                                {renderField(field, safeRow[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
                               </div>
                             );
                           })}
-                          {/* Start Station and End Station side by side */}
-                          <div className="col-span-1 md:col-span-2 flex gap-2">
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">Start Station</label>
-                              {renderField(fields.find(f => f.name === 'Start Station'), row['Start Station'], (e) => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value))}
-                            </div>
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">End Station</label>
-                              {renderField(fields.find(f => f.name === 'End Station'), row['End Station'], (e) => handleSectionChange(section.name, rowIndex, 'End Station', e.target.value))}
-                            </div>
-                          </div>
                         </div>
-                        {summaryField && (
-                          <div className="flex items-start gap-2 mb-4">
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">
-                                {summaryField.label}
-                              </label>
-                              <textarea
-                                value={row[summaryField.name] || ''}
-                                onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
-                                className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                                rows={3}
-                              />
-                            </div>
-                            {!sectionConfig.isStatic && (
+                        {/* Rain Gauges section below the weather fields grid */}
+                        {rainGaugeField && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-bold text-gray-600 mb-1">
+                              {rainGaugeField.label}
+                            </label>
+                            {/* Column headers for rain gauge subfields, only show if at least one row exists */}
+                            {(safeRow[rainGaugeField.name] || []).length > 0 && (
+                              <div className="hidden md:flex gap-2 mb-1 w-full">
+                                {rainGaugeField.subFields.map((subField, idx) => (
+                                  <div key={subField.name} className="flex-1 text-gray-700">
+                                    {subField.label}
+                                  </div>
+                                ))}
+                                <div className="w-8" />
+                              </div>
+                            )}
+                            <div className="space-y-2">
+                              {(safeRow[rainGaugeField.name] || []).map((item, idx) => (
+                                <div key={idx} className="flex gap-2 items-center w-full">
+                                  {rainGaugeField.subFields.map((subField, subFieldIndex) => (
+                                    <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}}`} className="flex-1">
+                                      <label className="sr-only">{subField.label}</label>
+                                      {renderField(subField, item[subField.name], (e) =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (safeRow[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                            subIdx === idx
+                                              ? { ...subItem, [subField.name]: e.target.value }
+                                              : subItem
+                                          )
+                                        )
+                                      )}
+                                    </div>
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleSectionChange(
+                                        section.name,
+                                        rowIndex,
+                                        rainGaugeField.name,
+                                        (safeRow[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
+                                      )
+                                    }
+                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
+                                  >
+                                    <XMarkIcon className="h-5 w-5" />
+                                  </button>
+                                </div>
+                              ))}
                               <button
                                 type="button"
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-0"
-                              >
-                                <TrashIcon className="h-5 w-5" />
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    ))}
-                    {!sectionConfig.isStatic && (
-                      <div className="flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => handleAddRow(section.name)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                        >
-                          <PlusIcon className="h-5 w-5" />
-                          Add Row
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              // Custom layout for Daily Progress
-              if (section.name === 'Daily Progress') {
-                // Always get fields from config for this section
-                const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
-                const fields = sectionConfig ? sectionConfig.fields : [];
-                if (!fields[0] || !fields[0].label || !fields[1] || !fields[1].label || !fields[2] || !fields[2].label) {
-                  console.warn('Config for Daily Progress section is missing required fields:', fields);
-                  return null;
-                }
-                return (
-                  <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
-                    {(section.rows || []).map((row, rowIndex) => (
-                      <div key={`row-${section.name}-${rowIndex}`} className="mb-4 w-full">
-                        {/* MOBILE ONLY */}
-                        <div className="block lg:hidden">
-                          {/* Progress Item label and dropdown */}
-                          <div className="w-full mb-2">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">{fields[0].label}</label>
-                            {renderField(fields[0], row[fields[0].name], (e) => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value))}
-                          </div>
-                          {/* Labels for Start/End Station */}
-                          <div className="flex w-full gap-2 mt-2">
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">{fields[1].label}</label>
-                            </div>
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">{fields[2].label}</label>
-                            </div>
-                            <div className="w-8" />
-                          </div>
-                          {/* Start/End Station and Trashcan */}
-                          <div className="flex w-full gap-2 items-center">
-                            <div className="flex-1">
-                              {renderField(fields[1], row[fields[1].name], (e) => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value))}
-                            </div>
-                            <div className="flex-1">
-                              {renderField(fields[2], row[fields[2].name], (e) => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value))}
-                            </div>
-                            {!sectionConfig.isStatic && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
-                              >
-                                <XMarkIcon className="h-5 w-5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        {/* DESKTOP ONLY */}
-                        <div className="hidden lg:block w-full">
-                          {/* Labels row */}
-                          <div className="flex w-full gap-2 mb-1">
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">{fields[0].label}</label>
-                            </div>
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">{fields[1].label}</label>
-                            </div>
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">{fields[2].label}</label>
-                            </div>
-                            <div className="w-8" />
-                          </div>
-                          {/* Fields row */}
-                          <div className="flex w-full gap-2 items-center">
-                            <div className="flex-1">
-                              {renderField(fields[0], row[fields[0].name], (e) => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value))}
-                            </div>
-                            <div className="flex-1">
-                              {renderField(fields[1], row[fields[1].name], (e) => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value))}
-                            </div>
-                            <div className="flex-1">
-                              {renderField(fields[2], row[fields[2].name], (e) => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value))}
-                            </div>
-                            {!sectionConfig.isStatic && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveRow(section.name, rowIndex)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
-                              >
-                                <XMarkIcon className="h-5 w-5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {!sectionConfig.isStatic && (
-                      <div className="flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => handleAddRow(section.name)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                        >
-                          <PlusIcon className="h-5 w-5" />
-                          Add Row
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              return (
-                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
-                  {(section.rows || []).map((row, rowIndex) => {
-                    // Validate row data
-                    if (!row || typeof row !== 'object') {
-                      console.warn(`Invalid row data in section "${section.name}" at index ${rowIndex}:`, row);
-                      return null;
-                    }
-
-                    return (
-                      <div key={`row-${section.name}-${rowIndex}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        {fields.map((field, idx) => {
-                          if (!field || !field.name || !field.label) {
-                            console.warn('Invalid field in ReportTemplate:', field, idx);
-                            return null;
-                          }
-
-                          if (field.type === 'dynamicArray') {
-                            return (
-                              <div key={`field-${field.name}-${idx}`} className="col-span-full">
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                  {field.label}
-                                </label>
-                                {renderField(field, row[field.name], (e) =>
+                                onClick={() =>
                                   handleSectionChange(
                                     section.name,
                                     rowIndex,
-                                    field.name,
-                                    e.target.value
+                                    rainGaugeField.name,
+                                    [...(safeRow[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
                                   )
-                                )}
-
-                              </div>
-                            );
-                          }
-                          return (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">
-                                {field.label}
-                              </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                                }
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                              >
+                                <PlusIcon className="h-5 w-5" />
+                                Add {rainGaugeField.label}
+                              </button>
                             </div>
-                          );
-                        })}
-                        {!sectionConfig.isStatic && (
-                          <div className="col-span-1 flex items-end">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveRow(section.name, rowIndex)}
-                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-0"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
                           </div>
                         )}
-                      </div>
+                      </>
                     );
                   })}
+                </div>
+              );
+            }
+
+            // Custom layout for Crew Daily Summaries
+            if (section.name === 'Crew Daily Summaries') {
+              const crewFields = fields;
+              return (
+                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  {(section.rows || []).map((row, rowIndex) => (
+                    <React.Fragment key={rowIndex}>
+                      {/* First row: Crew, Foreman */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Crew</label>
+                          {renderField(crewFields.find(f => f.name === 'Crew'), row['Crew'], (e) => handleSectionChange(section.name, rowIndex, 'Crew', e.target.value))}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Foreman</label>
+                          {renderField(crewFields.find(f => f.name === 'Foreman'), row['Foreman'], (e) => handleSectionChange(section.name, rowIndex, 'Foreman', e.target.value))}
+                        </div>
+                      </div>
+                      {/* Second row: Milepost Start, Milepost End, Station Start, Station End */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Milepost Start</label>
+                          {renderField({ ...crewFields.find(f => f.name === 'Milepost Start'), type: 'text' }, row['Milepost Start'], (e) => handleSectionChange(section.name, rowIndex, 'Milepost Start', e.target.value))}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Milepost End</label>
+                          {renderField({ ...crewFields.find(f => f.name === 'Milepost End'), type: 'text' }, row['Milepost End'], (e) => handleSectionChange(section.name, rowIndex, 'Milepost End', e.target.value))}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Start Station</label>
+                          {renderField(crewFields.find(f => f.name === 'Start Station'), row['Start Station'], (e) => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value))}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">End Station</label>
+                          {renderField(crewFields.find(f => f.name === 'End Station'), row['End Station'], (e) => handleSectionChange(section.name, rowIndex, 'End Station', e.target.value))}
+                        </div>
+                      </div>
+                      {/* Third row: Summary (true multiline textarea) with trashcan vertically centered */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Summary</label>
+                          <textarea
+                            value={row['Summary'] || ''}
+                            onChange={e => handleSectionChange(section.name, rowIndex, 'Summary', e.target.value)}
+                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            rows={3}
+                          />
+                        </div>
+                        {!sectionConfig.isStatic && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRow(section.name, rowIndex)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
+                    </React.Fragment>
+                  ))}
                   {!sectionConfig.isStatic && (
-                    <button
-                      type="button"
-                      onClick={() => handleAddRow(section.name)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                    >
-                      <PlusIcon className="h-5 w-5" />
-                      Add Row
-                    </button>
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => handleAddRow(section.name)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                      >
+                        <PlusIcon className="h-5 w-5" />
+                        Add Row
+                      </button>
+                    </div>
                   )}
                 </div>
               );
-            })}
+            }
 
-            {/* Summary Section */}
+            // Custom layout for Daily Progress
+            if (section.name === 'Daily Progress') {
+              // Always get fields from config for this section
+              const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+              const fields = sectionConfig ? sectionConfig.fields : [];
+              if (!fields[0] || !fields[0].label || !fields[1] || !fields[1].label || !fields[2] || !fields[2].label) {
+                console.warn('Config for Daily Progress section is missing required fields:', fields);
+                return null;
+              }
+              return (
+                <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  {(section.rows || []).map((row, rowIndex) => (
+                    <div key={`row-${section.name}-${rowIndex}`} className="mb-4 w-full">
+                      {/* MOBILE ONLY */}
+                      <div className="block lg:hidden">
+                        {/* Progress Item label and dropdown */}
+                        <div className="w-full mb-2">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">{fields[0].label}</label>
+                          {renderField(fields[0], row[fields[0].name], (e) => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value))}
+                        </div>
+                        {/* Labels for Start/End Station */}
+                        <div className="flex w-full gap-2 mt-2">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">{fields[1].label}</label>
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">{fields[2].label}</label>
+                          </div>
+                          <div className="w-8" />
+                        </div>
+                        {/* Start/End Station and Trashcan */}
+                        <div className="flex w-full gap-2 items-center">
+                          <div className="flex-1">
+                            {renderField(fields[1], row[fields[1].name], (e) => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value))}
+                          </div>
+                          <div className="flex-1">
+                            {renderField(fields[2], row[fields[2].name], (e) => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value))}
+                          </div>
+                          {!sectionConfig.isStatic && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRow(section.name, rowIndex)}
+                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
+                            >
+                              <XMarkIcon className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {/* DESKTOP ONLY */}
+                      <div className="hidden lg:block w-full">
+                        {/* Labels row */}
+                        <div className="flex w-full gap-2 mb-1">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">{fields[0].label}</label>
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">{fields[1].label}</label>
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">{fields[2].label}</label>
+                          </div>
+                          <div className="w-8" />
+                        </div>
+                        {/* Fields row */}
+                        <div className="flex w-full gap-2 items-center">
+                          <div className="flex-1">
+                            {renderField(fields[0], row[fields[0].name], (e) => handleSectionChange(section.name, rowIndex, fields[0].name, e.target.value))}
+                          </div>
+                          <div className="flex-1">
+                            {renderField(fields[1], row[fields[1].name], (e) => handleSectionChange(section.name, rowIndex, fields[1].name, e.target.value))}
+                          </div>
+                          <div className="flex-1">
+                            {renderField(fields[2], row[fields[2].name], (e) => handleSectionChange(section.name, rowIndex, fields[2].name, e.target.value))}
+                          </div>
+                          {!sectionConfig.isStatic && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveRow(section.name, rowIndex)}
+                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center"
+                            >
+                              <XMarkIcon className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {!sectionConfig.isStatic && (
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => handleAddRow(section.name)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                      >
+                        <PlusIcon className="h-5 w-5" />
+                        Add Row
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                {(section.rows || []).map((row, rowIndex) => {
+                  // Validate row data
+                  if (!row || typeof row !== 'object') {
+                    console.warn(`Invalid row data in section "${section.name}" at index ${rowIndex}:`, row);
+                    return null;
+                  }
+
+                  return (
+                    <div key={`row-${section.name}-${rowIndex}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                      {fields.filter(Boolean).map((field, idx) => {
+                        if (!field || !field.name || !field.label) {
+                          console.warn('Invalid field in ReportTemplate:', field, idx);
+                          return null;
+                        }
+                        if (field.type === 'dynamicArray') {
+                          return (
+                            <div key={`field-${field.name}-${idx}`} className="col-span-full">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, row[field.name], (e) =>
+                                handleSectionChange(
+                                  section.name,
+                                  rowIndex,
+                                  field.name,
+                                  e.target.value
+                                )
+                              )}
+                            </div>
+                          );
+                        }
+                        return (
+                          <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                              {field.label}
+                            </label>
+                            {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                          </div>
+                        );
+                      })}
+                      {!sectionConfig.isStatic && (
+                        <div className="col-span-1 flex items-end">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRow(section.name, rowIndex)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-0"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {!sectionConfig.isStatic && (
+                  <button
+                    type="button"
+                    onClick={() => handleAddRow(section.name)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                  >
+                    <PlusIcon className="h-5 w-5" />
+                    Add Row
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Summary Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle}</h2>
+            <div className="space-y-4">
+              {config.summaryFields.map((field) => (
+                <div key={field.name}>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    {field.label}
+                  </label>
+                  <textarea
+                    value={summaries[field.name] || ''}
+                    onChange={(e) => handleSummaryChange(field.name, e.target.value)}
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                    rows={4}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Signature Section */}
+          {config.requiresSignature && (
             <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle}</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Signature</h2>
               <div className="space-y-4">
-                {config.summaryFields.map((field) => (
-                  <div key={field.name}>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
-                      {field.label}
-                    </label>
-                    <textarea
-                      value={summaries[field.name] || ''}
-                      onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                      rows={4}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Prepared By
+                  </label>
+                  <input
+                    type="text"
+                    value={preparedBy}
+                    onChange={(e) => setPreparedBy(e.target.value)}
+                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Signature
+                  </label>
+                  <div className="mt-1 border border-gray-300 rounded-md">
+                    <SignaturePad
+                      ref={sigPadRef}
+                      canvasProps={{
+                        className: 'w-full h-48 rounded-md'
+                      }}
                     />
                   </div>
-                ))}
+                  <button
+                    type="button"
+                    onClick={handleClearSignature}
+                    className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Clear Signature
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={sigDate || ''}
+                    onChange={handleSigDateChange}
+                    className="w-full bg-white border border-gray-600 text-gray-900 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                  />
+                </div>
               </div>
             </div>
+          )}
 
+          {/* Photo Upload Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Photos</h2>
+            <ReportPhotoSection
+              photos={photos}
+              onPhotosChange={setPhotos}
+              content_type={config.reportType || 'template'}
+              object_id={draftId || id}
+              editable={true}
+            />
+          </div>
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 justify-end">

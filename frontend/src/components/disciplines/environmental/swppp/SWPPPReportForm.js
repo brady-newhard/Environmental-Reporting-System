@@ -11,8 +11,6 @@ const SWPPPReportForm = ({ config, initialData, onSave, onReview, onDelete }) =>
   const [signature, setSignature] = useState(initialData?.signature || '');
   const [sigDate, setSigDate] = useState(initialData?.sigDate || null);
   const sigPadRef = React.useRef(null);
-  const sigPadContainerRef = React.useRef(null);
-
 
   const handleHeaderChange = (e) => setHeader({ ...header, [e.target.name]: e.target.value });
 
