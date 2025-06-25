@@ -532,10 +532,16 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
     <div className="bg-black min-h-screen pt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div>
+          {/* Debug: Print sections array before rendering */}
+          {console.log('Dynamic Sections to Render:', sections)}
           {/* Dynamic Sections */}
           {(sections || []).map((section, sectionIdx) => {
+            // Debug: Print section name
+            console.log('Rendering section:', section.name, section);
             const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
             const fields = sectionConfig ? sectionConfig.fields : [];
+            // Debug: Print fields for this section
+            console.log('Fields for section', section.name, ':', fields);
 
             // Validate section data
             if (!section || !section.name) {
@@ -553,6 +559,25 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
             if (!Array.isArray(fields)) {
               console.warn(`Invalid fields for section "${section.name}":`, fields);
               return null;
+            }
+
+            // SWPPP: Render Inspection Information as a normal card, not custom layout
+            if (sectionIdx === 0 && config.reportType === 'swppp' && section.name === 'Inspection Information') {
+              return (
+                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {fields.filter(Boolean).map(field => (
+                      <div key={field.name} className="col-span-1">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
+                        {renderField(field, section.rows[0][field.name], e =>
+                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
             }
 
             // Render first section (header/project info) with white card wrapper
@@ -610,7 +635,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                                 config.headerFields.find(f => f.name === 'spread'),
                                 config.headerFields.find(f => f.name === 'facility'),
                               ];
-                              return fields.map(field => (
+                              return fields.filter(Boolean).map(field => (
                                 <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
                                   <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
                                   {renderField(field, header[field.name], handleHeaderChange)}
@@ -625,7 +650,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                                 config.headerFields.find(f => f.name === 'inspector'),
                                 config.headerFields.find(f => f.name === 'contractor'),
                               ];
-                              return fields.map(field => (
+                              return fields.filter(Boolean).map(field => (
                                 <div key={field.name} className={`px-2 mb-4 ${field.className || 'w-full'}`}>
                                   <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
                                   {renderField(field, header[field.name], handleHeaderChange)}
@@ -634,98 +659,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
                             })()}
                           </div>
                         </div>
-                        {/* Weather Information Section from dynamicSections */}
-                        {config.dynamicSections && config.dynamicSections.find(s => s.name === 'Weather Information') && (
-                          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Weather Information</h2>
-                            {(sections.find(s => s.name === 'Weather Information')?.rows || []).map((row, rowIndex) => {
-                              const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
-                              const weatherFields = fields.filter(f => f.name !== 'rain_gauges');
-                              const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
-                              return (
-                                <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                  {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
-                                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                                    {weatherFields.map((field, idx) => {
-                                      if (!field || !field.label) {
-                                        console.warn('Invalid field in ReportTemplate:', field, idx);
-                                        return null;
-                                      }
-                                      return (
-                                        <div key={field.name} className="col-span-1">
-                                          <label className="block text-sm font-medium text-gray-600 mb-1">
-                                            {field.label}
-                                          </label>
-                                          {renderField(field, row[field.name], (e) => handleSectionChange('Weather Information', rowIndex, field.name, e.target.value))}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                  {/* Rain Gauges section below the weather fields grid */}
-                                  {rainGaugeField && (
-                                    <div className="mb-4">
-                                      <label className="block text-sm font-medium text-gray-600 mb-1">
-                                        {rainGaugeField.label}
-                                      </label>
-                                      <div className="space-y-2">
-                                        {(row[rainGaugeField.name] || []).map((item, idx) => (
-                                          <div key={idx} className="flex gap-2 items-center">
-                                            {rainGaugeField.subFields.map((subField, subFieldIndex) => (
-                                              <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`}>
-                                                <label className="sr-only">{subField.label}</label>
-                                                {renderField(subField, item[subField.name], (e) =>
-                                                  handleSectionChange(
-                                                    'Weather Information',
-                                                    rowIndex,
-                                                    rainGaugeField.name,
-                                                    (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                                      subIdx === idx
-                                                        ? { ...subItem, [subField.name]: e.target.value }
-                                                        : subItem
-                                                    )
-                                                  )
-                                                )}
-                                              </div>
-                                            ))}
-                                            <button
-                                              type="button"
-                                              onClick={() =>
-                                                handleSectionChange(
-                                                  'Weather Information',
-                                                  rowIndex,
-                                                  rainGaugeField.name,
-                                                  (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                                )
-                                              }
-                                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
-                                            >
-                                              <XMarkIcon className="h-5 w-5" />
-                                            </button>
-                                          </div>
-                                        ))}
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            handleSectionChange(
-                                              'Weather Information',
-                                              rowIndex,
-                                              rainGaugeField.name,
-                                              [...(row[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
-                                            )
-                                          }
-                                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                                        >
-                                          <PlusIcon className="h-5 w-5" />
-                                          Add {rainGaugeField.label}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
                       </>
                     ) : (
                       // Original daily report layout
@@ -803,158 +736,188 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
 
             // Custom layout for Weather Information
             if (section.name === 'Weather Information') {
-              const weatherFields = fields.filter(f => f.name !== 'rain_gauges');
+              // Debug logging
+              console.log('Rendering Weather Information section:', section);
+              const sectionConfig = config.dynamicSections.find(s => s.name === 'Weather Information');
+              let fields = sectionConfig ? sectionConfig.fields : [];
+              // For SWPPP, ensure fields are always from config.dynamicSections
+              if (config.reportType === 'swppp') {
+                fields = (config.dynamicSections.find(s => s.name === 'Weather Information') || {}).fields || [];
+              }
+              console.log('Weather Information sectionConfig:', sectionConfig);
+              console.log('Weather Information fields:', fields);
               const rainGaugeField = fields.find(f => f.name === 'rain_gauges');
               return (
                 <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
-                  {(section.rows || []).map((row, rowIndex) => (
-                    <>
-                      {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        {weatherFields.map((field, idx) => {
-                          if (!field || !field.label) {
-                            console.warn('Invalid field in ReportTemplate:', field, idx);
-                            return null;
-                          }
-                          return (
-                            <div key={field.name} className="col-span-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">
-                                {field.label}
-                              </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {/* Rain Gauges section below the weather fields grid */}
-                      {rainGaugeField && (
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-600 mb-1">
-                            {rainGaugeField.label}
-                          </label>
-                          <div className="space-y-2">
-                            {(row[rainGaugeField.name] || []).map((item, idx) => (
-                              <div key={idx} className="flex gap-2 items-center">
-                                {rainGaugeField.subFields.map((subField, subFieldIndex) => (
-                                  <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}`}>
-                                    <label className="sr-only">{subField.label}</label>
-                                    {renderField(subField, item[subField.name], (e) =>
+                  {(section.rows || []).map((row, rowIndex) => {
+                    // Ensure all expected keys are present in the row
+                    const defaultWeatherRow = {
+                      weather_conditions: '',
+                      temperature: '',
+                      precipitation_type: '',
+                      soil_conditions: '',
+                      rain_gauges: []
+                    };
+                    const safeRow = { ...defaultWeatherRow, ...row };
+                    console.log('Weather Information row:', safeRow);
+                    return (
+                      <>
+                        {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                          {fields.filter(Boolean).filter(field => field.name !== 'rain_gauges').map((field, idx) => {
+                            if (!field || !field.label) {
+                              console.warn('Invalid field in ReportTemplate:', field, idx);
+                              return null;
+                            }
+                            return (
+                              <div key={field.name} className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">
+                                  {field.label}
+                                </label>
+                                {renderField(field, safeRow[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {/* Rain Gauges section below the weather fields grid */}
+                        {rainGaugeField && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-bold text-gray-600 mb-1">
+                              {rainGaugeField.label}
+                            </label>
+                            {/* Column headers for rain gauge subfields, only show if at least one row exists */}
+                            {(safeRow[rainGaugeField.name] || []).length > 0 && (
+                              <div className="hidden md:flex gap-2 mb-1 w-full">
+                                {rainGaugeField.subFields.map((subField, idx) => (
+                                  <div key={subField.name} className="flex-1 text-gray-700">
+                                    {subField.label}
+                                  </div>
+                                ))}
+                                <div className="w-8" />
+                              </div>
+                            )}
+                            <div className="space-y-2">
+                              {(safeRow[rainGaugeField.name] || []).map((item, idx) => (
+                                <div key={idx} className="flex gap-2 items-center w-full">
+                                  {rainGaugeField.subFields.map((subField, subFieldIndex) => (
+                                    <div key={`${rainGaugeField.name}-${subField.name}-${subFieldIndex}}`} className="flex-1">
+                                      <label className="sr-only">{subField.label}</label>
+                                      {renderField(subField, item[subField.name], (e) =>
+                                        handleSectionChange(
+                                          section.name,
+                                          rowIndex,
+                                          rainGaugeField.name,
+                                          (safeRow[rainGaugeField.name] || []).map((subItem, subIdx) =>
+                                            subIdx === idx
+                                              ? { ...subItem, [subField.name]: e.target.value }
+                                              : subItem
+                                          )
+                                        )
+                                      )}
+                                    </div>
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
                                       handleSectionChange(
                                         section.name,
                                         rowIndex,
                                         rainGaugeField.name,
-                                        (row[rainGaugeField.name] || []).map((subItem, subIdx) =>
-                                          subIdx === idx
-                                            ? { ...subItem, [subField.name]: e.target.value }
-                                            : subItem
-                                        )
+                                        (safeRow[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
                                       )
-                                    )}
-                                  </div>
-                                ))}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleSectionChange(
-                                      section.name,
-                                      rowIndex,
-                                      rainGaugeField.name,
-                                      (row[rainGaugeField.name] || []).filter((_, subIdx) => subIdx !== idx)
-                                    )
-                                  }
-                                  className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
-                                >
-                                  <XMarkIcon className="h-5 w-5" />
-                                </button>
-                              </div>
-                            ))}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleSectionChange(
-                                  section.name,
-                                  rowIndex,
-                                  rainGaugeField.name,
-                                  [...(row[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
-                                )
-                              }
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                            >
-                              <PlusIcon className="h-5 w-5" />
-                              Add {rainGaugeField.label}
-                            </button>
+                                    }
+                                    className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center flex-none"
+                                  >
+                                    <XMarkIcon className="h-5 w-5" />
+                                  </button>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleSectionChange(
+                                    section.name,
+                                    rowIndex,
+                                    rainGaugeField.name,
+                                    [...(safeRow[rainGaugeField.name] || []), Object.fromEntries(rainGaugeField.subFields.map(sf => [sf.name, '']))]
+                                  )
+                                }
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                              >
+                                <PlusIcon className="h-5 w-5" />
+                                Add {rainGaugeField.label}
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </>
-                  ))}
+                        )}
+                      </>
+                    );
+                  })}
                 </div>
               );
             }
 
             // Custom layout for Crew Daily Summaries
             if (section.name === 'Crew Daily Summaries') {
-              const crewFields = fields.filter(f => f.name !== 'Summary');
-              const summaryField = fields.find(f => f.name === 'Summary');
+              const crewFields = fields;
               return (
                 <div key={section.name} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
                   {(section.rows || []).map((row, rowIndex) => (
-                    <>
-                      {/* All fields except Start/End Station */}
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        {crewFields.filter(f => f.name !== 'Start Station' && f.name !== 'End Station').map((field, idx) => {
-                          if (!field || !field.label) {
-                            console.warn('Invalid field in ReportTemplate:', field, idx);
-                            return null;
-                          }
-                          return (
-                            <div key={field.name} className="col-span-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">
-                                {field.label}
-                              </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
-                            </div>
-                          );
-                        })}
-                        {/* Start Station and End Station side by side */}
-                        <div className="col-span-1 md:col-span-2 flex gap-2">
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">Start Station</label>
-                            {renderField(fields.find(f => f.name === 'Start Station'), row['Start Station'], (e) => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value))}
-                          </div>
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">End Station</label>
-                            {renderField(fields.find(f => f.name === 'End Station'), row['End Station'], (e) => handleSectionChange(section.name, rowIndex, 'End Station', e.target.value))}
-                          </div>
+                    <React.Fragment key={rowIndex}>
+                      {/* First row: Crew, Foreman */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Crew</label>
+                          {renderField(crewFields.find(f => f.name === 'Crew'), row['Crew'], (e) => handleSectionChange(section.name, rowIndex, 'Crew', e.target.value))}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Foreman</label>
+                          {renderField(crewFields.find(f => f.name === 'Foreman'), row['Foreman'], (e) => handleSectionChange(section.name, rowIndex, 'Foreman', e.target.value))}
                         </div>
                       </div>
-                      {summaryField && (
-                        <div className="flex items-start gap-2 mb-4">
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                              {summaryField.label}
-                            </label>
-                            <textarea
-                              value={row[summaryField.name] || ''}
-                              onChange={(e) => handleSectionChange(section.name, rowIndex, summaryField.name, e.target.value)}
-                              className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                              rows={3}
-                            />
-                          </div>
-                          {!sectionConfig.isStatic && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveRow(section.name, rowIndex)}
-                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-0"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
-                          )}
+                      {/* Second row: Milepost Start, Milepost End, Station Start, Station End */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Milepost Start</label>
+                          {renderField({ ...crewFields.find(f => f.name === 'Milepost Start'), type: 'text' }, row['Milepost Start'], (e) => handleSectionChange(section.name, rowIndex, 'Milepost Start', e.target.value))}
                         </div>
-                      )}
-                    </>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Milepost End</label>
+                          {renderField({ ...crewFields.find(f => f.name === 'Milepost End'), type: 'text' }, row['Milepost End'], (e) => handleSectionChange(section.name, rowIndex, 'Milepost End', e.target.value))}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Start Station</label>
+                          {renderField(crewFields.find(f => f.name === 'Start Station'), row['Start Station'], (e) => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value))}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-600 mb-1">End Station</label>
+                          {renderField(crewFields.find(f => f.name === 'End Station'), row['End Station'], (e) => handleSectionChange(section.name, rowIndex, 'End Station', e.target.value))}
+                        </div>
+                      </div>
+                      {/* Third row: Summary (true multiline textarea) with trashcan vertically centered */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-600 mb-1">Summary</label>
+                          <textarea
+                            value={row['Summary'] || ''}
+                            onChange={e => handleSectionChange(section.name, rowIndex, 'Summary', e.target.value)}
+                            className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                            rows={3}
+                          />
+                        </div>
+                        {!sectionConfig.isStatic && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRow(section.name, rowIndex)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
+                    </React.Fragment>
                   ))}
                   {!sectionConfig.isStatic && (
                     <div className="flex justify-center">
@@ -1089,7 +1052,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave }) 
 
                   return (
                     <div key={`row-${section.name}-${rowIndex}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                      {fields.map((field, idx) => {
+                      {fields.filter(Boolean).map((field, idx) => {
                         if (!field || !field.name || !field.label) {
                           console.warn('Invalid field in ReportTemplate:', field, idx);
                           return null;
