@@ -6,6 +6,7 @@ import { useSnackbar } from 'notistack';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { deleteDraft } from '../../utils/draftUtils';
+import { uploadPhoto } from '../../utils/photoUtils';
 import PageHeader from '../common/PageHeader';
 import { 
   PlusIcon, 
@@ -49,12 +50,13 @@ const defaultConfig = {
   requiresPhotos: true
 };
 
-const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, onDelete, onReview }) => {
+const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, onDelete, onReview, onChange }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { enqueueSnackbar } = useSnackbar();
-  const sigPadRef = useRef();
+  const sigPadRef = useRef(null);
+  const previousFormDataRef = useRef(null);
   const { id } = useParams();
   
   // Initialize state with default values from config
@@ -154,8 +156,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   useEffect(() => {
     if (!initialData) return;
     
-    console.log('ReportTemplate initialData changed:', initialData);
-    
     // For SWPPP reports, headerFields is empty, so we need to get header data from dynamicSections
     let headerFields = config.headerFields;
     if (config.reportType === 'swppp' && config.headerFields.length === 0) {
@@ -182,29 +182,24 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       ...defaultHeader,
       ...initialData.header
     };
-    console.log('Updated header:', updatedHeader);
     setHeader(updatedHeader);
 
-    if (initialData.sections && initialData.sections.length > 0 && config.reportType !== 'swppp') {
+    if (initialData.sections && initialData.sections.length > 0) {
       const updatedSections = initialData.sections.map(section => ({
         ...section,
         rows: section.rows && section.rows.length > 0 ? section.rows : [section.defaultRow ? section.defaultRow() : {}]
       }));
-      console.log('Updated sections:', updatedSections);
       setSections(updatedSections);
     } else if (config.dynamicSections) {
-      // For SWPPP reports or when sections are empty/missing, always use config
       const fallbackSections = config.dynamicSections.map(section => ({
         name: section.name,
         rows: [section.defaultRow ? section.defaultRow() : {}]
       }));
-      console.log('Fallback sections from config:', fallbackSections);
       setSections(fallbackSections);
     } else {
       setSections([]);
     }
 
-    // Always fully reset summaries from initialData
     if (initialData.summaries) {
       setSummaries({ ...initialData.summaries });
     } else {
@@ -216,14 +211,31 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     setSigDate(initialData.sigDate ? new Date(initialData.sigDate) : null);
     setPhotos(initialData.photos || []);
     setDraftId(initialData.id || null);
-  }, [initialData]);
+  }, [initialData?.id, config]);
 
   // Debug logging for state and data flow
-  console.log('initialData:', initialData);
-  console.log('header:', header);
-  console.log('sections:', sections);
-  console.log('summaries:', summaries);
-  console.log('photos:', photos);
+  // console.log('initialData:', initialData);
+  // console.log('header:', header);
+  // console.log('sections:', sections);
+  // console.log('summaries:', summaries);
+  // console.log('photos:', photos);
+
+  // Call onChange prop whenever form data changes
+  useEffect(() => {
+    if (onChange && draftId) { // Only call onChange if we have a draftId
+      const formData = {
+        id: draftId,
+        header,
+        sections,
+        summaries,
+        photos,
+        signature,
+        sigDate,
+        preparedBy,
+      };
+      onChange(formData);
+    }
+  }, [header, sections, summaries, photos, signature, sigDate, preparedBy, draftId]);
 
   // Handlers
   const handleHeaderChange = e => setHeader({ ...header, [e.target.name]: e.target.value });
@@ -354,10 +366,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       return d.toISOString().split('T')[0];
     };
 
-    // Find the weather section
-    const weatherSection = sections.find(s => s.name === 'Weather Information');
-    const weatherData = weatherSection?.rows?.[0] || {};
-
     // Format rain gauge data
     const formatRainGaugeData = (data) => {
       if (!data) return [];
@@ -381,68 +389,39 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       return [];
     };
 
+    // Create comprehensive review data with all current form state
     const reviewData = {
+      id: draftId,
       header: {
-        project: header.project,
-        spread: header.spread,
-        inspector: header.inspector,
-        contractor: header.contractor,
-        facility: header.facility,
+        ...header, // Include all header fields
         date: formatDate(header.date),
-        milepost_start: header.milepost_start,
-        milepost_end: header.milepost_end,
-        station_start: header.station_start,
-        station_end: header.station_end,
-        // add any other header fields you use
       },
-      // Weather Information
-      weather: {
-        temperature: weatherData.temperature || header.temperature,
-        conditions: weatherData.conditions || header.conditions,
-        wind_speed: weatherData.wind_speed || header.wind_speed,
-        wind_direction: weatherData.wind_direction || header.wind_direction,
-        humidity: weatherData.humidity || header.humidity,
-        barometric_pressure: weatherData.barometric_pressure || header.barometric_pressure,
-        precipitation: weatherData.precipitation || header.precipitation,
-        precipitation_type: weatherData.precipitation_type || header.precipitation_type,
-        precipitation_amount: weatherData.precipitation_amount || header.precipitation_amount,
-        precipitation_duration: weatherData.precipitation_duration || header.precipitation_duration,
-        precipitation_intensity: weatherData.precipitation_intensity || header.precipitation_intensity,
-        precipitation_start_time: weatherData.precipitation_start_time || header.precipitation_start_time,
-        precipitation_end_time: weatherData.precipitation_end_time || header.precipitation_end_time,
-        precipitation_notes: weatherData.precipitation_notes || header.precipitation_notes,
-        rain_gauge_readings: formatRainGaugeData(weatherData.rain_gauge_readings || header.rain_gauge_readings),
-        rain_gauge_notes: weatherData.rain_gauge_notes || header.rain_gauge_notes,
-        weather_notes: weatherData.weather_notes || header.weather_notes,
-      },
-      // Add rain_gauges at the top level for backward compatibility
-      rain_gauges: formatRainGaugeData(weatherData.rain_gauge_readings || header.rain_gauge_readings),
-      // Sections with photos and comments
       sections: sections ? sections.map(section => ({
         name: section.name,
         rows: section.rows || [],
-        photos: section.photos ? section.photos.map(photo => ({
-          url: photo.url || photo.file || photo.preview || photo.image_url,
-          comment: photo.comment || photo.comments || photo.description || '',
-          location: photo.location || '',
-        })) : [],
+        // Include all section data, even if empty
       })) : [],
-      // Summaries
       summaries: summaries || {},
-      // Photos
       photos: photos ? photos.map(photo => ({
         url: photo.url || photo.file || photo.preview || photo.image_url,
         comment: photo.comment || photo.comments || photo.description || '',
         location: photo.location || '',
       })) : [],
-      // Signature
       signature: signature || '',
       sigDate: sigDate ? formatDate(sigDate) : '',
+      preparedBy: preparedBy || '',
     };
 
-    console.log('Review data being passed:', reviewData); // Debug log
-    console.log('Photos being passed to review:', reviewData.photos);
-    navigate(`/environmental/reports/daily/review/${draftId}`, { state: { reportData: reviewData } });
+    // console.log('Review data being passed:', reviewData); // Debug log
+    // console.log('Sections being passed to review:', reviewData.sections);
+    // console.log('Photos being passed to review:', reviewData.photos);
+
+    // Navigate to the appropriate review page based on report type
+    if (config.reportType === 'swppp') {
+      navigate(`/environmental/swppp/review/${draftId}`, { state: { reportData: reviewData } });
+    } else {
+      navigate(`/environmental/reports/daily/review/${draftId}`, { state: { reportData: reviewData } });
+    }
   };
 
   // Update the signature date handler
@@ -472,8 +451,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
           >
             <option value="">Select {field.label}</option>
             {field.options?.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+              <option key={option} value={option}>
+                {option}
               </option>
             ))}
           </select>
@@ -585,14 +564,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* Dynamic Sections */}
-          {console.log('Rendering sections:', sections)}
           {(sections || []).map((section, sectionIdx) => {
-            console.log(`Processing section ${sectionIdx}:`, section.name);
             const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
             const fields = sectionConfig ? sectionConfig.fields : [];
-
-            // Debug logging for section rendering
-            console.log(`Rendering section ${sectionIdx}:`, section.name, 'with fields:', fields.length);
 
             // Validate section data
             if (!section || !section.name) {
@@ -621,8 +595,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     {fields.filter(Boolean).map(field => (
                       <div key={field.name} className="col-span-1">
                         <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                        {renderField(field, section.rows[0][field.name], e =>
-                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        {renderField(field, header[field.name], e =>
+                          handleHeaderChange(e)
                         )}
                       </div>
                     ))}
@@ -642,8 +616,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     {fields.filter(f => ['project', 'spread', 'facility'].includes(f.name)).map(field => (
                       <div key={field.name} className="col-span-1">
                         <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                        {renderField(field, section.rows[0][field.name], e =>
-                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        {renderField(field, header[field.name], e =>
+                          handleHeaderChange(e)
                         )}
                       </div>
                     ))}
@@ -654,8 +628,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     {fields.filter(f => ['inspector', 'contractor'].includes(f.name)).map(field => (
                       <div key={field.name} className="col-span-1">
                         <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                        {renderField(field, section.rows[0][field.name], e =>
-                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        {renderField(field, header[field.name], e =>
+                          handleHeaderChange(e)
                         )}
                       </div>
                     ))}
@@ -666,8 +640,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     {fields.filter(f => ['milepost_start', 'milepost_end', 'station_start', 'station_end'].includes(f.name)).map(field => (
                       <div key={field.name} className="col-span-1">
                         <label className="block text-sm font-medium text-gray-600 mb-1">{field.label}</label>
-                        {renderField(field, section.rows[0][field.name], e =>
-                          handleSectionChange(section.name, 0, field.name, e.target.value)
+                        {renderField(field, header[field.name], e =>
+                          handleHeaderChange(e)
                         )}
                       </div>
                     ))}
@@ -778,19 +752,18 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               );
             }
 
-            // Custom layout for Weather Information
+            // Weather Information Section (matches Environmental)
             if (section.name === 'Weather Information') {
-              // Debug logging
-              console.log('Rendering Weather Information section:', section);
-              console.log('Weather Information sectionConfig:', sectionConfig);
-              console.log('Weather Information fields:', fields);
+              // console.log('Rendering Weather Information section:', section);
+              // console.log('Weather Information sectionConfig:', sectionConfig);
+              // console.log('Weather Information fields:', fields);
               
               // Ensure we have the correct fields for SWPPP
               let weatherFields = fields;
               if (config.reportType === 'swppp') {
                 const swpppWeatherSection = config.dynamicSections.find(s => s.name === 'Weather Information');
                 weatherFields = swpppWeatherSection ? swpppWeatherSection.fields : fields;
-                console.log('SWPPP Weather fields:', weatherFields);
+                // console.log('SWPPP Weather fields:', weatherFields);
               }
               
               const rainGaugeField = weatherFields.find(f => f.name === 'rain_gauges');
@@ -807,7 +780,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                       rain_gauges: []
                     };
                     const safeRow = { ...defaultWeatherRow, ...row };
-                    console.log('Weather Information row:', safeRow);
+                    // console.log('Weather Information row:', safeRow);
                     return (
                       <>
                         {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
@@ -1127,7 +1100,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                         
                         {/* Line 3: ECD Functional?, ECD Needs Maintenance?, Soil Disturbed? (3 dropdowns) */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {fields.filter(f => ['ecd_functional', 'ecd_maintenance', 'soil_disturbed'].includes(f.name)).map((field, idx) => (
+                          {fields.filter(f => ['ecd_functional', 'ecd_needs_maintenance', 'soil_disturbed'].includes(f.name)).map((field, idx) => (
                             <div key={`field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
@@ -1287,6 +1260,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     <SignaturePad
                       ref={sigPadRef}
                       canvasProps={{ className: 'w-full h-48 rounded-md' }}
+                      onEnd={() => {
+                        if (sigPadRef.current) {
+                          setSignature(sigPadRef.current.toDataURL());
+                        }
+                      }}
                     />
                   </div>
                   <button
@@ -1425,7 +1403,8 @@ ReportTemplate.propTypes = {
   }),
   onSave: PropTypes.func.isRequired,
   onDelete: PropTypes.func,
-  onReview: PropTypes.func
+  onReview: PropTypes.func,
+  onChange: PropTypes.func
 };
 
 export default ReportTemplate; 

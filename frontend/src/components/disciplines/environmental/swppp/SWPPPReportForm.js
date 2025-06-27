@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Typography, Snackbar, Alert } from '@mui/material';
 import ReportTemplate from '../../../templates/ReportTemplate';
@@ -17,6 +17,11 @@ export default function SWPPPReportForm() {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const reportType = 'swppp';
   const [photos, setPhotos] = useState([]);
+
+  // Memoize the setDraft function to prevent unnecessary re-renders
+  const handleDraftChange = useCallback((newDraft) => {
+    setDraft(newDraft);
+  }, []);
 
   useEffect(() => {
     const initializeDraft = async () => {
@@ -81,7 +86,7 @@ export default function SWPPPReportForm() {
                   inspector_id: '',
                   inspection_time: '',
                   ecd_functional: '',
-                  ecd_maintenance: '',
+                  ecd_needs_maintenance: '',
                   soil_disturbed: '',
                   comments: ''
                 }]
@@ -145,11 +150,6 @@ export default function SWPPPReportForm() {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handleReview = () => {
-    console.log('Navigating to review with draft ID:', draft.id);
-    navigate(`/environmental/swppp/review/${draft.id}`);
-  };
-
   const handleDelete = async () => {
     if (!draft?.id) return;
     if (!window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) return;
@@ -186,9 +186,8 @@ export default function SWPPPReportForm() {
       />
       <ReportTemplate 
         initialData={draft}
-        onChange={setDraft}
+        onChange={handleDraftChange}
         onSave={handleSave}
-        onReview={id ? handleReview : undefined}
         onDelete={id ? handleDelete : undefined}
         onCancel={handleCloseSnackbar}
         config={swpppReportConfig}

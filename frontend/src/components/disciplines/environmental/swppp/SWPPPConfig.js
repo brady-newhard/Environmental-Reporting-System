@@ -65,7 +65,7 @@ const swpppReportConfig = {
         { name: 'inspector_id', label: 'Inspector ID', type: 'text', required: true },
         { name: 'inspection_time', label: 'Inspection Time', type: 'time', required: true },
         { name: 'ecd_functional', label: 'ECD Functional?', type: 'dropdown', options: ['Yes', 'No'], required: true },
-        { name: 'ecd_maintenance', label: 'ECD Needs Maintenance?', type: 'dropdown', options: ['Yes', 'No'], required: true },
+        { name: 'ecd_needs_maintenance', label: 'ECD Needs Maintenance?', type: 'dropdown', options: ['Yes', 'No'], required: true },
         { name: 'soil_disturbed', label: 'Soil Disturbed?', type: 'dropdown', options: ['Yes', 'No'], required: true },
         { name: 'comments', label: 'Comments', type: 'multiline', required: false }
       ],
