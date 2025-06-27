@@ -40,6 +40,7 @@ import EnvironmentalDailyReportDrafts from './components/disciplines/environment
 import EnvironmentalDailyReportForm from './components/disciplines/environmental/daily/EnvironmentalDailyReportForm';
 import SWPPPReportReview from './components/disciplines/environmental/swppp/SWPPPReportReview';
 import EnvironmentalDailyReportPrint from './components/disciplines/environmental/daily/EnvironmentalDailyReportPrint';
+import SWPPPReportPrint from './components/disciplines/environmental/swppp/SWPPPReportPrint';
 
 // Welding Components
 import WeldingMain from './components/disciplines/welding/main/WeldingMain';
@@ -315,9 +316,7 @@ function AppContent() {
         <Route
           path="/environmental/reports/daily/print/:id"
           element={
-            <PrivateRoute>
-              <EnvironmentalDailyReportPrint />
-            </PrivateRoute>
+            <EnvironmentalDailyReportPrint />
           }
         />
         <Route
@@ -585,25 +584,21 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/environmental/reports/daily/print/:id"
+          element={
+            <EnvironmentalDailyReportPrint />
+          }
+        />
+        <Route
+          path="/environmental/reports/swppp/print/:draftId"
+          element={
+            <SWPPPReportPrint />
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
-  );
-}
-
-// Add a print-only wrapper for the print route
-function PrintRoutes() {
-  return (
-    <Routes>
-      <Route
-        path="/environmental/reports/daily/print/:id"
-        element={
-          <div className="print:block hidden">
-            <EnvironmentalDailyReportPrint />
-          </div>
-        }
-      />
-    </Routes>
   );
 }
 
@@ -613,7 +608,6 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <AppContent />
-        <PrintRoutes />
       </AuthProvider>
     </ThemeProvider>
   );

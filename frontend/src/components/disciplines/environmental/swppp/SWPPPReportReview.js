@@ -544,7 +544,7 @@ const SWPPPReportReview = () => {
           <span className="hidden sm:inline">Submit</span>
         </button>
         <button
-          onClick={() => navigate(`/environmental/swppp/print/${draftId}`)}
+          onClick={() => navigate(`/environmental/reports/swppp/print/${draftId}`, { state: { reportData: formData } })}
           className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors no-print"
         >
           <PrinterIcon className="h-5 w-5 mr-2" />
