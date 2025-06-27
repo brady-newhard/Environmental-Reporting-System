@@ -6,7 +6,7 @@ import { useSnackbar } from 'notistack';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { deleteDraft } from '../../utils/draftUtils';
-import { uploadPhoto } from '../../utils/photoUtils';
+import { uploadPhoto, uploadMultiplePhotos } from '../../utils/photoUtils';
 import PageHeader from '../common/PageHeader';
 import { 
   PlusIcon, 
@@ -317,7 +317,33 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     try {
       setLoading(true);
       if (onSave) {
-        await onSave(formData);
+        const savedDraft = await onSave(formData);
+        if (savedDraft.id && String(savedDraft.id).startsWith('temp_') === false) {
+          // Find local photos (no id or image_url)
+          const localPhotos = photos.filter(photo => !photo.id && !photo.image_url && photo.file);
+          if (localPhotos.length > 0) {
+            const uploadedPhotos = await uploadMultiplePhotos(localPhotos.map(p => p.file), {
+              content_type: config.reportType || 'swppp',
+              object_id: savedDraft.id,
+            });
+            // Merge uploaded photos with existing
+            setPhotos(prev => [
+              ...prev.filter(photo => photo.id || photo.image_url),
+              ...uploadedPhotos
+            ]);
+            // Optionally, update the draft in storage with the new photos
+            if (typeof onChange === 'function') {
+              onChange({
+                ...savedDraft.data,
+                id: savedDraft.id,
+                photos: [
+                  ...photos.filter(photo => photo.id || photo.image_url),
+                  ...uploadedPhotos
+                ]
+              });
+            }
+          }
+        }
       }
       
       enqueueSnackbar('Report saved successfully', { variant: 'success' });
@@ -1312,7 +1338,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                 onPhotosChange={setPhotos}
                 content_type={config.reportType || 'template'}
                 object_id={draftId && !String(draftId).startsWith('temp_') ? draftId : null}
-                editable={draftId && !String(draftId).startsWith('temp_')}
+                editable={true}
                 onNotification={handlePhotoNotification}
               />
             </div>

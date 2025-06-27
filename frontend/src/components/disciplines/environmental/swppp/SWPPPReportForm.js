@@ -119,10 +119,16 @@ export default function SWPPPReportForm() {
   const handleSave = async (formData) => {
     try {
       const dataToSave = normalizeDraft(formData);
+      const prevId = draft?.id;
       const savedDraft = await saveDraft(reportType, dataToSave);
 
       // If the saved draft has a real ID, update the URL and state
       if (savedDraft.id && !String(savedDraft.id).startsWith('temp_')) {
+        // If the previous draft had a temp ID, delete it
+        if (prevId && String(prevId).startsWith('temp_') && prevId !== savedDraft.id) {
+          const { deleteDraft } = await import('../../../../utils/draftUtils');
+          await deleteDraft(reportType, prevId);
+        }
         if (id !== savedDraft.id) {
           navigate(`/environmental/swppp/edit/${savedDraft.id}`, {
             state: { draft: { ...savedDraft.data, id: savedDraft.id } }

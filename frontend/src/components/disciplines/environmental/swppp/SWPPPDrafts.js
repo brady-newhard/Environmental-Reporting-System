@@ -29,7 +29,6 @@ export default function SWPPPDrafts() {
         
         // Format drafts for display
         const formattedDrafts = allDrafts.map(draft => {
-          console.log('Processing SWPPP draft:', draft);
           return {
             ...draft,
             id: draft.id,
@@ -37,9 +36,15 @@ export default function SWPPPDrafts() {
             header: draft.data?.header || draft.header || {}
           };
         });
-        
-        console.log('Formatted SWPPP drafts:', formattedDrafts);
-        setDrafts(formattedDrafts);
+
+        // Filter out duplicate IDs, keeping the most recent (last) occurrence
+        const uniqueDraftsMap = new Map();
+        formattedDrafts.forEach(draft => {
+          uniqueDraftsMap.set(draft.id, draft); // Overwrites previous with same id
+        });
+        const uniqueDrafts = Array.from(uniqueDraftsMap.values());
+
+        setDrafts(uniqueDrafts);
       } catch (error) {
         console.error('Error loading SWPPP drafts:', error);
         setSnackbar({
