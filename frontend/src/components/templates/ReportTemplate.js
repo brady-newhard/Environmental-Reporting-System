@@ -553,6 +553,14 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
             </button>
           </div>
         );
+      case 'multiselect':
+        return (
+          <MultiSelectDropdown
+            field={field}
+            value={Array.isArray(value) ? value : value ? [value] : []}
+            onChange={onChange}
+          />
+        );
       default:
         return (
           <input
@@ -1081,9 +1089,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
 
                     return (
                       <div key={`row-${section.name}-${rowIndex}`} className="space-y-4">
-                        {/* Line 1: Station Start, Station End, Feature Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {fields.filter(f => ['station_start', 'station_end', 'feature_details'].includes(f.name)).map((field, idx) => (
+                        {/* Line 1: Station Start, Station End, Facility, Feature Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {fields.filter(f => ['station_start', 'station_end', 'facility', 'feature_details'].includes(f.name)).map((field, idx) => (
                             <div key={`field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
@@ -1414,5 +1422,59 @@ ReportTemplate.propTypes = {
   onReview: PropTypes.func,
   onChange: PropTypes.func
 };
+
+function MultiSelectDropdown({ field, value, onChange }) {
+  const [open, setOpen] = React.useState(false);
+  const dropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleToggle = () => setOpen((prev) => !prev);
+  const handleOptionChange = (option) => {
+    let newValue;
+    if (value.includes(option)) {
+      newValue = value.filter((v) => v !== option);
+    } else {
+      newValue = [...value, option];
+    }
+    onChange({ target: { name: field.name, value: newValue } });
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        onClick={handleToggle}
+      >
+        {value.length > 0 ? value.join(', ') : `Select ${field.label}`}
+        <span className="float-right">▼</span>
+      </button>
+      {open && (
+        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+          {field.options?.map((option) => (
+            <label key={option} className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100">
+              <input
+                type="checkbox"
+                checked={value.includes(option)}
+                onChange={() => handleOptionChange(option)}
+                className="mr-2"
+              />
+              {option}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default ReportTemplate; 

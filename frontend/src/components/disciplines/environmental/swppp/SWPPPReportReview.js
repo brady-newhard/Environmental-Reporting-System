@@ -347,6 +347,7 @@ const SWPPPReportReview = () => {
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Station Start</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Station End</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature Details</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inspector ID</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inspection Time</th>
@@ -361,6 +362,7 @@ const SWPPPReportReview = () => {
                           <tr key={rowIdx}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.station_start || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.station_end || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.facility || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.feature_details || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.inspector_id || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.inspection_time || '—'}</td>
