@@ -353,7 +353,7 @@ const SWPPPReportReview = () => {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ECD Functional?</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ECD Needs Maintenance?</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Soil Disturbed?</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/3">Comments</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{minWidth: '400px', width: '50%', maxWidth: '600px', whiteSpace: 'pre-line',  fontWeight: 'normal', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em',}}>Comments</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -367,7 +367,9 @@ const SWPPPReportReview = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.ecd_functional || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.ecd_needs_maintenance || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.soil_disturbed || '—'}</td>
-                            <td className="px-6 py-4 text-sm text-gray-900 whitespace-pre-wrap max-w-xs">{row.comments || '—'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-900" style={{minWidth: '400px', width: '50%', maxWidth: '600px', whiteSpace: 'pre-line'}}>
+                              {row.comments || '—'}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

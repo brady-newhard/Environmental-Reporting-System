@@ -1125,7 +1125,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                                 <label className="block text-sm font-medium text-gray-600 mb-1">
                                   {field.label}
                                 </label>
-                                {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                                {renderField(field, row[field.name], e => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
                               </div>
                             ))}
                           </div>
