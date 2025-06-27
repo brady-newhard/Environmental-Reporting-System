@@ -12,8 +12,13 @@ const environmentalDailyReportConfig = {
       fields: [
         { name: 'inspection_date', label: 'Inspection Date', type: 'date', required: true },
         { name: 'project', label: 'Project', required: true },
-        { name: 'spread', label: 'Spread', type: 'dropdown', options: [] },
-        { name: 'facility', label: 'Facility', type: 'dropdown', options: [] },
+        { name: 'spread', label: 'Spread', type: 'multiselect', options: ['1', '2', '3', '4'] },
+        { name: 'facility', label: 'Facility', type: 'multiselect', options: [
+          'CY 1', 'SY 1', 'CS 1',
+          'CY 2', 'SY 2', 'CS 2',
+          'CY 3', 'SY 3', 'CS 3',
+          'CY 4', 'SY 4', 'CS 4',
+        ] },
         { name: 'contractor', label: 'Contractor', required: false },
         { name: 'inspector', label: 'Inspector', required: true },
         { name: 'milepost_start', label: 'Milepost Start', required: false },
@@ -52,7 +57,9 @@ const environmentalDailyReportConfig = {
         'Pipe Crew', 'Weld Crew', 'Coating Crew', 'Backfill Crew', 'Cleanup Crew', 'Bending Crew', 'Bore Crew', 'Boring Crew', 'Blasting Crew', 'Grading Crew', 'Lower-in Crew', 'Padding Crew', 'Restoration Crew', 'Rock Ditch Crew', 'Roustabout Crew', 'Seeding Crew', 'Stringing Crew', 'Tie-in Crew', 'Welding Crew', 'Other'
       ],
       fields: [
-        { name: 'Crew', label: 'Crew', type: 'dropdown' },
+        { name: 'Crew', label: 'Crew', type: 'dropdown', options: [
+          'Pipe Crew', 'Weld Crew', 'Coating Crew', 'Backfill Crew', 'Cleanup Crew', 'Bending Crew', 'Bore Crew', 'Boring Crew', 'Blasting Crew', 'Grading Crew', 'Lower-in Crew', 'Padding Crew', 'Restoration Crew', 'Rock Ditch Crew', 'Roustabout Crew', 'Seeding Crew', 'Stringing Crew', 'Tie-in Crew', 'Welding Crew', 'Other'
+        ] },
         { name: 'Foreman', label: 'Foreman', type: 'text' },
         { name: 'Start Station', label: 'Start Station', type: 'text' },
         { name: 'End Station', label: 'End Station', type: 'text' },
@@ -68,7 +75,9 @@ const environmentalDailyReportConfig = {
         'No Progress to Report', 'Access Roads', 'Felling', 'Clearing', 'Grading', 'Ditch', 'Stringing', 'Bending', 'Welding', 'Coating', 'Lowering-in', 'Backfill', 'Tie-Ins', 'Cleanup', 'Stabilization', 'Re-Vegetation'
       ],
       fields: [
-        { name: 'Phase', label: 'Progress Item', type: 'dropdown' },
+        { name: 'Phase', label: 'Progress Item', type: 'dropdown', options: [
+          'No Progress to Report', 'Access Roads', 'Felling', 'Clearing', 'Grading', 'Ditch', 'Stringing', 'Bending', 'Welding', 'Coating', 'Lowering-in', 'Backfill', 'Tie-Ins', 'Cleanup', 'Stabilization', 'Re-Vegetation'
+        ] },
         { name: 'Start Station', label: 'Start Station', type: 'text' },
         { name: 'End Station', label: 'End Station', type: 'text' }
       ],
