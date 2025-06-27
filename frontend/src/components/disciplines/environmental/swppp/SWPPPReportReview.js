@@ -50,9 +50,15 @@ const SWPPPReportReview = () => {
   };
 
   const handleEdit = () => {
+    // Ensure the draft has a real ID for editing
+    const draftForEdit = {
+      ...formData,
+      id: draftId // Use the real draft ID from the URL params
+    };
+    
     navigate(`/environmental/swppp/edit/${draftId}`, { 
       state: { 
-        draft: formData 
+        draft: draftForEdit
       } 
     });
   };
@@ -100,20 +106,45 @@ const SWPPPReportReview = () => {
                 alt={photo.comment || `Photo ${index + 1}`}
                 className="w-full h-48 object-cover rounded-lg shadow-md"
               />
-              {photo.comment && (
+              {(photo.location || photo.Location) && (
                 <div className="mt-2 text-sm text-gray-600">
-                  {photo.comment}
+                  <span className="font-semibold">Location:</span> {photo.location || photo.Location}
                 </div>
               )}
-              {photo.location && (
+              {(photo.comment || photo.comments || photo.description) && (
                 <div className="mt-1 text-sm text-gray-500">
-                  Location: {photo.location}
+                  <span className="font-semibold">Comment:</span> {photo.comment || photo.comments || photo.description}
                 </div>
               )}
             </div>
           ))}
         </div>
       </div>
+    );
+  };
+
+  // Helper to render rain gauges as a table
+  const renderRainGaugesTable = (rainGauges) => {
+    if (!Array.isArray(rainGauges) || rainGauges.length === 0) return '—';
+    return (
+      <table className="min-w-full divide-y divide-gray-200 mt-2">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rain (in)</th>
+            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Snow (in)</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {rainGauges.map((g, i) => (
+            <tr key={i}>
+              <td className="px-2 py-1 text-sm text-gray-900">{g.location || '—'}</td>
+              <td className="px-2 py-1 text-sm text-gray-900">{g.rain || '—'}</td>
+              <td className="px-2 py-1 text-sm text-gray-900">{g.snow || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     );
   };
 
@@ -235,12 +266,7 @@ const SWPPPReportReview = () => {
 
         {/* Project Information Section */}
         <div className="mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-            <h2 className="text-xl font-semibold">Project Information</h2>
-            <div className="mt-2 md:mt-0 md:text-right">
-              <span className="font-semibold">Date:</span> {projectInfo.date}
-            </div>
-          </div>
+          <h2 className="text-xl font-semibold mb-4">Project Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-3">
               <div><span className="font-semibold">Inspector:</span> {projectInfo.inspector}</div>
@@ -258,9 +284,54 @@ const SWPPPReportReview = () => {
           </div>
         </div>
 
+        {/* Weather Information Section */}
         {sections.map((section, idx) => {
           const lowerName = section.name ? section.name.toLowerCase() : '';
-          if (lowerName.includes('project information') || lowerName.includes('inspection information')) {
+          if (lowerName.includes('weather information')) {
+            const weatherRow = section.rows && section.rows.length > 0 ? section.rows[0] : {};
+            const weatherInfo = {
+              weather_conditions: weatherRow.weather_conditions || '—',
+              temperature: weatherRow.temperature || '—',
+              precipitation_type: weatherRow.precipitation_type || '—',
+              soil_conditions: weatherRow.soil_conditions || '—',
+              rain_gauges: Array.isArray(weatherRow.rain_gauges) ? weatherRow.rain_gauges : [],
+            };
+            
+            return (
+              <div key={idx} className="mb-6">
+                <h2 className="text-xl font-semibold mb-4">Weather Information</h2>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weather Conditions</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temperature</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precipitation Type</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Soil Conditions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{weatherInfo.weather_conditions}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{weatherInfo.temperature}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{weatherInfo.precipitation_type}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{weatherInfo.soil_conditions}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4">
+                  <span className="font-semibold">Rain Gauges:</span> {renderRainGaugesTable(weatherInfo.rain_gauges)}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })}
+
+        {sections.map((section, idx) => {
+          const lowerName = section.name ? section.name.toLowerCase() : '';
+          if (lowerName.includes('project information') || lowerName.includes('inspection information') || lowerName.includes('weather information')) {
             return null;
           }
           
@@ -282,7 +353,7 @@ const SWPPPReportReview = () => {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ECD Functional?</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ECD Needs Maintenance?</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Soil Disturbed?</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/3">Comments</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -296,7 +367,7 @@ const SWPPPReportReview = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.ecd_functional || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.ecd_needs_maintenance || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.soil_disturbed || '—'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.comments || '—'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-900 whitespace-pre-wrap max-w-xs">{row.comments || '—'}</td>
                           </tr>
                         ))}
                       </tbody>

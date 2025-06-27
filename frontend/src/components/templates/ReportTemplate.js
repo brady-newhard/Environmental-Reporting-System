@@ -58,6 +58,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const sigPadRef = useRef(null);
   const previousFormDataRef = useRef(null);
   const { id } = useParams();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [exitDialogOpen, setExitDialogOpen] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Initialize state with default values from config
   const [header, setHeader] = useState(() => {
@@ -149,8 +152,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const [sigDate, setSigDate] = useState(initialData?.sigDate ? new Date(initialData.sigDate) : null);
   const [photos, setPhotos] = useState(initialData?.photos || []);
   const [draftId, setDraftId] = useState(initialData?.id || null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
   // Update state when initialData changes
   useEffect(() => {
@@ -403,6 +404,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       })) : [],
       summaries: summaries || {},
       photos: photos ? photos.map(photo => ({
+        id: photo.id,
         url: photo.url || photo.file || photo.preview || photo.image_url,
         comment: photo.comment || photo.comments || photo.description || '',
         location: photo.location || '',
@@ -435,6 +437,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     // Adjust for timezone offset
     const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     handleHeaderChange({ target: { name: 'date', value: localDate.toISOString().split('T')[0] } });
+  };
+
+  // Notification handler for photo operations
+  const handlePhotoNotification = (message, severity = 'success') => {
+    enqueueSnackbar(message, { variant: severity });
   };
 
   const renderField = (field, value, onChange) => {
@@ -1296,8 +1303,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                 photos={photos}
                 onPhotosChange={setPhotos}
                 content_type={config.reportType || 'template'}
-                object_id={draftId || id}
-                editable={true}
+                object_id={draftId && !String(draftId).startsWith('temp_') ? draftId : null}
+                editable={draftId && !String(draftId).startsWith('temp_')}
+                onNotification={handlePhotoNotification}
               />
             </div>
           )}
