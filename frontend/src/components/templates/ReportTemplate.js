@@ -823,7 +823,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     const safeRow = { ...defaultWeatherRow, ...row };
                     // console.log('Weather Information row:', safeRow);
                     return (
-                      <>
+                      <React.Fragment key={rowIndex}>
                         {/* Weather fields: 2 per row on md and below, 4 per row on lg+ */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                           {weatherFields.filter(Boolean).filter(field => field.name !== 'rain_gauges').map((field, idx) => {
@@ -912,7 +912,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                             </div>
                           </div>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </div>

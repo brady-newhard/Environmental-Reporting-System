@@ -37,17 +37,24 @@ export default function SWPPPReportPrint() {
   const [draft, setDraft] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  console.log('SWPPPReportPrint: Component loaded', { id, location: location.state });
+
   useEffect(() => {
     const loadDraftData = async () => {
       setIsLoading(true);
       try {
         if (location.state?.reportData) {
+          console.log('SWPPPReportPrint: Using report data from state', location.state.reportData);
           setDraft(location.state.reportData);
           setIsLoading(false);
           return;
         }
+        console.log('SWPPPReportPrint: Loading draft from storage', id);
         const loadedDraft = await loadDraft('swppp', id);
+        console.log('SWPPPReportPrint: Loaded draft', loadedDraft);
         setDraft(loadedDraft);
+      } catch (error) {
+        console.error('SWPPPReportPrint: Error loading draft', error);
       } finally {
         setIsLoading(false);
       }
@@ -70,7 +77,11 @@ export default function SWPPPReportPrint() {
   }, []);
 
   if (isLoading || !draft) {
-    return <div className="flex items-center justify-center min-h-screen bg-black text-lg">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-lg text-white">
+        {isLoading ? 'Loading SWPPP Print Preview...' : 'No draft data found'}
+      </div>
+    );
   }
 
   // Project Info
@@ -141,7 +152,7 @@ export default function SWPPPReportPrint() {
     : [];
 
   return (
-    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white print:block">
+    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
       <style>{printPageBreakCss}</style>
       <style>{`
 @media print {
@@ -176,21 +187,21 @@ export default function SWPPPReportPrint() {
   }
 }
 `}</style>
-      <div className="w-full flex flex-col items-center print:block print-container">
+      <div className="w-full flex flex-col items-center print:block">
         {/* Add PageHeader and Print button above the main print area, only visible on screen */}
         {typeof window !== 'undefined' && (
-          <div className="flex items-center gap-4 mb-4 print:hidden w-full max-w-[816px] mx-auto screen-only">
+          <div className="flex items-center gap-4 mb-4 print:hidden w-full max-w-[816px] mx-auto">
             <PageHeader title="Print Preview" backPath={`/environmental/swppp/review/${id}`} />
             <Button onClick={() => window.print()} className="ml-auto bg-yellow-400 hover:bg-yellow-500 text-black font-semibold">Send to Printer</Button>
           </div>
         )}
         {/* Main printable area as a flex column for sticky footer */}
-        <div className="max-w-[816px] min-h-[1056px] bg-white shadow-2xl rounded-xl mx-auto flex flex-col print:shadow-none print:rounded-none print:w-full print:max-w-none print:min-h-0 print:p-0 print:m-0 print:bg-white print-container">
+        <div className="max-w-[816px] min-h-[1056px] bg-white shadow-2xl rounded-xl mx-auto flex flex-col print:shadow-none print:rounded-none print:w-full print:max-w-none print:min-h-0 print:p-0 print:m-0">
           {/* Header */}
-          <div className="w-full border-b-4 border-blue-500 bg-blue-900 text-white py-1 pl-1 pr-8 print:rounded-none rounded-t-xl">
+          <div className="w-full border-b-4 border-blue-500 bg-blue-900 text-white py-0.5 pl-1 pr-8 print:rounded-none rounded-t-xl">
             <div className="flex items-center mt-1 mb-1">
               <div className="flex-shrink-0 flex items-center justify-start" style={{ minWidth: '9rem' }}>
-                <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-36 w-auto" />
+                <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <h1 className="text-3xl font-bold tracking-wide text-center">SWPPP Inspection Report</h1>
@@ -393,12 +404,12 @@ export default function SWPPPReportPrint() {
             )}
           </div>
           {/* Footer always at the bottom */}
-          <div className="w-full border-t-4 border-blue-500 bg-blue-900 text-white py-4 px-8 print:rounded-none rounded-b-xl text-sm flex justify-between items-center mt-auto no-print-footer">
+          <div className="w-full border-t-4 border-blue-500 bg-blue-900 text-white py-2 px-8 print:rounded-none rounded-b-xl text-sm flex justify-between items-center mt-auto no-print-footer">
             <span className="flex-1 text-center">&copy; {new Date().getFullYear()} WildStone Solutions, LLC</span>
             <span className="print-footer-page">Page 1 of 1</span>
           </div>
           {/* Print-only sticky footer */}
-          <div className="print-footer hidden print:flex w-full border-t-4 border-blue-500 bg-blue-900 text-white py-4 px-8 text-sm items-center" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
+          <div className="print-footer hidden print:flex w-full border-t-4 border-blue-500 bg-blue-900 text-white py-2 px-8 text-sm items-center" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
             <div className="flex-1 text-center">&copy; {new Date().getFullYear()} WildStone Solutions, LLC</div>
           </div>
         </div>
