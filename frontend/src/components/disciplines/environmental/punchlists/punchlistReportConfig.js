@@ -23,10 +23,11 @@ const punchlistReportConfig = {
         { name: 'date_observed', label: 'Date Observed', type: 'date', required: false },
         { name: 'issue', label: 'Issue', type: 'multiline', required: true },
         { name: 'recommendations', label: 'Recommendations', type: 'multiline', required: true },
-        { name: 'photos', label: 'Photos', type: 'photoArray', required: false },
-        { name: 'photo_comments', label: 'Photo Comments', type: 'photoComments', required: false }
+        { name: 'photos', label: 'Photos', type: 'photoArray', required: false }
       ],
-      defaultRow: () => ({ photos: [], photo_comments: [] })
+      defaultRow: () => ({ 
+        photos: []
+      })
     }
   ],
   reviewPath: '/environmental/reports/punchlist/review'

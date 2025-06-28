@@ -64,6 +64,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const [draftId, setDraftId] = useState(initialData?.id || null);
   const [editingRowIndex, setEditingRowIndex] = useState(null);
   const [editingRowData, setEditingRowData] = useState(null);
+  const [newItemFormData, setNewItemFormData] = useState({});
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
   
   // Initialize state with default values from config
   const [header, setHeader] = useState(() => {
@@ -293,15 +296,28 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
         
         newRow.item_number = nextItemNumber;
         
+        // Merge form data with the new row
+        const mergedRow = { ...newRow, ...newItemFormData };
+        
+        // Clear the form data after adding
+        setNewItemFormData({});
+        
         return {
           ...section,
-          rows: [...section.rows, newRow]
+          rows: [...section.rows, mergedRow]
         };
       }
       
+      // For other report types, merge form data with default row
+      const newRow = sectionConfig.defaultRow();
+      const mergedRow = { ...newRow, ...newItemFormData };
+      
+      // Clear the form data after adding
+      setNewItemFormData({});
+      
       return {
         ...section,
-        rows: [...section.rows, sectionConfig.defaultRow()]
+        rows: [...section.rows, mergedRow]
       };
     }));
   };
@@ -347,6 +363,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const handleCancelEdit = () => {
     setEditingRowIndex(null);
     setEditingRowData(null);
+  };
+
+  const handleNewItemFormChange = (fieldName, value) => {
+    setNewItemFormData(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
   };
 
   const handleSummaryChange = (field, value) => {
@@ -666,74 +689,14 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
         );
       case 'photoArray':
         return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {(value || []).map((photo, index) => (
-                <div key={index} className="relative group bg-white border border-gray-200 rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
-                  <img
-                    src={photo.url || photo.file || photo.preview || photo.image_url}
-                    alt={`Photo ${index + 1}`}
-                    className="w-full h-32 object-contain bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      // Handle photo preview - could open a modal
-                      console.log('Photo clicked:', photo);
-                    }}
-                  />
-                  <div className="p-2">
-                    <div className="text-xs text-gray-700 truncate">
-                      {photo.location || 'No location'}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1 truncate">
-                      {photo.description || photo.comment || 'No description'}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full p-1 shadow hover:bg-red-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const newValue = [...(value || [])];
-                      newValue.splice(index, 1);
-                      onChange({ target: { name: field.name, value: newValue } });
-                    }}
-                    title="Delete photo"
-                  >
-                    <TrashIcon className="w-4 h-4 text-red-600" />
-                  </button>
-                </div>
-              ))}
-              <div
-                className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg shadow cursor-pointer hover:bg-gray-100 h-32 w-full min-w-0 relative"
-                onClick={() => {
-                  // Handle photo upload for this specific item
-                  const input = document.createElement('input');
-                  input.type = 'file';
-                  input.multiple = true;
-                  input.accept = 'image/*';
-                  input.onchange = async (e) => {
-                    const files = Array.from(e.target.files);
-                    try {
-                      const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
-                      const uploadedPhotos = await uploadMultiplePhotos(files, {
-                        content_type: 'punchlist_item',
-                        object_id: null, // Will be set when item is saved
-                      });
-                      const newValue = [...(value || []), ...uploadedPhotos];
-                      onChange({ target: { name: field.name, value: newValue } });
-                    } catch (error) {
-                      console.error('Error uploading photos:', error);
-                      enqueueSnackbar('Error uploading photos', { variant: 'error' });
-                    }
-                  };
-                  input.click();
-                }}
-                title="Add photo"
-              >
-                <PlusIcon className="w-6 h-6 text-gray-400 mb-1" />
-                <span className="text-xs text-gray-500 font-semibold">Add Photo</span>
-              </div>
-            </div>
-          </div>
+          <ReportPhotoSection
+            photos={value || []}
+            onPhotosChange={(newPhotos) => onChange({ target: { name: field.name, value: newPhotos } })}
+            editable={true}
+            content_type={config.reportType || 'template'}
+            object_id={draftId && !String(draftId).startsWith('temp_') ? draftId : null}
+            onNotification={handlePhotoNotification}
+          />
         );
       case 'photoComments':
         // This field type is used to store comments for photos
@@ -750,6 +713,16 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
           />
         );
     }
+  };
+
+  const handlePhotoClick = (photo) => {
+    setSelectedPhoto(photo);
+    setPhotoModalOpen(true);
+  };
+
+  const handleClosePhotoModal = () => {
+    setPhotoModalOpen(false);
+    setSelectedPhoto(null);
   };
 
   return (
@@ -1295,13 +1268,17 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.end_station || '—'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.feature || '—'}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.date_observed || '—'}</td>
-                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{row.issue || '—'}</td>
-                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{row.recommendations || '—'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-900 truncate" style={{ minWidth: '400px', maxWidth: '600px' }}>{row.issue || '—'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-900 truncate" style={{ minWidth: '400px', maxWidth: '600px' }}>{row.recommendations || '—'}</td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
                                   {row.photos && Array.isArray(row.photos) && row.photos.length > 0 ? (
                                     <div className="flex gap-1">
                                       {row.photos.slice(0, 3).map((photo, photoIdx) => (
-                                        <div key={photoIdx} className="w-8 h-8 rounded border overflow-hidden">
+                                        <div 
+                                          key={photoIdx} 
+                                          className="w-8 h-8 rounded border overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
+                                          onClick={() => handlePhotoClick(photo)}
+                                        >
                                           <img
                                             src={photo.url || photo.file || photo.preview || photo.image_url}
                                             alt={`Photo ${photoIdx + 1}`}
@@ -1481,8 +1458,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                                   readOnly
                                 />
                               ) : (
-                                renderField(field, '', (e) => {
-                                  // This will be handled when the form is submitted
+                                renderField(field, newItemFormData[field.name] || '', (e) => {
+                                  handleNewItemFormChange(field.name, e.target.value);
                                 })
                               )}
                             </div>
@@ -1496,8 +1473,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, '', (e) => {
-                                // This will be handled when the form is submitted
+                              {renderField(field, newItemFormData[field.name] || '', (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
                               })}
                             </div>
                           ))}
@@ -1506,8 +1483,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, '', (e) => {
-                                // This will be handled when the form is submitted
+                              {renderField(field, newItemFormData[field.name] || '', (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
                               })}
                             </div>
                           ))}
@@ -1516,8 +1493,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, '', (e) => {
-                                // This will be handled when the form is submitted
+                              {renderField(field, newItemFormData[field.name] || '', (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
                               })}
                             </div>
                           ))}
@@ -1530,8 +1507,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, '', (e) => {
-                                // This will be handled when the form is submitted
+                              {renderField(field, newItemFormData[field.name] || '', (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
                               })}
                             </div>
                           ))}
@@ -1544,8 +1521,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, '', (e) => {
-                                // This will be handled when the form is submitted
+                              {renderField(field, newItemFormData[field.name] || '', (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
                               })}
                             </div>
                           ))}
@@ -1558,8 +1535,32 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, '', (e) => {
-                                // This will be handled when the form is submitted
+                              {renderField(field, newItemFormData[field.name] || [], (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 6: Photo Item Number and Comments */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {fields.filter(f => f.name === 'photo_item_number').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, newItemFormData[field.name] || '', (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
+                              })}
+                            </div>
+                          ))}
+                          {fields.filter(f => f.name === 'photo_comments').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, newItemFormData[field.name] || '', (e) => {
+                                handleNewItemFormChange(field.name, e.target.value);
                               })}
                             </div>
                           ))}
@@ -1721,6 +1722,35 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
           </div>
         </form>
       </div>
+
+      {/* Photo Modal */}
+      {photoModalOpen && selectedPhoto && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl max-h-full">
+            <button
+              onClick={handleClosePhotoModal}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 text-2xl font-bold z-10"
+            >
+              ×
+            </button>
+            <img
+              src={selectedPhoto.url || selectedPhoto.file || selectedPhoto.preview || selectedPhoto.image_url}
+              alt="Full size photo"
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+            {(selectedPhoto.location || selectedPhoto.description || selectedPhoto.comment) && (
+              <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg">
+                {selectedPhoto.location && (
+                  <div className="font-semibold mb-1">Location: {selectedPhoto.location}</div>
+                )}
+                {(selectedPhoto.description || selectedPhoto.comment) && (
+                  <div className="text-sm">{selectedPhoto.description || selectedPhoto.comment}</div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
