@@ -325,8 +325,12 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const handleRemoveRow = (sectionName, rowIndex) => {
     const newSections = sections.map(section => {
       if (section.name === sectionName) {
-        const newRows = [...section.rows];
+        let newRows = [...section.rows];
         newRows.splice(rowIndex, 1);
+        // If this is the punchlist section, reassign item_number sequentially
+        if (config.reportType === 'punchlist' && sectionName === 'Punchlist Items') {
+          newRows = newRows.map((row, idx) => ({ ...row, item_number: idx + 1 }));
+        }
         return { ...section, rows: newRows };
       }
       return section;
