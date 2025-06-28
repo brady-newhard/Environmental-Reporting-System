@@ -61,6 +61,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [draftId, setDraftId] = useState(initialData?.id || null);
+  const [editingRowIndex, setEditingRowIndex] = useState(null);
+  const [editingRowData, setEditingRowData] = useState(null);
   
   // Initialize state with default values from config
   const [header, setHeader] = useState(() => {
@@ -134,6 +137,18 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
           console.warn('Invalid section in config:', section);
           return null;
         }
+        
+        // For punchlist reports, auto-assign the first item number
+        if (config.reportType === 'punchlist' && section.name === 'Punchlist Items') {
+          const defaultRow = section.defaultRow();
+          defaultRow.item_number = 1; // Start with item number 1
+          
+          return {
+            name: section.name,
+            rows: [defaultRow]
+          };
+        }
+        
         return {
           name: section.name,
           rows: [section.defaultRow()]
@@ -154,7 +169,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const [signature, setSignature] = useState(initialData?.signature || '');
   const [sigDate, setSigDate] = useState(initialData?.sigDate ? new Date(initialData.sigDate) : null);
   const [photos, setPhotos] = useState(initialData?.photos || []);
-  const [draftId, setDraftId] = useState(initialData?.id || null);
 
   // Update state when initialData changes
   useEffect(() => {
@@ -263,6 +277,28 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     setSections(sections.map(section => {
       if (section.name !== sectionName) return section;
       const sectionConfig = config.dynamicSections.find(s => s.name === sectionName);
+      
+      // For punchlist reports, auto-assign item numbers
+      if (config.reportType === 'punchlist' && sectionName === 'Punchlist Items') {
+        const newRow = sectionConfig.defaultRow();
+        
+        // Find the highest existing item number and increment by 1
+        const existingItemNumbers = section.rows
+          .map(row => parseInt(row.item_number))
+          .filter(num => !isNaN(num));
+        
+        const nextItemNumber = existingItemNumbers.length > 0 
+          ? Math.max(...existingItemNumbers) + 1 
+          : 1;
+        
+        newRow.item_number = nextItemNumber;
+        
+        return {
+          ...section,
+          rows: [...section.rows, newRow]
+        };
+      }
+      
       return {
         ...section,
         rows: [...section.rows, sectionConfig.defaultRow()]
@@ -271,13 +307,46 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   };
 
   const handleRemoveRow = (sectionName, rowIndex) => {
-    setSections(sections.map(section => {
-      if (section.name !== sectionName) return section;
-      return {
-        ...section,
-        rows: section.rows.filter((_, idx) => idx !== rowIndex)
-      };
-    }));
+    const newSections = sections.map(section => {
+      if (section.name === sectionName) {
+        const newRows = [...section.rows];
+        newRows.splice(rowIndex, 1);
+        return { ...section, rows: newRows };
+      }
+      return section;
+    });
+    setSections(newSections);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleEditRow = (sectionName, rowIndex) => {
+    const section = sections.find(s => s.name === sectionName);
+    if (section && section.rows[rowIndex]) {
+      setEditingRowIndex(rowIndex);
+      setEditingRowData({ ...section.rows[rowIndex] });
+    }
+  };
+
+  const handleSaveEdit = (sectionName) => {
+    if (editingRowIndex !== null && editingRowData) {
+      const newSections = sections.map(section => {
+        if (section.name === sectionName) {
+          const newRows = [...section.rows];
+          newRows[editingRowIndex] = { ...editingRowData };
+          return { ...section, rows: newRows };
+        }
+        return section;
+      });
+      setSections(newSections);
+      setEditingRowIndex(null);
+      setEditingRowData(null);
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRowIndex(null);
+    setEditingRowData(null);
   };
 
   const handleSummaryChange = (field, value) => {
@@ -453,6 +522,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     // Navigate to the appropriate review page based on report type
     if (config.reportType === 'swppp') {
       navigate(`/environmental/swppp/review/${draftId}`, { state: { reportData: reviewData } });
+    } else if (config.reportType === 'punchlist') {
+      navigate(`/environmental/reports/punchlist/review/${draftId}`, { state: { reportData: reviewData } });
     } else {
       navigate(`/environmental/reports/daily/review/${draftId}`, { state: { reportData: reviewData } });
     }
@@ -1190,37 +1261,144 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
             // Custom layout for Punchlist Items
             if (config.reportType === 'punchlist' && section.name === 'Punchlist Items') {
               return (
-                <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
-                  {(section.rows || []).map((row, rowIndex) => {
-                    // Validate row data
-                    if (!row || typeof row !== 'object') {
-                      console.warn(`Invalid row data in section "${section.name}" at index ${rowIndex}:`, row);
-                      return null;
-                    }
+                <div key={`section-${section.name}-${sectionIdx}`}>
+                  {/* Table View Card */}
+                  {(section.rows || []).length > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Punchlist Items</h2>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item #</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inspector</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spread</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Station</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Station</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature/Location</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Observed</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recommendations</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photos</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {(section.rows || []).map((row, rowIndex) => (
+                              <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.item_number || '—'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.inspector || '—'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{Array.isArray(row.spread) ? row.spread.join(', ') : row.spread || '—'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{Array.isArray(row.facility) ? row.facility.join(', ') : row.facility || '—'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.start_station || '—'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.end_station || '—'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.feature || '—'}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.date_observed || '—'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{row.issue || '—'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{row.recommendations || '—'}</td>
+                                <td className="px-6 py-4 text-sm text-gray-900">
+                                  {row.photos && Array.isArray(row.photos) && row.photos.length > 0 ? (
+                                    <div className="flex gap-1">
+                                      {row.photos.slice(0, 3).map((photo, photoIdx) => (
+                                        <div key={photoIdx} className="w-8 h-8 rounded border overflow-hidden">
+                                          <img
+                                            src={photo.url || photo.file || photo.preview || photo.image_url}
+                                            alt={`Photo ${photoIdx + 1}`}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        </div>
+                                      ))}
+                                      {row.photos.length > 3 && (
+                                        <div className="w-8 h-8 rounded border bg-gray-100 flex items-center justify-center text-xs text-gray-500">
+                                          +{row.photos.length - 3}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    '—'
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  <div className="flex space-x-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEditRow(section.name, rowIndex)}
+                                      className="text-blue-600 hover:text-blue-900"
+                                      title="Edit"
+                                    >
+                                      <PencilIcon className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveRow(section.name, rowIndex)}
+                                      className="text-red-600 hover:text-red-900"
+                                      title="Delete"
+                                    >
+                                      <TrashIcon className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
 
-                    return (
-                      <div key={`row-${section.name}-${rowIndex}`} className="space-y-4 border border-gray-200 rounded-lg p-4 mb-4">
-                        {/* Line 1: Item Number, Inspector, Spread, Facility, Start Station, End Station */}
-                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                          {fields.filter(f => ['item_number', 'inspector', 'spread', 'facility', 'start_station', 'end_station'].includes(f.name)).map((field, idx) => (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                  {/* Edit Form Card - Show when editing a row */}
+                  {editingRowIndex !== null && editingRowData && (
+                    <div className="bg-white border border-blue-200 rounded-xl shadow-md p-4 mb-6">
+                      <h3 className="text-lg font-semibold mb-4 text-blue-800">Edit Punchlist Item</h3>
+                      <div className="space-y-4">
+                        {/* Line 1: Item Number, Spread, Facility, Start Station, End Station */}
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                          {fields.filter(f => ['item_number', 'spread', 'facility', 'start_station', 'end_station'].includes(f.name)).map((field, idx) => (
+                            <div key={`edit-field-${field.name}-${idx}`} className={`col-span-1 ${field.name === 'item_number' ? 'md:col-span-1' : ''}`}>
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              {field.name === 'item_number' ? (
+                                <input
+                                  type="number"
+                                  value={editingRowData[field.name] || ''}
+                                  onChange={(e) => setEditingRowData({...editingRowData, [field.name]: e.target.value})}
+                                  className="w-full px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Auto"
+                                  readOnly
+                                />
+                              ) : (
+                                renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))
+                              )}
                             </div>
                           ))}
                         </div>
                         
-                        {/* Line 2: Feature, Date Observed */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {fields.filter(f => ['feature', 'date_observed'].includes(f.name)).map((field, idx) => (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                        {/* Line 2: Feature/Location (50%), Date Observed (25%), Inspector (25%) */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          {fields.filter(f => f.name === 'feature').map((field, idx) => (
+                            <div key={`edit-field-${field.name}-${idx}`} className="col-span-1 md:col-span-2">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              {renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))}
+                            </div>
+                          ))}
+                          {fields.filter(f => f.name === 'date_observed').map((field, idx) => (
+                            <div key={`edit-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))}
+                            </div>
+                          ))}
+                          {fields.filter(f => f.name === 'inspector').map((field, idx) => (
+                            <div key={`edit-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))}
                             </div>
                           ))}
                         </div>
@@ -1228,11 +1406,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                         {/* Line 3: Issue (multiline) */}
                         <div className="grid grid-cols-1 gap-4">
                           {fields.filter(f => f.name === 'issue').map((field, idx) => (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                            <div key={`edit-field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              {renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))}
                             </div>
                           ))}
                         </div>
@@ -1240,55 +1418,157 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                         {/* Line 4: Recommendations (multiline) */}
                         <div className="grid grid-cols-1 gap-4">
                           {fields.filter(f => f.name === 'recommendations').map((field, idx) => (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                            <div key={`edit-field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              {renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))}
                             </div>
                           ))}
                         </div>
                         
-                        {/* Line 5: Completed, Inspector Signoff, Completed Date */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {fields.filter(f => ['completed', 'inspector_signoff', 'completed_date'].includes(f.name)).map((field, idx) => (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">
-                                {field.label}
-                              </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {/* Line 6: Photos */}
+                        {/* Line 5: Photos */}
                         <div className="grid grid-cols-1 gap-4">
                           {fields.filter(f => f.name === 'photos').map((field, idx) => (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                            <div key={`edit-field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
                               </label>
-                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                              {renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))}
                             </div>
                           ))}
                         </div>
                         
-                        {/* Delete button */}
-                        {!sectionConfig.isStatic && (
-                          <div className="flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveRow(section.name, rowIndex)}
-                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-3 py-2 flex items-center gap-2"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                              Remove Item
-                            </button>
-                          </div>
-                        )}
+                        {/* Edit Form Actions */}
+                        <div className="flex justify-end space-x-4 pt-4 border-t">
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveEdit(section.name)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  )}
+
+                  {/* Add New Item Form Card - Show when not editing */}
+                  {editingRowIndex === null && (
+                    <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+                      <h3 className="text-lg font-semibold mb-4">Add New Punchlist Item</h3>
+                      <div className="space-y-4">
+                        {/* Line 1: Item Number, Spread, Facility, Start Station, End Station */}
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                          {fields.filter(f => ['item_number', 'spread', 'facility', 'start_station', 'end_station'].includes(f.name)).map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className={`col-span-1 ${field.name === 'item_number' ? 'md:col-span-1' : ''}`}>
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {field.name === 'item_number' ? (
+                                <input
+                                  type="number"
+                                  value={((section.rows || []).length + 1) || ''}
+                                  className="w-full px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                  placeholder="Auto"
+                                  readOnly
+                                />
+                              ) : (
+                                renderField(field, '', (e) => {
+                                  // This will be handled when the form is submitted
+                                })
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 2: Feature/Location (50%), Date Observed (25%), Inspector (25%) */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          {fields.filter(f => f.name === 'feature').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1 md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, '', (e) => {
+                                // This will be handled when the form is submitted
+                              })}
+                            </div>
+                          ))}
+                          {fields.filter(f => f.name === 'date_observed').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, '', (e) => {
+                                // This will be handled when the form is submitted
+                              })}
+                            </div>
+                          ))}
+                          {fields.filter(f => f.name === 'inspector').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, '', (e) => {
+                                // This will be handled when the form is submitted
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 3: Issue (multiline) */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {fields.filter(f => f.name === 'issue').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, '', (e) => {
+                                // This will be handled when the form is submitted
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 4: Recommendations (multiline) */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {fields.filter(f => f.name === 'recommendations').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, '', (e) => {
+                                // This will be handled when the form is submitted
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 5: Photos */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {fields.filter(f => f.name === 'photos').map((field, idx) => (
+                            <div key={`new-field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, '', (e) => {
+                                // This will be handled when the form is submitted
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Add Button */}
                   {!sectionConfig.isStatic && (
                     <div className="flex justify-center">
                       <button

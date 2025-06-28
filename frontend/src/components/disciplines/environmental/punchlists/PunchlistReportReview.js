@@ -4,6 +4,7 @@ import { loadDraft } from '../../../../utils/draftUtils';
 import PageHeader from '../../../../components/common/PageHeader';
 import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import punchlistReportConfig from './punchlistReportConfig';
+import api from '../../../../services/api';
 
 export default function PunchlistReportReview() {
   const { id } = useParams();
@@ -17,6 +18,7 @@ export default function PunchlistReportReview() {
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+  console.log('PunchlistReportReview loaded with id:', id);
   // Helper to format date as MM/DD/YYYY, but handle YYYY-MM-DD strings without timezone shift
   const formatDate = (value) => {
     if (!value) return '—';
@@ -108,7 +110,7 @@ export default function PunchlistReportReview() {
         severity: 'success'
       });
       
-      navigate('/environmental/reports/punchlist');
+      navigate('/environmental/reports/punchlist/drafts');
     } catch (err) {
       console.error('Error submitting report:', err);
       setSnackbar({
@@ -255,41 +257,6 @@ export default function PunchlistReportReview() {
       />
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        {/* Project Information Section */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Project Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-3">
-              <div><span className="font-semibold">Inspector:</span> {projectInfo.inspector}</div>
-              <div><span className="font-semibold">Project:</span> {projectInfo.project}</div>
-              <div><span className="font-semibold">Spread:</span> {projectInfo.spread}</div>
-              <div><span className="font-semibold">Facility:</span> {projectInfo.facility}</div>
-              <div><span className="font-semibold">Contractor:</span> {projectInfo.contractor}</div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div><span className="font-semibold">Milepost Start:</span> {projectInfo.milepost_start}</div>
-              <div><span className="font-semibold">Milepost End:</span> {projectInfo.milepost_end}</div>
-              <div><span className="font-semibold">Station Start:</span> {projectInfo.station_start}</div>
-              <div><span className="font-semibold">Station End:</span> {projectInfo.station_end}</div>
-              <div><span className="font-semibold">Date:</span> {projectInfo.date}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Weather Information Section */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4">Weather Information</h2>
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-8 gap-2">
-            <div className="min-w-[180px]"><span className="font-semibold">Weather Conditions:</span> {weatherInfo.weather_conditions}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Temperature:</span> {weatherInfo.temperature}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Precipitation Type:</span> {weatherInfo.precipitation_type}</div>
-            <div className="min-w-[180px]"><span className="font-semibold">Soil Conditions:</span> {weatherInfo.soil_conditions}</div>
-          </div>
-          <div className="min-w-[180px] col-span-3 mt-2">
-            <span className="font-semibold">Rain Gauges:</span> {renderRainGaugesTable(weatherInfo.rain_gauges)}
-          </div>
-        </div>
-
         {/* Dynamic Sections */}
         {sections.map((section, idx) => {
           // Skip redundant Project Information and Weather Information sections
@@ -309,14 +276,15 @@ export default function PunchlistReportReview() {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item #</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inspector</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spread</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Station</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Station</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Observed</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recommendations</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signoff</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed Date</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photos</th>
                         </tr>
                       </thead>
@@ -324,14 +292,15 @@ export default function PunchlistReportReview() {
                         {section.rows.map((row, rowIdx) => (
                           <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.item_number || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.inspector || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{Array.isArray(row.spread) ? row.spread.join(', ') : row.spread || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{Array.isArray(row.facility) ? row.facility.join(', ') : row.facility || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.start_station || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.end_station || '—'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.feature || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(row.date_observed) || '—'}</td>
                             <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">{row.issue || '—'}</td>
                             <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">{row.recommendations || '—'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.completed || '—'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.inspector_signoff || '—'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(row.completed_date) || '—'}</td>
                             <td className="px-6 py-4 text-sm text-gray-900">
                               {row.photos && Array.isArray(row.photos) && row.photos.length > 0 ? (
                                 <div className="flex gap-1">
@@ -401,8 +370,8 @@ export default function PunchlistReportReview() {
               </div>
             );
           }
-
-          // Default rendering for other sections
+          
+          // Default section rendering
           return (
             <div key={idx} className="mb-6">
               <h2 className="text-xl font-semibold mb-4">{section.name}</h2>
@@ -411,9 +380,9 @@ export default function PunchlistReportReview() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {Object.keys(section.rows[0]).map((field, i) => (
-                          <th key={i} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            {field}
+                        {Object.keys(section.rows[0]).map(key => (
+                          <th key={key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </th>
                         ))}
                       </tr>
@@ -421,9 +390,9 @@ export default function PunchlistReportReview() {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {section.rows.map((row, rowIdx) => (
                         <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                          {Object.values(row).map((value, fieldIdx) => (
-                            <td key={fieldIdx} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {typeof value === 'object' && value !== null ? JSON.stringify(value) : value || '—'}
+                          {Object.values(row).map((value, colIdx) => (
+                            <td key={colIdx} className="px-6 py-4 text-sm text-gray-900">
+                              {Array.isArray(value) ? value.join(', ') : value || '—'}
                             </td>
                           ))}
                         </tr>
@@ -483,39 +452,39 @@ export default function PunchlistReportReview() {
             </div>
           </div>
         )}
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t">
-          <button
-            onClick={handleEdit}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            <PencilIcon className="w-4 h-4 mr-2" />
-            Edit
-          </button>
-          <button
-            onClick={handlePrint}
-            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-          >
-            <PrinterIcon className="w-4 h-4 mr-2" />
-            Print
-          </button>
-          <button
-            onClick={() => setDeleteDialogOpen(true)}
-            className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-          >
-            <TrashIcon className="w-4 h-4 mr-2" />
-            Delete
-          </button>
-          <div className="flex-1" />
-          <button
-            onClick={() => setSubmitDialogOpen(true)}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-          >
-            <CheckIcon className="w-4 h-4 mr-2" />
-            Submit Report
-          </button>
-        </div>
+      {/* Action Buttons - Outside Container */}
+      <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t">
+        <button
+          onClick={handleEdit}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+        >
+          <PencilIcon className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Edit</span>
+        </button>
+        <button
+          onClick={handlePrint}
+          className="flex items-center px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+        >
+          <PrinterIcon className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Print</span>
+        </button>
+        <button
+          onClick={() => setDeleteDialogOpen(true)}
+          className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+        >
+          <TrashIcon className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Delete</span>
+        </button>
+        <div className="flex-1" />
+        <button
+          onClick={() => setSubmitDialogOpen(true)}
+          className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+        >
+          <CheckIcon className="w-4 h-4 sm:mr-2" />
+          <span className="hidden sm:inline">Submit Report</span>
+        </button>
       </div>
 
       {/* Delete Confirmation Dialog */}

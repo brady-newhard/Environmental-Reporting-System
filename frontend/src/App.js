@@ -274,22 +274,40 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+        {/* Environmental SWPPP Routes */}
         <Route
-          path="/environmental"
+          path="/environmental/swppp/new"
           element={
             <PrivateRoute>
-              <EnvironmentalMain />
+              <SWPPPReportForm />
             </PrivateRoute>
           }
         />
         <Route
-          path="/environmental/reports"
+          path="/environmental/swppp/edit/:id"
           element={
             <PrivateRoute>
-              <EnvironmentalReports />
+              <SWPPPReportForm />
             </PrivateRoute>
           }
         />
+        <Route
+          path="/environmental/swppp/drafts"
+          element={
+            <PrivateRoute>
+              <SWPPPDrafts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/swppp/review/:draftId"
+          element={
+            <PrivateRoute>
+              <SWPPPReportReview />
+            </PrivateRoute>
+          }
+        />
+        {/* Environmental Daily Report Routes */}
         <Route
           path="/environmental/reports/daily/new"
           element={
@@ -307,7 +325,7 @@ function AppContent() {
           }
         />
         <Route
-          path="/environmental/reports/daily/review/:id"
+          path="/environmental/reports/daily/review/:draftId"
           element={
             <PrivateRoute>
               <EnvironmentalDailyReportReview />
@@ -318,6 +336,70 @@ function AppContent() {
           path="/environmental/reports/daily/print/:id"
           element={
             <EnvironmentalDailyReportPrint />
+          }
+        />
+        <Route
+          path="/environmental/reports/daily/drafts"
+          element={
+            <PrivateRoute>
+              <EnvironmentalDailyReportDrafts />
+            </PrivateRoute>
+          }
+        />
+        {/* Environmental Punchlist Routes */}
+        <Route
+          path="/environmental/reports/punchlist/new"
+          element={
+            <PrivateRoute>
+              <PunchlistReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/punchlist/edit/:id"
+          element={
+            <PrivateRoute>
+              <PunchlistReport />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/punchlist/review/:id"
+          element={
+            <PrivateRoute>
+              <PunchlistReportReview />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports/punchlist/print/:id"
+          element={
+            <PunchlistReportPrint />
+          }
+        />
+        <Route
+          path="/environmental/reports/punchlist/drafts"
+          element={
+            <PrivateRoute>
+              <PunchlistDrafts />
+            </PrivateRoute>
+          }
+        />
+        {/* General Environmental Routes */}
+        <Route
+          path="/environmental"
+          element={
+            <PrivateRoute>
+              <EnvironmentalMain />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/environmental/reports"
+          element={
+            <PrivateRoute>
+              <EnvironmentalReports />
+            </PrivateRoute>
           }
         />
         <Route
@@ -449,38 +531,6 @@ function AppContent() {
           }
         />
         <Route
-          path="/environmental/swppp/new"
-          element={
-            <PrivateRoute>
-              <SWPPPReportForm />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/swppp/edit/:id"
-          element={
-            <PrivateRoute>
-              <SWPPPReportForm />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/swppp/drafts"
-          element={
-            <PrivateRoute>
-              <SWPPPDrafts />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/swppp/review/:draftId"
-          element={
-            <PrivateRoute>
-              <SWPPPReportReview />
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/swppp-report/:reportId"
           element={
             <PrivateRoute>
@@ -529,70 +579,10 @@ function AppContent() {
         <Route path="/utility/reports/daily/i3" element={<I3DailyUtilityReport />} />
         <Route path="/utility/reports/daily/i3/review/:draftId" element={<I3DailyUtilityReportReview />} />
         <Route path="/utility/reports/daily/i3/drafts" element={<PrivateRoute><I3DailyUtilityReportDrafts /></PrivateRoute>} />
-        <Route
-          path="/environmental/reports/daily/review/:draftId"
-          element={
-            <PrivateRoute>
-              <EnvironmentalDailyReportReview />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/reports/daily/drafts"
-          element={
-            <PrivateRoute>
-              <EnvironmentalDailyReportDrafts />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/reports/daily/print/:id"
-          element={
-            <EnvironmentalDailyReportPrint />
-          }
-        />
         <Route path="/test-print" element={<div>Test Print Route Works</div>} />
         <Route
           path="/environmental/reports/swppp/print/:draftId"
           element={<SWPPPReportPrint />}
-        />
-        <Route
-          path="/environmental/reports/punchlist/new"
-          element={
-            <PrivateRoute>
-              <PunchlistReport />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/reports/punchlist/edit/:id"
-          element={
-            <PrivateRoute>
-              <PunchlistReport />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/reports/punchlist/review/:id"
-          element={
-            <PrivateRoute>
-              <PunchlistReportReview />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/environmental/reports/punchlist/print/:id"
-          element={
-            <PunchlistReportPrint />
-          }
-        />
-        <Route
-          path="/environmental/reports/punchlist/drafts"
-          element={
-            <PrivateRoute>
-              <PunchlistDrafts />
-            </PrivateRoute>
-          }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

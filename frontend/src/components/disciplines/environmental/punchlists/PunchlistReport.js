@@ -101,7 +101,7 @@ const PunchlistReport = () => {
   };
 
   const handleReview = (formData) => {
-    navigate('/environmental/reports/punchlist/review', {
+    navigate(`/environmental/reports/punchlist/review/${formData.id}`, {
       state: { reportData: formData }
     });
   };
