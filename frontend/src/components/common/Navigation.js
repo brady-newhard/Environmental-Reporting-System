@@ -34,9 +34,9 @@ const Navigation = () => {
           {/* Mobile Logo (left) */}
           <div className="flex items-center flex-shrink-0">
             <RouterLink to="/" className="flex items-center no-underline">
-              <img src="/staticfiles/PIPE-Logo-bk.png" alt="PIPE Logo" className="h-20 w-auto object-contain" onError={(e) => {
+              <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain" onError={(e) => {
                 console.error('Logo failed to load:', e.target.src);
-                e.target.src = '/PIPE-Logo.png';
+                e.target.src = '/PIPE-Logo-bk.png';
               }} />
             </RouterLink>
           </div>
