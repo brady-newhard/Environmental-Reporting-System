@@ -65,11 +65,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   // Initialize state with default values from config
   const [header, setHeader] = useState(() => {
     // For SWPPP reports, headerFields is empty, so we need to get header data from dynamicSections
-    let headerFields = config.headerFields;
-    if (config.reportType === 'swppp' && config.headerFields.length === 0) {
+    let headerFields = config.headerFields || [];
+    if (config.reportType === 'swppp' && headerFields.length === 0) {
       // Extract fields from the first two sections (Inspection Information and Project Information)
-      const inspectionSection = config.dynamicSections.find(s => s.name === 'Inspection Information');
-      const projectSection = config.dynamicSections.find(s => s.name === 'Project Information');
+      const inspectionSection = config.dynamicSections?.find(s => s.name === 'Inspection Information');
+      const projectSection = config.dynamicSections?.find(s => s.name === 'Project Information');
       
       if (inspectionSection) {
         headerFields = [...headerFields, ...inspectionSection.fields];
@@ -79,9 +79,12 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       }
     }
 
-    const defaultHeader = headerFields.reduce((acc, field) => {
+    const defaultHeader = (headerFields || []).reduce((acc, field) => {
       if (field.type === 'dynamicArray') {
         return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
+      }
+      if (field.type === 'multiselect') {
+        return { ...acc, [field.name]: [] };
       }
       return { ...acc, [field.name]: '' };
     }, { date: null, reportNo: 'Pending' });
@@ -143,7 +146,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   });
 
   const [summaries, setSummaries] = useState(() => {
-    const defaultSummaries = config.summaryFields.reduce((acc, field) => ({ ...acc, [field.name]: '' }), {});
+    const defaultSummaries = (config.summaryFields || []).reduce((acc, field) => ({ ...acc, [field.name]: '' }), {});
     return initialData?.summaries ? { ...defaultSummaries, ...initialData.summaries } : defaultSummaries;
   });
 
@@ -158,11 +161,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     if (!initialData) return;
     
     // For SWPPP reports, headerFields is empty, so we need to get header data from dynamicSections
-    let headerFields = config.headerFields;
-    if (config.reportType === 'swppp' && config.headerFields.length === 0) {
+    let headerFields = config.headerFields || [];
+    if (config.reportType === 'swppp' && headerFields.length === 0) {
       // Extract fields from the first two sections (Inspection Information and Project Information)
-      const inspectionSection = config.dynamicSections.find(s => s.name === 'Inspection Information');
-      const projectSection = config.dynamicSections.find(s => s.name === 'Project Information');
+      const inspectionSection = config.dynamicSections?.find(s => s.name === 'Inspection Information');
+      const projectSection = config.dynamicSections?.find(s => s.name === 'Project Information');
       
       if (inspectionSection) {
         headerFields = [...headerFields, ...inspectionSection.fields];
@@ -172,9 +175,12 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       }
     }
     
-    const defaultHeader = headerFields.reduce((acc, field) => {
+    const defaultHeader = (headerFields || []).reduce((acc, field) => {
       if (field.type === 'dynamicArray') {
         return { ...acc, [field.name]: [{ location: '', rain: '', snow: '' }] };
+      }
+      if (field.type === 'multiselect') {
+        return { ...acc, [field.name]: [] };
       }
       return { ...acc, [field.name]: '' };
     }, { date: null, reportNo: 'Pending' });
@@ -215,11 +221,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   }, [initialData?.id, config]);
 
   // Debug logging for state and data flow
-  // console.log('initialData:', initialData);
-  // console.log('header:', header);
-  // console.log('sections:', sections);
-  // console.log('summaries:', summaries);
-  // console.log('photos:', photos);
+  console.log('initialData:', initialData);
+  console.log('config:', config);
+  console.log('sections:', sections);
+  console.log('summaries:', summaries);
+  console.log('photos:', photos);
 
   // Call onChange prop whenever form data changes
   useEffect(() => {
@@ -587,6 +593,81 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
             onChange={onChange}
           />
         );
+      case 'photoArray':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {(value || []).map((photo, index) => (
+                <div key={index} className="relative group bg-white border border-gray-200 rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
+                  <img
+                    src={photo.url || photo.file || photo.preview || photo.image_url}
+                    alt={`Photo ${index + 1}`}
+                    className="w-full h-32 object-contain bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      // Handle photo preview - could open a modal
+                      console.log('Photo clicked:', photo);
+                    }}
+                  />
+                  <div className="p-2">
+                    <div className="text-xs text-gray-700 truncate">
+                      {photo.location || 'No location'}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 truncate">
+                      {photo.description || photo.comment || 'No description'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full p-1 shadow hover:bg-red-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newValue = [...(value || [])];
+                      newValue.splice(index, 1);
+                      onChange({ target: { name: field.name, value: newValue } });
+                    }}
+                    title="Delete photo"
+                  >
+                    <TrashIcon className="w-4 h-4 text-red-600" />
+                  </button>
+                </div>
+              ))}
+              <div
+                className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg shadow cursor-pointer hover:bg-gray-100 h-32 w-full min-w-0 relative"
+                onClick={() => {
+                  // Handle photo upload for this specific item
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.multiple = true;
+                  input.accept = 'image/*';
+                  input.onchange = async (e) => {
+                    const files = Array.from(e.target.files);
+                    try {
+                      const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
+                      const uploadedPhotos = await uploadMultiplePhotos(files, {
+                        content_type: 'punchlist_item',
+                        object_id: null, // Will be set when item is saved
+                      });
+                      const newValue = [...(value || []), ...uploadedPhotos];
+                      onChange({ target: { name: field.name, value: newValue } });
+                    } catch (error) {
+                      console.error('Error uploading photos:', error);
+                      enqueueSnackbar('Error uploading photos', { variant: 'error' });
+                    }
+                  };
+                  input.click();
+                }}
+                title="Add photo"
+              >
+                <PlusIcon className="w-6 h-6 text-gray-400 mb-1" />
+                <span className="text-xs text-gray-500 font-semibold">Add Photo</span>
+              </div>
+            </div>
+          </div>
+        );
+      case 'photoComments':
+        // This field type is used to store comments for photos
+        // It's typically hidden and managed automatically with photoArray
+        return null;
       default:
         return (
           <input
@@ -691,8 +772,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               );
             }
 
+            // Custom header section for Punchlist reports
+            if (config.reportType === 'punchlist' && sectionIdx === 0) {
+              // Let punchlist items render normally - no special case needed
+            }
+
             // Render first section (header/project info) with white card wrapper for non-SWPPP reports
-            if (sectionIdx === 0 && config.reportType !== 'swppp') {
+            if (sectionIdx === 0 && config.reportType !== 'swppp' && config.reportType !== 'punchlist') {
               const inspectorField = fields.find(f => f.name === 'inspector');
               const projectField = fields.find(f => f.name === 'project');
               const contractorField = fields.find(f => f.name === 'contractor');
@@ -1101,8 +1187,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               );
             }
 
-            // Custom layout for SWPPP Inspection Items
-            if (config.reportType === 'swppp' && section.name === 'SWPPP Inspection Items') {
+            // Custom layout for Punchlist Items
+            if (config.reportType === 'punchlist' && section.name === 'Punchlist Items') {
               return (
                 <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
                   <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
@@ -1114,10 +1200,10 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                     }
 
                     return (
-                      <div key={`row-${section.name}-${rowIndex}`} className="space-y-4">
-                        {/* Line 1: Station Start, Station End, Facility, Feature Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          {fields.filter(f => ['station_start', 'station_end', 'facility', 'feature_details'].includes(f.name)).map((field, idx) => (
+                      <div key={`row-${section.name}-${rowIndex}`} className="space-y-4 border border-gray-200 rounded-lg p-4 mb-4">
+                        {/* Line 1: Item Number, Inspector, Spread, Facility, Start Station, End Station */}
+                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                          {fields.filter(f => ['item_number', 'inspector', 'spread', 'facility', 'start_station', 'end_station'].includes(f.name)).map((field, idx) => (
                             <div key={`field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
@@ -1127,9 +1213,9 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                           ))}
                         </div>
                         
-                        {/* Line 2: Inspector ID, Inspection Time */}
+                        {/* Line 2: Feature, Date Observed */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {fields.filter(f => ['inspector_id', 'inspection_time'].includes(f.name)).map((field, idx) => (
+                          {fields.filter(f => ['feature', 'date_observed'].includes(f.name)).map((field, idx) => (
                             <div key={`field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
@@ -1139,9 +1225,33 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                           ))}
                         </div>
                         
-                        {/* Line 3: ECD Functional?, ECD Needs Maintenance?, Soil Disturbed? (3 dropdowns) */}
+                        {/* Line 3: Issue (multiline) */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {fields.filter(f => f.name === 'issue').map((field, idx) => (
+                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 4: Recommendations (multiline) */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {fields.filter(f => f.name === 'recommendations').map((field, idx) => (
+                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Line 5: Completed, Inspector Signoff, Completed Date */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {fields.filter(f => ['ecd_functional', 'ecd_needs_maintenance', 'soil_disturbed'].includes(f.name)).map((field, idx) => (
+                          {fields.filter(f => ['completed', 'inspector_signoff', 'completed_date'].includes(f.name)).map((field, idx) => (
                             <div key={`field-${field.name}-${idx}`} className="col-span-1">
                               <label className="block text-sm font-medium text-gray-600 mb-1">
                                 {field.label}
@@ -1151,135 +1261,72 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                           ))}
                         </div>
                         
-                        {/* Line 4: Comments (100% width) with trashcan vertically centered */}
-                        <div className="flex items-start gap-4">
-                          <div className="flex-1">
-                            {fields.filter(f => f.name === 'comments').map((field, idx) => (
-                              <div key={`field-${field.name}-${idx}`}>
-                                <label className="block text-sm font-medium text-gray-600 mb-1">
-                                  {field.label}
-                                </label>
-                                {renderField(field, row[field.name], e => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
-                              </div>
-                            ))}
-                          </div>
-                          {!sectionConfig.isStatic && (
+                        {/* Line 6: Photos */}
+                        <div className="grid grid-cols-1 gap-4">
+                          {fields.filter(f => f.name === 'photos').map((field, idx) => (
+                            <div key={`field-${field.name}-${idx}`} className="col-span-1">
+                              <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {field.label}
+                              </label>
+                              {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Delete button */}
+                        {!sectionConfig.isStatic && (
+                          <div className="flex justify-end">
                             <button
                               type="button"
                               onClick={() => handleRemoveRow(section.name, rowIndex)}
-                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-6"
+                              className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-3 py-2 flex items-center gap-2"
                             >
-                              <TrashIcon className="h-5 w-5" />
+                              <TrashIcon className="h-4 w-4" />
+                              Remove Item
                             </button>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                   {!sectionConfig.isStatic && (
-                    <button
-                      type="button"
-                      onClick={() => handleAddRow(section.name)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                    >
-                      <PlusIcon className="h-5 w-5" />
-                      Add Row
-                    </button>
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => handleAddRow(section.name)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
+                      >
+                        <PlusIcon className="h-5 w-5" />
+                        Add Punchlist Item
+                      </button>
+                    </div>
                   )}
                 </div>
               );
             }
-
-            return (
-              <div key={`section-${section.name}-${sectionIdx}`} className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{section.name}</h2>
-                {(section.rows || []).map((row, rowIndex) => {
-                  // Validate row data
-                  if (!row || typeof row !== 'object') {
-                    console.warn(`Invalid row data in section "${section.name}" at index ${rowIndex}:`, row);
-                    return null;
-                  }
-
-                  return (
-                    <div key={`row-${section.name}-${rowIndex}`} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                      {fields.filter(Boolean).map((field, idx) => {
-                        if (!field || !field.name || !field.label) {
-                          console.warn('Invalid field in ReportTemplate:', field, idx);
-                          return null;
-                        }
-                        if (field.type === 'dynamicArray') {
-                          return (
-                            <div key={`field-${field.name}-${idx}`} className="col-span-full">
-                              <label className="block text-sm font-medium text-gray-600 mb-1">
-                                {field.label}
-                              </label>
-                              {renderField(field, row[field.name], (e) =>
-                                handleSectionChange(
-                                  section.name,
-                                  rowIndex,
-                                  field.name,
-                                  e.target.value
-                                )
-                              )}
-                            </div>
-                          );
-                        }
-                        return (
-                          <div key={`field-${field.name}-${idx}`} className="col-span-1">
-                            <label className="block text-sm font-medium text-gray-600 mb-1">
-                              {field.label}
-                            </label>
-                            {renderField(field, row[field.name], (e) => handleSectionChange(section.name, rowIndex, field.name, e.target.value))}
-                          </div>
-                        );
-                      })}
-                      {!sectionConfig.isStatic && (
-                        <div className="col-span-1 flex items-end">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRow(section.name, rowIndex)}
-                            className="bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md px-2 py-2 flex items-center justify-center self-center mt-0"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                {!sectionConfig.isStatic && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddRow(section.name)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md px-4 py-2 flex items-center gap-2"
-                  >
-                    <PlusIcon className="h-5 w-5" />
-                    Add Row
-                  </button>
-                )}
-              </div>
-            );
           })}
 
           {/* Summary Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle || 'Summary'}</h2>
-            <div className="space-y-4">
-              {config.summaryFields.map((field) => (
-                <div key={field.name}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    {field.label}
-                  </label>
-                  <textarea
-                    value={summaries[field.name] || ''}
-                    onChange={(e) => handleSummaryChange(field.name, e.target.value)}
-                    className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
-                    rows={4}
-                  />
-                </div>
-              ))}
+          {config.summaryFields && config.summaryFields.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">{config.summarySectionTitle || 'Summary'}</h2>
+              <div className="space-y-4">
+                {(config.summaryFields || []).map((field) => (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                      {field.label}
+                    </label>
+                    <textarea
+                      value={summaries[field.name] || ''}
+                      onChange={(e) => handleSummaryChange(field.name, e.target.value)}
+                      className="w-full bg-white border border-gray-600 text-gray-900 placeholder-gray-700 font-semibold rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 shadow"
+                      rows={4}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Signature Section */}
           {config.requiresSignature && (
@@ -1408,7 +1455,7 @@ ReportTemplate.propTypes = {
       required: PropTypes.bool,
       type: PropTypes.string,
       placeholder: PropTypes.string
-    })).isRequired,
+    })), // Remove .isRequired to make it optional
     dynamicSections: PropTypes.arrayOf(PropTypes.shape({
       name: PropTypes.string.isRequired,
       fields: PropTypes.arrayOf(PropTypes.shape({
@@ -1425,7 +1472,7 @@ ReportTemplate.propTypes = {
       name: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
       multiline: PropTypes.bool
-    })).isRequired,
+    })),
     requiresSignature: PropTypes.bool,
     requiresPhotos: PropTypes.bool,
     summarySectionTitle: PropTypes.string

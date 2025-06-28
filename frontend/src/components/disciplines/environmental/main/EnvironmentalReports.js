@@ -90,7 +90,7 @@ const EnvironmentalReports = () => {
             title="Environmental Punchlist"
             icon={AlertCircle}
             description="Track and report environmental compliance issues, corrective actions, and follow-up measures."
-            path="/environmental/reports/punchlist"
+            path="/environmental/reports/punchlist/new"
             reportType="environmental_punchlist"
             secondaryAction={{
               label: "View Drafts",

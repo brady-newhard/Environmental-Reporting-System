@@ -8,7 +8,7 @@ import Footer from '../../../common/Footer';
 import { getDraftCount } from '../../../../utils/draftUtils';
 import { useAuth } from '../../../../contexts/AuthContext';
 
-const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount, onCreate }) => {
+const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draftCount }) => {
   const navigate = useNavigate();
   return (
     <Card className="h-52 w-full flex flex-col bg-gray-800/40 backdrop-blur rounded-lg shadow hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray-700">
@@ -20,7 +20,7 @@ const ReportTypeCard = ({ title, icon: Icon, description, path, draftPath, draft
         <span className="text-sm text-white/80 flex-1">{description}</span>
         <Button
           className="bg-black hover:bg-zinc-800 text-white font-medium h-10 text-sm w-full mt-auto"
-          onClick={onCreate ? onCreate : () => navigate(path)}
+          onClick={() => navigate(path)}
         >
           Create New Report
         </Button>
@@ -66,11 +66,6 @@ const EnvironmentalDashboard = () => {
     }
   }, [loading, isAuthenticated]);
 
-  const handleCreateNewPunchlist = () => {
-    localStorage.removeItem('punchlist_current_draftId');
-    navigate('/new-punchlist');
-  };
-
   const reportTypes = [
     {
       title: "Daily Report",
@@ -92,10 +87,9 @@ const EnvironmentalDashboard = () => {
       title: "Environmental Punchlist",
       icon: AlertCircle,
       description: "Environmental Compliance Items",
-      path: "/new-punchlist",
-      draftPath: "/punchlist-drafts",
-      draftCount: punchlistDraftCount,
-      onCreate: handleCreateNewPunchlist
+      path: "/environmental/reports/punchlist/new",
+      draftPath: "/environmental/reports/punchlist/drafts",
+      draftCount: punchlistDraftCount
     },
     {
       title: "Progress Report",
@@ -135,7 +129,6 @@ const EnvironmentalDashboard = () => {
               path={type.path}
               draftPath={type.draftPath}
               draftCount={type.draftCount}
-              onCreate={type.onCreate}
             />
           ))}
         </div>
