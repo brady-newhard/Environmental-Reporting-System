@@ -259,8 +259,8 @@ function AppContent() {
   }, [isAuthenticated, loading]);
 
   return (
-    <div className="app-shell print:hidden">
-      {!hideNav && <Navigation />}
+    <div className="app-shell">
+      {!hideNav && <div className="print:hidden"><Navigation /></div>}
       <Routes>
         <Route path="/login" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
@@ -590,11 +590,10 @@ function AppContent() {
             <EnvironmentalDailyReportPrint />
           }
         />
+        <Route path="/test-print" element={<div>Test Print Route Works</div>} />
         <Route
           path="/environmental/reports/swppp/print/:draftId"
-          element={
-            <SWPPPReportPrint />
-          }
+          element={<SWPPPReportPrint />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
