@@ -55,7 +55,7 @@ const config = {
 };
 
 export default function EnvironmentalDailyReportReview() {
-  const { id } = useParams();
+  const { draftId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [draft, setDraft] = useState(null);
@@ -87,6 +87,14 @@ export default function EnvironmentalDailyReportReview() {
     const loadDraftData = async () => {
       setIsLoading(true);
       try {
+        // Debug: log the draftId value
+        console.log('EnvironmentalDailyReportReview - draftId:', draftId);
+        console.log('EnvironmentalDailyReportReview - draftId type:', typeof draftId);
+        console.log('EnvironmentalDailyReportReview - draftId === null:', draftId === null);
+        console.log('EnvironmentalDailyReportReview - draftId === undefined:', draftId === undefined);
+        console.log('EnvironmentalDailyReportReview - draftId === "null":', draftId === 'null');
+        console.log('EnvironmentalDailyReportReview - draftId.toLowerCase().includes("null"):', draftId && draftId.toLowerCase().includes('null'));
+        
         // First check if data was passed through location state
         if (location.state?.reportData) {
           console.log('Using data from location state:', location.state.reportData);
@@ -105,7 +113,7 @@ export default function EnvironmentalDailyReportReview() {
         }
 
         // If no state data, load from storage
-        const loadedDraft = await loadDraft('environmental', id);
+        const loadedDraft = await loadDraft('environmental', draftId);
         console.log('Loaded draft from storage:', loadedDraft);
         
         if (loadedDraft) {
@@ -120,7 +128,7 @@ export default function EnvironmentalDailyReportReview() {
           };
           setDraft(formattedData);
         } else {
-          console.log('Draft not found with ID:', id);
+          console.log('Draft not found with ID:', draftId);
           setError('Draft not found');
         }
       } catch (error) {
@@ -131,13 +139,14 @@ export default function EnvironmentalDailyReportReview() {
       }
     };
 
-    if (id && id !== 'null' && id !== undefined && !id.toLowerCase().includes('null')) {
+    if (draftId) {
       loadDraftData();
     } else {
-      setError('Invalid draft ID');
+      console.log('No draft ID provided');
+      setError('No draft ID provided');
       setIsLoading(false);
     }
-  }, [id, location.state]);
+  }, [draftId, location.state]);
 
   if (isLoading) {
     return (
@@ -219,7 +228,7 @@ export default function EnvironmentalDailyReportReview() {
 
   // Button handlers
   const handleEdit = () => {
-    navigate(`/environmental/reports/daily/edit/${id}`);
+    navigate(`/environmental/reports/daily/edit/${draftId}`);
   };
 
   const handleExit = () => {
@@ -229,7 +238,7 @@ export default function EnvironmentalDailyReportReview() {
   const handleDelete = async () => {
     setDeleteDialogOpen(false);
     try {
-      await import('../../../../utils/draftUtils').then(utils => utils.deleteDraft('environmental', id));
+      await import('../../../../utils/draftUtils').then(utils => utils.deleteDraft('environmental', draftId));
       setSnackbar({ open: true, message: 'Draft deleted successfully.', severity: 'success' });
       setTimeout(() => navigate('/environmental/reports'), 1000);
     } catch (err) {
@@ -574,7 +583,7 @@ export default function EnvironmentalDailyReportReview() {
           <span className="hidden sm:inline">Submit</span>
         </button>
         <button
-          onClick={() => navigate(`/environmental/reports/daily/print/${id}`)}
+          onClick={() => navigate(`/environmental/reports/daily/print/${draftId}`)}
           className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors no-print"
         >
           <PrinterIcon className="h-5 w-5 mr-2" />

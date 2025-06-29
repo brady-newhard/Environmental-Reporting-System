@@ -142,6 +142,22 @@ export default function EnvironmentalDailyReportPrint() {
   .print-bg-gray-200 { background-color: #e5e7eb !important; }
   .print-footer { display: block !important; position: fixed !important; bottom: 0; left: 0; right: 0; width: 100vw; z-index: 9999; }
   .no-print-footer { display: none !important; }
+  .print-section table { 
+    font-size: 0.7rem !important; 
+    width: 100% !important; 
+    table-layout: fixed !important;
+  }
+  .print-section th, .print-section td { 
+    font-size: 0.7rem !important; 
+    padding: 2px 4px !important; 
+    border: 1px solid #d1d5db !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .print-section th { 
+    font-weight: bold !important; 
+    background-color: #f3f4f6 !important; 
+  }
 }
 `}</style>
       <div className="w-full flex flex-col items-center print:block">
@@ -246,31 +262,71 @@ export default function EnvironmentalDailyReportPrint() {
               </div>
             )}
             {/* Dynamic Sections */}
-            {sections.map((section, idx) => (
-              <div key={idx} className="mb-8 print-section">
-                <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4 mt-8">{section.name}</h2>
-                {section.rows && section.rows.length > 0 && (
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        {Object.keys(section.rows[0]).map((field, i) => (
-                          <th key={i} className="font-bold py-1 px-2 text-left">{field}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {section.rows.map((row, rowIdx) => (
-                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                          {Object.values(row).map((value, fieldIdx) => (
-                            <td key={fieldIdx} className="py-1 px-2">{typeof value === 'object' && value !== null ? JSON.stringify(value) : value || '—'}</td>
+            {sections.map((section, idx) => {
+              // Special handling for Crew Daily Summaries: only show allowed fields
+              if (section.name === 'Crew Daily Summaries') {
+                const allowedFields = ['Crew', 'Foreman', 'Start Station', 'End Station', 'Summary'];
+                return (
+                  <div key={idx} className="mb-8 print-section">
+                    <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4 mt-8">{section.name}</h2>
+                    {section.rows && section.rows.length > 0 && (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs print:text-xs">
+                          <thead>
+                            <tr className="bg-blue-50">
+                              {allowedFields.map((field, i) => (
+                                <th key={i} className="font-bold py-1 px-1 text-left text-xs" style={field === 'Summary' ? { minWidth: '300px', maxWidth: '600px' } : {}}>{field}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {section.rows.map((row, rowIdx) => (
+                              <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                                {allowedFields.map((field, fieldIdx) => (
+                                  <td key={fieldIdx} className="py-1 px-1 text-xs" style={field === 'Summary' ? { minWidth: '300px', maxWidth: '600px', wordWrap: 'break-word' } : { maxWidth: '120px', wordWrap: 'break-word' }}>
+                                    {row[field] || '—'}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              // Default rendering for other sections
+              return (
+                <div key={idx} className="mb-8 print-section">
+                  <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4 mt-8">{section.name}</h2>
+                  {section.rows && section.rows.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs print:text-xs">
+                        <thead>
+                          <tr className="bg-blue-50">
+                            {Object.keys(section.rows[0]).map((field, i) => (
+                              <th key={i} className="font-bold py-1 px-1 text-left text-xs">{field}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {section.rows.map((row, rowIdx) => (
+                            <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                              {Object.values(row).map((value, fieldIdx) => (
+                                <td key={fieldIdx} className="py-1 px-1 text-xs" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>
+                                  {typeof value === 'object' && value !== null ? JSON.stringify(value) : value || '—'}
+                                </td>
+                              ))}
+                            </tr>
                           ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {/* Summaries */}
             <div className="mb-8 print-section">
               <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4 mt-8">Environmental Inspection Summary</h2>

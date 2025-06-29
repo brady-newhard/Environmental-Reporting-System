@@ -1072,16 +1072,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                           {renderField(crewFields.find(f => f.name === 'Foreman'), row['Foreman'], (e) => handleSectionChange(section.name, rowIndex, 'Foreman', e.target.value))}
                         </div>
                       </div>
-                      {/* Second row: Milepost Start, Milepost End, Station Start, Station End */}
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Milepost Start</label>
-                          {renderField({ ...crewFields.find(f => f.name === 'Milepost Start'), type: 'text' }, row['Milepost Start'], (e) => handleSectionChange(section.name, rowIndex, 'Milepost Start', e.target.value))}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-600 mb-1">Milepost End</label>
-                          {renderField({ ...crewFields.find(f => f.name === 'Milepost End'), type: 'text' }, row['Milepost End'], (e) => handleSectionChange(section.name, rowIndex, 'Milepost End', e.target.value))}
-                        </div>
+                      {/* Second row: Station Start, Station End */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-600 mb-1">Start Station</label>
                           {renderField(crewFields.find(f => f.name === 'Start Station'), row['Start Station'], (e) => handleSectionChange(section.name, rowIndex, 'Start Station', e.target.value))}

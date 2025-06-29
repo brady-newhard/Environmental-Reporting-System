@@ -45,7 +45,7 @@ export default function EnvironmentalDailyReportForm() {
             sections: [
               {
                 name: 'Crew Daily Summaries',
-                rows: [{ Crew: '', CustomCrew: '', 'Start Station': '', 'End Station': '', Notes: '' }]
+                rows: [{ Crew: '', Foreman: '', 'Start Station': '', 'End Station': '', Summary: '' }]
               },
               {
                 name: 'Daily Progress',
