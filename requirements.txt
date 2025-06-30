@@ -10,6 +10,7 @@ drf-yasg==1.21.7
 filelock==3.18.0
 gunicorn==23.0.0
 packaging==24.2
+Pillow==11.0.0
 pipenv==2024.4.1
 platformdirs==4.3.7
 psycopg2-binary==2.9.10
