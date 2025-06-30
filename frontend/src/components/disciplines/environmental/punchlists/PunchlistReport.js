@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Typography, Snackbar, Alert } from '@mui/material';
 import ReportTemplate from '../../../templates/ReportTemplate';
 import { saveDraft, normalizeDraft, loadDraft } from '../../../../utils/draftUtils';
 import punchlistReportConfig from './punchlistReportConfig';
@@ -14,9 +13,19 @@ const PunchlistReport = () => {
   const navigate = useNavigate();
   const [draft, setDraft] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState({ show: false, message: '', severity: 'success' });
   const reportType = 'punchlist';
   const [photos, setPhotos] = useState([]);
+
+  // Auto-hide snackbar after 3 seconds
+  useEffect(() => {
+    if (snackbar.show) {
+      const timer = setTimeout(() => {
+        setSnackbar({ show: false, message: '', severity: 'success' });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar.show]);
 
   useEffect(() => {
     const loadExistingDraft = async () => {
@@ -30,7 +39,7 @@ const PunchlistReport = () => {
         } catch (error) {
           console.error('Error loading draft:', error);
           setSnackbar({
-            open: true,
+            show: true,
             message: 'Error loading draft: ' + error.message,
             severity: 'error'
           });
@@ -52,7 +61,7 @@ const PunchlistReport = () => {
       
       // Show success message
       setSnackbar({
-        open: true,
+        show: true,
         message: 'Draft saved successfully',
         severity: 'success'
       });
@@ -69,7 +78,7 @@ const PunchlistReport = () => {
     } catch (error) {
       console.error('Error saving punchlist report:', error);
       setSnackbar({
-        open: true,
+        show: true,
         message: 'Error saving draft: ' + (error.message || 'Unknown error'),
         severity: 'error'
       });
@@ -82,7 +91,7 @@ const PunchlistReport = () => {
       try {
         await import('../../../../utils/draftUtils').then(utils => utils.deleteDraft(reportType, id));
         setSnackbar({
-          open: true,
+          show: true,
           message: 'Draft deleted successfully',
           severity: 'success'
         });
@@ -90,7 +99,7 @@ const PunchlistReport = () => {
       } catch (error) {
         console.error('Error deleting draft:', error);
         setSnackbar({
-          open: true,
+          show: true,
           message: 'Error deleting draft: ' + error.message,
           severity: 'error'
         });
@@ -108,10 +117,6 @@ const PunchlistReport = () => {
 
   const handleExit = () => {
     navigate('/environmental/reports/punchlist/drafts');
-  };
-
-  const handleSnackbarClose = () => {
-    setSnackbar({ ...snackbar, open: false });
   };
 
   if (isLoading) {
@@ -156,16 +161,19 @@ const PunchlistReport = () => {
         onReview={handleReview}
         onExit={handleExit}
       />
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+      
+      {/* Tailwind Snackbar */}
+      {snackbar.show && (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-center transition-all duration-300 ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
           {snackbar.message}
-        </Alert>
-      </Snackbar>
+          <button
+            onClick={() => setSnackbar({ show: false, message: '', severity: 'success' })}
+            className="ml-2 text-white hover:text-gray-200"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </>
   );
 };

@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import SignaturePad from 'react-signature-canvas';
-import { useSnackbar } from 'notistack';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { deleteDraft } from '../../utils/draftUtils';
@@ -54,7 +53,6 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { enqueueSnackbar } = useSnackbar();
   const sigPadRef = useRef(null);
   const previousFormDataRef = useRef(null);
   const { id } = useParams();
@@ -67,6 +65,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const [newItemFormData, setNewItemFormData] = useState({});
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [snackbar, setSnackbar] = useState({ show: false, message: '', severity: 'success' });
   
   // Initialize state with default values from config
   const [header, setHeader] = useState(() => {
@@ -389,7 +388,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       setPhotos([...photos, ...uploadedPhotos]);
     } catch (error) {
       console.error('Error uploading photos:', error);
-      enqueueSnackbar('Error uploading photos', { variant: 'error' });
+      setSnackbar({ show: true, message: 'Error uploading photos', severity: 'error' });
     }
   };
 
@@ -448,10 +447,10 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
         }
       }
       
-      enqueueSnackbar('Report saved successfully', { variant: 'success' });
+      // Don't show snackbar here - let parent components handle their own notifications
     } catch (error) {
       console.error('Error saving report:', error);
-      enqueueSnackbar('Error saving report: ' + error.message, { variant: 'error' });
+      setSnackbar({ show: true, message: 'Error saving report: ' + error.message, severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -465,12 +464,12 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     try {
       if (draftId) {
         await deleteDraft('environmental', draftId);
-        enqueueSnackbar('Report deleted successfully', { variant: 'success' });
+        setSnackbar({ show: true, message: 'Report deleted successfully', severity: 'success' });
         navigate('/environmental/reports/daily');
       }
     } catch (error) {
       console.error('Error deleting report:', error);
-      enqueueSnackbar(error.response?.data?.detail || 'Error deleting report', { variant: 'error' });
+      setSnackbar({ show: true, message: error.response?.data?.detail || 'Error deleting report', severity: 'error' });
     } finally {
       setDeleteDialogOpen(false);
     }
@@ -569,7 +568,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
 
   // Notification handler for photo operations
   const handlePhotoNotification = (message, severity = 'success') => {
-    enqueueSnackbar(message, { variant: severity });
+    setSnackbar({ show: true, message, severity });
   };
 
   const renderField = (field, value, onChange) => {
@@ -726,6 +725,16 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     setPhotoModalOpen(false);
     setSelectedPhoto(null);
   };
+
+  // Auto-hide snackbar after 3 seconds
+  useEffect(() => {
+    if (snackbar.show) {
+      const timer = setTimeout(() => {
+        setSnackbar({ show: false, message: '', severity: 'success' });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar.show]);
 
   return (
     <div className="bg-black min-h-screen pt-2">
@@ -1743,6 +1752,19 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Tailwind Snackbar */}
+      {snackbar.show && (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-center transition-all duration-300 ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {snackbar.message}
+          <button
+            onClick={() => setSnackbar({ show: false, message: '', severity: 'success' })}
+            className="ml-2 text-white hover:text-gray-200"
+          >
+            ×
+          </button>
         </div>
       )}
     </div>

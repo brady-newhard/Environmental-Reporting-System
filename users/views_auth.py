@@ -3,7 +3,10 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})

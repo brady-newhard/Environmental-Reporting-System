@@ -51,35 +51,41 @@ export async function saveDraft(reportType, data) {
     const savedId = data.id;
     const isValidId = savedId && savedId !== 'null' && savedId !== undefined && !(typeof savedId === 'string' && savedId.startsWith('temp_'));
     
-    // Save to IndexedDB first (raw type)
+    // Save to IndexedDB first (raw type) - this should always work
     await indexedDBStorage.saveDraft(reportType, savedId, normalizedData);
     console.log('Successfully saved to IndexedDB');
 
-    // If online and authenticated, save to backend (mapped type)
+    // If online and authenticated, try to save to backend (mapped type)
     if (isOnline()) {
       const token = localStorage.getItem('token');
       if (token) {
-        let response;
-        if (isValidId) {
-          // Update existing draft
-          response = await api.put(`/drafts/${savedId}/`, {
-            report_type: mapReportType(reportType),
+        try {
+          let response;
+          if (isValidId) {
+            // Update existing draft
+            response = await api.put(`/drafts/${savedId}/`, {
+              report_type: mapReportType(reportType),
+              data: normalizedData
+            });
+          } else {
+            // Create new draft
+            response = await api.post('/drafts/', {
+              report_type: mapReportType(reportType),
+              data: normalizedData
+            });
+            console.log('Draft creation response:', response.data);
+            // Update the data with the new draft ID
+            normalizedData.id = response.data.id;
+          }
+          return {
+            id: response.data.id,
             data: normalizedData
-          });
-        } else {
-          // Create new draft
-          response = await api.post('/drafts/', {
-            report_type: mapReportType(reportType),
-            data: normalizedData
-          });
-          console.log('Draft creation response:', response.data);
-          // Update the data with the new draft ID
-          normalizedData.id = response.data.id;
+          };
+        } catch (backendError) {
+          console.error('Backend save failed, but local save succeeded:', backendError);
+          // Return the local save result even if backend fails
+          return { id: savedId, data: normalizedData };
         }
-        return {
-          id: response.data.id,
-          data: normalizedData
-        };
       }
     }
     return { id: savedId, data: normalizedData };
@@ -148,15 +154,22 @@ export const getAllDrafts = async (reportType) => {
       });
     }
     // If backend fetch fails, return IndexedDB drafts (filtered)
-    const localDrafts = Array.isArray(indexedDBDrafts) ? indexedDBDrafts : [];
-    return localDrafts.filter(d => {
-      const id = d.id;
-      return id && id !== 'null' && id !== undefined && 
-             (typeof id !== 'string' || !id.toLowerCase().includes('null'));
-    }).map(draft => ({
-      ...draft,
-      source: 'indexeddb'
-    }));
+    try {
+      const localDrafts = await indexedDBStorage.getAllDrafts(reportType);
+      const filteredLocalDrafts = Array.isArray(localDrafts) ? localDrafts.filter(d => {
+        const id = d.id;
+        return id && id !== 'null' && id !== undefined && 
+               (typeof id !== 'string' || !id.toLowerCase().includes('null'));
+      }).map(draft => ({
+        ...draft,
+        source: 'indexeddb'
+      })) : [];
+      console.log('Returning local drafts as fallback:', filteredLocalDrafts);
+      return filteredLocalDrafts;
+    } catch (localError) {
+      console.error('Error getting local drafts:', localError);
+      return [];
+    }
   }
 };
 
