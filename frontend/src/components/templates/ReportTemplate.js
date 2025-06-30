@@ -563,10 +563,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
 
   // Update the date input handler to handle timezone correctly
   const handleDateChange = (e) => {
-    const date = new Date(e.target.value);
-    // Adjust for timezone offset
-    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    handleHeaderChange({ target: { name: 'date', value: localDate.toISOString().split('T')[0] } });
+    // Use the selected date as-is, no timezone adjustment
+    handleHeaderChange({ target: { name: 'date', value: e.target.value } });
   };
 
   // Notification handler for photo operations
