@@ -161,9 +161,12 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
       {loading && <div className="text-sm text-gray-500 mb-2">Uploading...</div>}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {photos.map((photo, idx) => {
-          const imageSrc = formatPhotoUrl(photo.image_url || photo.url || photo.file || photo.image);
+          // Safely extract the image URL from various possible properties
+          const possibleImageUrl = photo.image_url || photo.url || photo.file || photo.image;
+          const imageSrc = formatPhotoUrl(possibleImageUrl);
           // Debug: log computed image source
           console.log(`ReportPhotoSection - photo[${idx}]`, photo);
+          console.log(`ReportPhotoSection - possibleImageUrl[${idx}]`, possibleImageUrl);
           console.log(`ReportPhotoSection - imageSrc[${idx}]`, imageSrc);
           
           return (

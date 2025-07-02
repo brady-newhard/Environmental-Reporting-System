@@ -117,7 +117,29 @@ export const deletePhoto = async (photoId) => {
  * @returns {string} - The formatted URL
  */
 export const formatPhotoUrl = (url) => {
+  // Handle null, undefined, or non-string values
+  if (!url || typeof url !== 'string') {
+    console.warn('formatPhotoUrl received non-string value:', url);
+    return '';
+  }
+  
+  // Trim whitespace
+  url = url.trim();
+  
+  // If already empty after trimming, return empty string
   if (!url) return '';
-  if (url.startsWith('http')) return url;
-  return `${import.meta.env.VITE_API_URL || ''}${url}`;
+  
+  // If already starts with http/https, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If starts with //, add https:
+  if (url.startsWith('//')) {
+    return `https:${url}`;
+  }
+  
+  // Otherwise, prepend the API URL
+  const apiUrl = import.meta.env.VITE_API_URL || '';
+  return `${apiUrl}${url}`;
 }; 
