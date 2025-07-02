@@ -419,28 +419,65 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
       setLoading(true);
       if (onSave) {
         const savedDraft = await onSave(formData);
+        console.log('Save response:', savedDraft); // Debug log
+        
+        // Update the draft ID if we got a new one
+        if (savedDraft && savedDraft.id && !String(savedDraft.id).startsWith('temp_')) {
+          setDraftId(savedDraft.id);
+          console.log('Updated draft ID to:', savedDraft.id); // Debug log
+        }
+        
         if (savedDraft.id && String(savedDraft.id).startsWith('temp_') === false) {
-          // Find local photos (no id or image_url)
-          const localPhotos = photos.filter(photo => !photo.id && !photo.image_url && photo.file);
+          // Find local photos (photos with isLocal flag or temp IDs)
+          const localPhotos = photos.filter(photo => 
+            photo.isLocal || 
+            (photo.id && String(photo.id).startsWith('temp_')) ||
+            (!photo.id && !photo.image_url && photo.file)
+          );
+          
           if (localPhotos.length > 0) {
-            const uploadedPhotos = await uploadMultiplePhotos(localPhotos.map(p => p.file), {
-              content_type: config.reportType || 'swppp',
-              object_id: savedDraft.id,
-            });
-            // Merge uploaded photos with existing
-            setPhotos(prev => [
-              ...prev.filter(photo => photo.id || photo.image_url),
-              ...uploadedPhotos
-            ]);
-            // Optionally, update the draft in storage with the new photos
-            if (typeof onChange === 'function') {
-              onChange({
-                ...savedDraft.data,
-                id: savedDraft.id,
-                photos: [
-                  ...photos.filter(photo => photo.id || photo.image_url),
-                  ...uploadedPhotos
-                ]
+            try {
+              const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
+              const uploadedPhotos = await uploadMultiplePhotos(localPhotos.map(p => p.file), {
+                content_type: config.reportType || 'template',
+                object_id: savedDraft.id,
+              });
+              
+              // Merge uploaded photos with existing non-local photos
+              const updatedPhotos = [
+                ...photos.filter(photo => 
+                  !photo.isLocal && 
+                  !String(photo.id || '').startsWith('temp_') && 
+                  (photo.id || photo.image_url)
+                ),
+                ...uploadedPhotos
+              ];
+              
+              setPhotos(updatedPhotos);
+              
+              // Update the draft in storage with the new photos
+              if (typeof onChange === 'function') {
+                onChange({
+                  ...savedDraft.data,
+                  id: savedDraft.id,
+                  photos: updatedPhotos
+                });
+              }
+              
+              // Show success message for photo uploads
+              if (localPhotos.length > 0) {
+                setSnackbar({ 
+                  show: true, 
+                  message: `${localPhotos.length} photo(s) uploaded successfully`, 
+                  severity: 'success' 
+                });
+              }
+            } catch (photoError) {
+              console.error('Error uploading photos:', photoError);
+              setSnackbar({ 
+                show: true, 
+                message: 'Draft saved but failed to upload photos. Please try again.', 
+                severity: 'warning' 
               });
             }
           }
@@ -1677,6 +1714,13 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 justify-end">
+            {/* Debug info - remove in production */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="text-xs text-gray-500 mb-2">
+                Draft ID: {draftId} | Type: {typeof draftId} | Is Temp: {String(draftId || '').startsWith('temp_')}
+              </div>
+            )}
+            
             <button
               type="button"
               onClick={handleExit}
@@ -1757,14 +1801,16 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
 
       {/* Tailwind Snackbar */}
       {snackbar.show && (
-        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-center transition-all duration-300 ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
-          {snackbar.message}
-          <button
-            onClick={() => setSnackbar({ show: false, message: '', severity: 'success' })}
-            className="ml-2 text-white hover:text-gray-200"
-          >
-            ×
-          </button>
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-xl text-white text-center transition-all duration-300 min-w-64 max-w-md ${snackbar.severity === 'success' ? 'bg-green-600' : snackbar.severity === 'warning' ? 'bg-yellow-600' : 'bg-red-600'}`}>
+          <div className="flex items-center justify-between">
+            <span className="flex-1">{snackbar.message}</span>
+            <button
+              onClick={() => setSnackbar({ show: false, message: '', severity: 'success' })}
+              className="ml-3 text-white hover:text-gray-200 text-lg font-bold"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
     </div>

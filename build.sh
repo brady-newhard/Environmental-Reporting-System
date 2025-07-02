@@ -11,8 +11,8 @@ cd frontend
 # Using empty string makes API calls relative to current domain
 export VITE_API_URL=""
 
-# Use production build with reduced memory usage
-NODE_OPTIONS="--max-old-space-size=512" npm run build
+# Use production build with increased memory usage
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
 cd ..
 
 echo "Setting up static files..."

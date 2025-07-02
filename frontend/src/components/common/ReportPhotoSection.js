@@ -22,18 +22,42 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
     if (files.length === 0) return;
     setLoading(true);
     try {
-      const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
-      const uploadedPhotos = await uploadMultiplePhotos(files, {
-        content_type,
-        object_id,
-      });
-      // Immediately set editing for the first new photo
-      onPhotosChange([...photos, ...uploadedPhotos]);
-      setEditingIdx(photos.length); // index of first new photo
-      setEditFields({ location: '', description: '' });
+      // Check if we have a valid object_id for uploading
+      if (!object_id || String(object_id).startsWith('temp_')) {
+        // If no valid object_id, store photos locally until draft is saved
+        const localPhotos = files.map(file => ({
+          id: `temp_${Date.now()}_${Math.random()}`,
+          file,
+          preview: URL.createObjectURL(file),
+          location: '',
+          description: '',
+          isLocal: true
+        }));
+        onPhotosChange([...photos, ...localPhotos]);
+        setEditingIdx(photos.length); // index of first new photo
+        setEditFields({ location: '', description: '' });
+        if (onNotification) {
+          onNotification('Photos added locally. They will be uploaded when you save the draft.', 'info');
+        }
+      } else {
+        // Upload photos to server
+        const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
+        const uploadedPhotos = await uploadMultiplePhotos(files, {
+          content_type,
+          object_id,
+        });
+        // Immediately set editing for the first new photo
+        onPhotosChange([...photos, ...uploadedPhotos]);
+        setEditingIdx(photos.length); // index of first new photo
+        setEditFields({ location: '', description: '' });
+        if (onNotification) {
+          onNotification('Photos uploaded successfully', 'success');
+        }
+      }
     } catch (error) {
+      console.error('Error uploading photos:', error);
       if (onNotification) {
-        onNotification('Error uploading photos', 'error');
+        onNotification('Error uploading photos: ' + (error.message || 'Unknown error'), 'error');
       }
     } finally {
       setLoading(false);

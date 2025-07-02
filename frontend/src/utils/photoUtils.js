@@ -12,6 +12,8 @@ import axios from './axios';
  */
 export const uploadPhoto = async (photo, metadata = {}) => {
   try {
+    console.log('Uploading photo with metadata:', metadata); // Debug log
+    
     const formData = new FormData();
     formData.append('image', photo);
     formData.append('location', metadata.location || '');
@@ -21,16 +23,19 @@ export const uploadPhoto = async (photo, metadata = {}) => {
       formData.append('object_id', metadata.object_id);
     }
 
+    console.log('Making API call to /api/photos/photos/'); // Debug log
     const response = await axios.post('/api/photos/photos/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
 
+    console.log('Photo upload response:', response.data); // Debug log
     return response.data;
   } catch (error) {
     console.error('Error uploading photo:', error);
-    throw new Error('Failed to upload photo');
+    console.error('Error response:', error.response?.data); // Debug log
+    throw new Error(`Failed to upload photo: ${error.response?.data?.detail || error.message}`);
   }
 };
 
@@ -42,6 +47,8 @@ export const uploadPhoto = async (photo, metadata = {}) => {
  */
 export const uploadMultiplePhotos = async (photos, metadata = {}) => {
   try {
+    console.log('Uploading multiple photos:', photos.length, 'with metadata:', metadata); // Debug log
+    
     const formData = new FormData();
     photos.forEach(photo => {
       formData.append('photos', photo);
@@ -53,16 +60,19 @@ export const uploadMultiplePhotos = async (photos, metadata = {}) => {
       formData.append('object_id', metadata.object_id);
     }
 
+    console.log('Making API call to /api/photos/photos/bulk_upload/'); // Debug log
     const response = await axios.post('/api/photos/photos/bulk_upload/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
 
+    console.log('Multiple photos upload response:', response.data); // Debug log
     return response.data;
   } catch (error) {
     console.error('Error uploading photos:', error);
-    throw new Error('Failed to upload photos');
+    console.error('Error response:', error.response?.data); // Debug log
+    throw new Error(`Failed to upload photos: ${error.response?.data?.detail || error.message}`);
   }
 };
 
