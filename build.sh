@@ -26,7 +26,6 @@ cp -r frontend/dist/* staticfiles/
 # Copy manifest and other static files
 echo "Copying manifest and static files..."
 cp frontend/public/manifest.json staticfiles/
-cp frontend/public/static/* staticfiles/
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput

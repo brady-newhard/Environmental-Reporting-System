@@ -36,7 +36,7 @@ const Navigation = () => {
             <RouterLink to="/" className="flex items-center no-underline">
               <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain" onError={(e) => {
                 console.error('Logo failed to load:', e.target.src);
-                e.target.src = '/PIPE-Logo-bk.png';
+                e.target.src = '/staticfiles/PIPE-Logo-bk.png';
               }} />
             </RouterLink>
           </div>
@@ -65,9 +65,9 @@ const Navigation = () => {
                 <SheetContent side="right" className="p-0 w-64">
                   <div className="flex flex-col h-full">
                     <div className="px-6 py-4 border-b flex flex-col items-center">
-                      <img src="/PIPE-Logo-bk.png" alt="PIPE Logo" className="h-24 w-auto object-contain mb-2 mx-auto" onError={(e) => {
+                      <img src="/staticfiles/PIPE-Logo-bk.png" alt="PIPE Logo" className="h-24 w-auto object-contain mb-2 mx-auto" onError={(e) => {
                         console.error('Logo failed to load:', e.target.src);
-                        e.target.src = '/PIPE-Logo.png';
+                        e.target.src = '/staticfiles/PIPE-Logo.png';
                       }} />
                       <span className="text-center text-sm text-zinc-400 italic font-medium">"Streamline the report. Elevate the result."</span>
                     </div>

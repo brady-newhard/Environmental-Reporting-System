@@ -4,5 +4,8 @@ build:
     - nodejs
   packages:
     - libpq-dev
-  run:
-    web: cd frontend && npm install && npm run build && cd .. && python manage.py collectstatic --noinput && gunicorn inspectionreports.wsgi --log-file - --workers 1 --threads 2 --timeout 120 
+  scripts:
+    - cd frontend && npm install && npm run build && cd ..
+    - python manage.py collectstatic --noinput
+run:
+  web: gunicorn inspectionreports.wsgi --log-file - --workers 1 --threads 2 --timeout 120 

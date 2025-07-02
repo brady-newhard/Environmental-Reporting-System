@@ -65,13 +65,13 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative">
-      <div className="absolute inset-0 bg-[url('/pipeline-bg.jpg')] bg-cover bg-center z-0" />
+      <div className="absolute inset-0 bg-[url('/staticfiles/pipeline-bg.jpg')] bg-cover bg-center z-0" />
       <div className="absolute inset-0 bg-black bg-opacity-50 z-0" />
       <div className="max-w-md w-full space-y-8 relative z-10">
         <div>
           <img
             className="mx-auto h-12 w-auto"
-            src="/PIPE-Logo.png"
+            src="/staticfiles/PIPE-Logo.png"
             alt="PIPE Logo"
           />
         </div>
