@@ -242,6 +242,9 @@ export default function PunchlistReportReview() {
   const signature = draft?.signature || '';
   const sigDate = formatDate(draft?.sigDate);
   const photos = Array.isArray(draft?.photos) ? draft.photos : [];
+  
+  console.log('Punchlist formData:', draft);
+  console.log('Punchlist photos extracted:', photos);
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -305,16 +308,36 @@ export default function PunchlistReportReview() {
                             <td className="px-6 py-4 text-sm text-gray-900">
                               {row.photos && Array.isArray(row.photos) && row.photos.length > 0 ? (
                                 <div className="flex gap-1">
-                                  {row.photos.slice(0, 3).map((photo, photoIdx) => (
-                                    <div key={photoIdx} className="w-8 h-8 rounded overflow-hidden border">
-                                      <img
-                                        src={formatPhotoUrl(photo.url || photo.file || photo.preview || photo.image_url)}
-                                        alt={`Photo ${photoIdx + 1}`}
-                                        className="w-full h-full object-cover"
-                                        title={`Photo ${photoIdx + 1}: ${photo.location || ''} - ${photo.description || photo.comment || ''}`}
-                                      />
-                                    </div>
-                                  ))}
+                                  {row.photos.slice(0, 3).map((photo, photoIdx) => {
+                                    // Use the same robust photo URL extraction logic as other templates
+                                    let possibleImageUrl;
+                                    if (photo.image_url || photo.url) {
+                                      // Uploaded photo with server URL
+                                      possibleImageUrl = photo.image_url || photo.url;
+                                    } else if (photo.preview) {
+                                      // Local photo with blob preview URL
+                                      possibleImageUrl = photo.preview;
+                                    } else if (photo.file && photo.file instanceof File) {
+                                      // Local photo with File object - create object URL
+                                      possibleImageUrl = URL.createObjectURL(photo.file);
+                                    } else {
+                                      // Fallback to any other URL property
+                                      possibleImageUrl = photo.file || photo.image;
+                                    }
+                                    
+                                    const imageSrc = formatPhotoUrl(possibleImageUrl);
+                                    
+                                    return (
+                                      <div key={photoIdx} className="w-8 h-8 rounded overflow-hidden border">
+                                        <img
+                                          src={imageSrc}
+                                          alt={`Photo ${photoIdx + 1}`}
+                                          className="w-full h-full object-cover"
+                                          title={`Photo ${photoIdx + 1}: ${photo.location || ''} - ${photo.description || photo.comment || ''}`}
+                                        />
+                                      </div>
+                                    );
+                                  })}
                                   {row.photos.length > 3 && (
                                     <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-600">
                                       +{row.photos.length - 3}
@@ -343,25 +366,45 @@ export default function PunchlistReportReview() {
                             Item #{row.item_number} - {row.feature}
                           </h4>
                           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {row.photos.map((photo, photoIdx) => (
-                              <div key={photoIdx} className="relative">
-                                <img
-                                  src={formatPhotoUrl(photo.url || photo.file || photo.preview || photo.image_url)}
-                                  alt={`Item ${row.item_number} Photo ${photoIdx + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg shadow-md"
-                                />
-                                {(photo.location || photo.description || photo.comment) && (
-                                  <div className="mt-2 text-xs">
-                                    {photo.location && (
-                                      <div className="font-semibold text-gray-700">Location: {photo.location}</div>
-                                    )}
-                                    {(photo.description || photo.comment) && (
-                                      <div className="text-gray-500 mt-1">{photo.description || photo.comment}</div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                            {row.photos.map((photo, photoIdx) => {
+                              // Use the same robust photo URL extraction logic as other templates
+                              let possibleImageUrl;
+                              if (photo.image_url || photo.url) {
+                                // Uploaded photo with server URL
+                                possibleImageUrl = photo.image_url || photo.url;
+                              } else if (photo.preview) {
+                                // Local photo with blob preview URL
+                                possibleImageUrl = photo.preview;
+                              } else if (photo.file && photo.file instanceof File) {
+                                // Local photo with File object - create object URL
+                                possibleImageUrl = URL.createObjectURL(photo.file);
+                              } else {
+                                // Fallback to any other URL property
+                                possibleImageUrl = photo.file || photo.image;
+                              }
+                              
+                              const imageSrc = formatPhotoUrl(possibleImageUrl);
+                              
+                              return (
+                                <div key={photoIdx} className="relative">
+                                  <img
+                                    src={imageSrc}
+                                    alt={`Item ${row.item_number} Photo ${photoIdx + 1}`}
+                                    className="w-full h-32 object-cover rounded-lg shadow-md"
+                                  />
+                                  {(photo.location || photo.description || photo.comment) && (
+                                    <div className="mt-2 text-xs">
+                                      {photo.location && (
+                                        <div className="font-semibold text-gray-700">Location: {photo.location}</div>
+                                      )}
+                                      {(photo.description || photo.comment) && (
+                                        <div className="text-gray-500 mt-1">{photo.description || photo.comment}</div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )
@@ -426,15 +469,35 @@ export default function PunchlistReportReview() {
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4">Photos</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {photos.map((photo, index) => (
-                <div key={index} className="aspect-square overflow-hidden rounded-lg border">
-                  <img
-                    src={formatPhotoUrl(photo)}
-                    alt={`Photo ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
+              {photos.map((photo, index) => {
+                // Use the same robust photo URL extraction logic as other templates
+                let possibleImageUrl;
+                if (photo.image_url || photo.url) {
+                  // Uploaded photo with server URL
+                  possibleImageUrl = photo.image_url || photo.url;
+                } else if (photo.preview) {
+                  // Local photo with blob preview URL
+                  possibleImageUrl = photo.preview;
+                } else if (photo.file && photo.file instanceof File) {
+                  // Local photo with File object - create object URL
+                  possibleImageUrl = URL.createObjectURL(photo.file);
+                } else {
+                  // Fallback to any other URL property
+                  possibleImageUrl = photo.file || photo.image;
+                }
+                
+                const imageSrc = formatPhotoUrl(possibleImageUrl);
+                
+                return (
+                  <div key={index} className="aspect-square overflow-hidden rounded-lg border">
+                    <img
+                      src={imageSrc}
+                      alt={`Photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

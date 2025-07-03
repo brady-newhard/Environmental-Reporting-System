@@ -113,13 +113,33 @@ export const deletePhoto = async (photoId) => {
 
 /**
  * Formats a photo URL to ensure it's absolute
- * @param {string} url - The photo URL to format
+ * @param {string|Object} photo - The photo URL string or photo object
  * @returns {string} - The formatted URL
  */
-export const formatPhotoUrl = (url) => {
-  // Handle null, undefined, or non-string values
+export const formatPhotoUrl = (photo) => {
+  // Handle null, undefined values
+  if (!photo) {
+    return '';
+  }
+  
+  let url = '';
+  
+  // If it's a string, use it directly
+  if (typeof photo === 'string') {
+    url = photo;
+  }
+  // If it's an object, extract the URL from various possible properties
+  else if (typeof photo === 'object') {
+    // Try different possible URL properties in order of preference
+    // Don't use photo.file directly as it's a File object, not a URL
+    url = photo.url || photo.image_url || photo.image || photo.preview || '';
+  }
+  else {
+    return '';
+  }
+  
+  // Handle null, undefined, or empty string
   if (!url || typeof url !== 'string') {
-    console.warn('formatPhotoUrl received non-string value:', url);
     return '';
   }
   
@@ -131,6 +151,11 @@ export const formatPhotoUrl = (url) => {
   
   // If already starts with http/https, return as is
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If starts with blob:, return as is (for local previews)
+  if (url.startsWith('blob:')) {
     return url;
   }
   

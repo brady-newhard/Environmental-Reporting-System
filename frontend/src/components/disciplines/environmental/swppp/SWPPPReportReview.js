@@ -120,20 +120,22 @@ const SWPPPReportReview = () => {
             const imageSrc = formatPhotoUrl(possibleImageUrl);
             
             return (
-              <div key={index} className="relative">
-                <img
-                  src={imageSrc}
-                  alt={photo.comment || `Photo ${index + 1}`}
-                  className="w-full h-48 object-cover rounded-lg shadow-md"
-                />
-                {(photo.location || photo.Location) && (
-                  <div className="mt-2 text-sm text-gray-600">
-                    <span className="font-semibold">Location:</span> {photo.location || photo.Location}
+              <div key={index} className="flex flex-col items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
+                {imageSrc && (
+                  <img
+                    src={imageSrc}
+                    alt={photo.comment || photo.description || `Photo ${index + 1}`}
+                    className="w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow"
+                  />
+                )}
+                {photo.location && (
+                  <div className="text-sm text-gray-600 mb-1 w-full">
+                    <span className="font-medium">Location:</span> {photo.location}
                   </div>
                 )}
-                {(photo.comment || photo.comments || photo.description) && (
-                  <div className="mt-1 text-sm text-gray-500">
-                    <span className="font-semibold">Comment:</span> {photo.comment || photo.comments || photo.description}
+                {(photo.comment || photo.description) && (
+                  <div className="text-sm text-gray-700 w-full">
+                    <span className="font-medium">Comments:</span> {photo.comment || photo.description}
                   </div>
                 )}
               </div>
@@ -258,6 +260,9 @@ const SWPPPReportReview = () => {
   const signature = formData.signature || '';
   const sigDate = formatDate(formData.sigDate);
   const photos = Array.isArray(formData.photos) ? formData.photos : [];
+  
+  console.log('SWPPP formData:', formData);
+  console.log('SWPPP photos extracted:', photos);
 
   return (
     <div className="max-w-7xl mx-auto p-6">

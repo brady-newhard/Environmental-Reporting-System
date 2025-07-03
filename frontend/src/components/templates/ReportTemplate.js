@@ -5,7 +5,7 @@ import SignaturePad from 'react-signature-canvas';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { deleteDraft } from '../../utils/draftUtils';
-import { uploadPhoto, uploadMultiplePhotos } from '../../utils/photoUtils';
+import { uploadPhoto, uploadMultiplePhotos, formatPhotoUrl } from '../../utils/photoUtils';
 import PageHeader from '../common/PageHeader';
 import { 
   PlusIcon, 
@@ -140,14 +140,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
           return null;
         }
         
-        // For punchlist reports, auto-assign the first item number
+        // For punchlist reports, start with an empty table
         if (config.reportType === 'punchlist' && section.name === 'Punchlist Items') {
-          const defaultRow = section.defaultRow();
-          defaultRow.item_number = 1; // Start with item number 1
-          
           return {
             name: section.name,
-            rows: [defaultRow]
+            rows: [] // Start with empty rows for punchlist
           };
         }
         
@@ -341,8 +338,8 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
   const handleEditRow = (sectionName, rowIndex) => {
     const section = sections.find(s => s.name === sectionName);
     if (section && section.rows[rowIndex]) {
-      setEditingRowIndex(rowIndex);
       setEditingRowData({ ...section.rows[rowIndex] });
+      setEditingRowIndex(rowIndex);
     }
   };
 
@@ -567,12 +564,30 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
         // Include all section data, even if empty
       })) : [],
       summaries: summaries || {},
-      photos: photos ? photos.map(photo => ({
-        id: photo.id,
-        url: photo.url || photo.file || photo.preview || photo.image_url,
-        comment: photo.comment || photo.comments || photo.description || '',
-        location: photo.location || '',
-      })) : [],
+      photos: photos ? photos.map(photo => {
+        // Use the same robust photo URL extraction logic as ReportPhotoSection
+        let possibleImageUrl;
+        if (photo.image_url || photo.url) {
+          // Uploaded photo with server URL
+          possibleImageUrl = photo.image_url || photo.url;
+        } else if (photo.preview) {
+          // Local photo with blob preview URL
+          possibleImageUrl = photo.preview;
+        } else if (photo.file && photo.file instanceof File) {
+          // Local photo with File object - create object URL
+          possibleImageUrl = URL.createObjectURL(photo.file);
+        } else {
+          // Fallback to any other URL property
+          possibleImageUrl = photo.file || photo.image;
+        }
+        
+        return {
+          id: photo.id,
+          url: possibleImageUrl,
+          comment: photo.comment || photo.comments || photo.description || '',
+          location: photo.location || '',
+        };
+      }) : [],
       signature: signature || '',
       sigDate: sigDate ? formatDate(sigDate) : '',
       preparedBy: preparedBy || '',
@@ -1313,27 +1328,34 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                                 <td className="px-6 py-4 text-sm text-gray-900">
                                   {row.photos && Array.isArray(row.photos) && row.photos.length > 0 ? (
                                     <div className="flex gap-1">
-                                      {row.photos.slice(0, 3).map((photo, photoIdx) => (
-                                        <div 
-                                          key={photoIdx} 
-                                          className="w-8 h-8 rounded border overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
-                                          onClick={() => handlePhotoClick(photo)}
-                                        >
-                                          <img
-                                            src={photo.url || photo.file || photo.preview || photo.image_url}
-                                            alt={`Photo ${photoIdx + 1}`}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        </div>
-                                      ))}
+                                      {row.photos.slice(0, 3).map((photo, photoIdx) => {
+                                        const photoUrl = formatPhotoUrl(photo);
+                                        return (
+                                          <div 
+                                            key={photoIdx} 
+                                            className="relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                            onClick={() => handlePhotoClick(photo)}
+                                          >
+                                            <img
+                                              src={photoUrl}
+                                              alt={`Photo ${photoIdx + 1}`}
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => {
+                                                console.log('Image failed to load:', photoUrl);
+                                                e.target.style.display = 'none';
+                                              }}
+                                            />
+                                          </div>
+                                        );
+                                      })}
                                       {row.photos.length > 3 && (
-                                        <div className="w-8 h-8 rounded border bg-gray-100 flex items-center justify-center text-xs text-gray-500">
+                                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">
                                           +{row.photos.length - 3}
                                         </div>
                                       )}
                                     </div>
                                   ) : (
-                                    '—'
+                                    <span className="text-gray-400">No photos</span>
                                   )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -1386,7 +1408,10 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
                                   readOnly
                                 />
                               ) : (
-                                renderField(field, editingRowData[field.name], (e) => setEditingRowData({...editingRowData, [field.name]: e.target.value}))
+                                renderField(field, editingRowData[field.name], (e) => {
+                                  console.log('Edit form photo change:', field.name, e.target.value);
+                                  setEditingRowData({...editingRowData, [field.name]: e.target.value});
+                                })
                               )}
                             </div>
                           ))}
@@ -1781,7 +1806,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               ×
             </button>
             <img
-              src={selectedPhoto.url || selectedPhoto.file || selectedPhoto.preview || selectedPhoto.image_url}
+              src={formatPhotoUrl(selectedPhoto)}
               alt="Full size photo"
               className="max-w-full max-h-full object-contain rounded-lg"
             />
