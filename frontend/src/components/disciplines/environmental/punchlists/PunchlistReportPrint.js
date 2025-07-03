@@ -3,6 +3,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { loadDraft } from '../../../../utils/draftUtils';
 import PageHeader from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
+import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 function formatDate(value) {
   if (!value) return '—';
@@ -210,11 +211,31 @@ export default function PunchlistReportPrint() {
                       <div className="grid grid-cols-2 gap-6">
                         {item.photos.map((photo, photoIdx) => (
                           <div key={photoIdx} className="rounded-lg border border-gray-200 bg-white shadow-sm p-4 flex flex-col items-center w-full">
-                            {(photo.url || photo.image_url) ? (
-                              <img src={photo.url || photo.image_url} alt={`Item ${item.item_number} Photo ${photoIdx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
-                            ) : (
-                              <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
-                            )}
+                            {(() => {
+                              // Use the same robust photo URL extraction logic as ReportPhotoSection
+                              let possibleImageUrl;
+                              if (photo.image_url || photo.url) {
+                                // Uploaded photo with server URL
+                                possibleImageUrl = photo.image_url || photo.url;
+                              } else if (photo.preview) {
+                                // Local photo with blob preview URL
+                                possibleImageUrl = photo.preview;
+                              } else if (photo.file && photo.file instanceof File) {
+                                // Local photo with File object - create object URL
+                                possibleImageUrl = URL.createObjectURL(photo.file);
+                              } else {
+                                // Fallback to any other URL property
+                                possibleImageUrl = photo.file || photo.image;
+                              }
+                              
+                              const imageSrc = formatPhotoUrl(possibleImageUrl);
+                              
+                              return imageSrc ? (
+                                <img src={imageSrc} alt={`Item ${item.item_number} Photo ${photoIdx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
+                              ) : (
+                                <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
+                              );
+                            })()}
                             {(photo.location || photo.description || photo.comment) && (
                               <div className="w-full space-y-1">
                                 {photo.location && (
@@ -238,11 +259,31 @@ export default function PunchlistReportPrint() {
                     <div className="grid grid-cols-2 gap-6">
                       {photos.map((photo, photoIdx) => (
                         <div key={photoIdx} className="rounded-lg border border-gray-200 bg-white shadow-sm p-4 flex flex-col items-center w-full">
-                          {(photo.url || photo.image_url) ? (
-                            <img src={photo.url || photo.image_url} alt={`Photo ${photoIdx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
-                          ) : (
-                            <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
-                          )}
+                          {(() => {
+                            // Use the same robust photo URL extraction logic as ReportPhotoSection
+                            let possibleImageUrl;
+                            if (photo.image_url || photo.url) {
+                              // Uploaded photo with server URL
+                              possibleImageUrl = photo.image_url || photo.url;
+                            } else if (photo.preview) {
+                              // Local photo with blob preview URL
+                              possibleImageUrl = photo.preview;
+                            } else if (photo.file && photo.file instanceof File) {
+                              // Local photo with File object - create object URL
+                              possibleImageUrl = URL.createObjectURL(photo.file);
+                            } else {
+                              // Fallback to any other URL property
+                              possibleImageUrl = photo.file || photo.image;
+                            }
+                            
+                            const imageSrc = formatPhotoUrl(possibleImageUrl);
+                            
+                            return imageSrc ? (
+                              <img src={imageSrc} alt={`Photo ${photoIdx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
+                            ) : (
+                              <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
+                            );
+                          })()}
                           {(photo.location || photo.description || photo.comment) && (
                             <div className="w-full space-y-1">
                               {photo.location && (

@@ -3,6 +3,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import { loadDraft } from '../../../../utils/draftUtils';
 import PageHeader from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
+import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 function formatDate(value) {
   if (!value) return '—';
@@ -384,21 +385,41 @@ export default function SWPPPReportPrint() {
               <div className="mt-10 mb-10 print-photo-break">
                 <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4">Photos</h2>
                 <div className="grid grid-cols-2 gap-6">
-                  {photos.map((photo, idx) => (
-                    <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 shadow-sm p-4 flex flex-col items-center w-full">
-                      {(photo.url || photo.image_url) ? (
-                        <img src={photo.url || photo.image_url} alt={photo.comment || photo.description || `Photo ${idx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
-                      ) : (
-                        <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
-                      )}
-                      {photo.location && (
-                        <div className="text-xs text-gray-600 mb-1 w-full"><b>Location:</b> {photo.location}</div>
-                      )}
-                      {(photo.comment || photo.description) && (photo.comment || photo.description).trim() !== '' && (
-                        <div className="text-xs text-gray-700 w-full"><b>Comments:</b> {photo.comment || photo.description}</div>
-                      )}
-                    </div>
-                  ))}
+                  {photos.map((photo, idx) => {
+                    // Use the same robust photo URL extraction logic as ReportPhotoSection
+                    let possibleImageUrl;
+                    if (photo.image_url || photo.url) {
+                      // Uploaded photo with server URL
+                      possibleImageUrl = photo.image_url || photo.url;
+                    } else if (photo.preview) {
+                      // Local photo with blob preview URL
+                      possibleImageUrl = photo.preview;
+                    } else if (photo.file && photo.file instanceof File) {
+                      // Local photo with File object - create object URL
+                      possibleImageUrl = URL.createObjectURL(photo.file);
+                    } else {
+                      // Fallback to any other URL property
+                      possibleImageUrl = photo.file || photo.image;
+                    }
+                    
+                    const imageSrc = formatPhotoUrl(possibleImageUrl);
+                    
+                    return (
+                      <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 shadow-sm p-4 flex flex-col items-center w-full">
+                        {imageSrc ? (
+                          <img src={imageSrc} alt={photo.comment || photo.description || `Photo ${idx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
+                        ) : (
+                          <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
+                        )}
+                        {photo.location && (
+                          <div className="text-xs text-gray-600 mb-1 w-full"><b>Location:</b> {photo.location}</div>
+                        )}
+                        {(photo.comment || photo.description) && (photo.comment || photo.description).trim() !== '' && (
+                          <div className="text-xs text-gray-700 w-full"><b>Comments:</b> {photo.comment || photo.description}</div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

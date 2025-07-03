@@ -3,6 +3,7 @@ import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, Ta
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import styles from './I3DailyUtilityReport.module.css';
 import PageHeader from '../../../../components/common/PageHeader';
+import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 const I3DailyUtilityReportReview = () => {
   const { state } = useLocation();
@@ -159,18 +160,37 @@ const I3DailyUtilityReportReview = () => {
           <Box sx={{ mb: 2 }}>
             <Typography variant="h6" gutterBottom>Photos</Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              {photos.map((file, idx) => {
-                let src = '';
-                if (typeof file === 'string') {
-                  src = file;
-                } else if (file instanceof Blob) {
-                  src = URL.createObjectURL(file);
+              {photos.map((photo, idx) => {
+                // Use the same robust photo URL extraction logic as ReportPhotoSection
+                let possibleImageUrl;
+                if (photo.image_url || photo.url) {
+                  // Uploaded photo with server URL
+                  possibleImageUrl = photo.image_url || photo.url;
+                } else if (photo.preview) {
+                  // Local photo with blob preview URL
+                  possibleImageUrl = photo.preview;
+                } else if (photo.file && photo.file instanceof File) {
+                  // Local photo with File object - create object URL
+                  possibleImageUrl = URL.createObjectURL(photo.file);
+                } else if (typeof photo === 'string') {
+                  // Direct string URL
+                  possibleImageUrl = photo;
+                } else if (photo instanceof Blob) {
+                  // Blob object
+                  possibleImageUrl = URL.createObjectURL(photo);
+                } else {
+                  // Fallback to any other URL property
+                  possibleImageUrl = photo.file || photo.image;
                 }
-                if (!src) return null;
+                
+                const imageSrc = formatPhotoUrl(possibleImageUrl);
+                
+                if (!imageSrc) return null;
+                
                 return (
                   <img
                     key={idx}
-                    src={src}
+                    src={imageSrc}
                     alt={`Photo ${idx + 1}`}
                     style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 4, border: '1px solid #ccc' }}
                   />

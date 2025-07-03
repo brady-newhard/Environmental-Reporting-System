@@ -37,7 +37,7 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
         setEditingIdx(photos.length); // index of first new photo
         setEditFields({ location: '', description: '' });
         if (onNotification) {
-          onNotification('Photos added locally. They will be uploaded when you save the draft.', 'info');
+          onNotification('Photos added locally. They will be uploaded when you save the draft.', 'success');
         }
       } else {
         // Upload photos to server

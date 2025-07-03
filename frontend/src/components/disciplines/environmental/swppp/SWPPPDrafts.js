@@ -139,6 +139,20 @@ export default function SWPPPDrafts() {
     navigate(`/environmental/swppp/review/${id}`);
   };
 
+  // Helper to format date as MM/DD/YYYY without timezone issues
+  const formatDate = (value) => {
+    if (!value) return 'N/A';
+    // If value is already in YYYY-MM-DD format, format as MM/DD/YYYY
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-');
+      return `${parseInt(month, 10)}/${parseInt(day, 10)}/${year}`;
+    }
+    // Otherwise, try to parse as Date
+    const d = new Date(value);
+    if (isNaN(d)) return value;
+    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+  };
+
   console.log('All SWPPP drafts before filtering:', drafts);
 
   return (
@@ -165,7 +179,7 @@ export default function SWPPPDrafts() {
           <div key={`draft-${draft.id || index}`} className="rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between mb-4 bg-white w-full">
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-lg mb-1 truncate">Project: {draft.data?.header?.project || draft.header?.project || 'N/A'}</div>
-              <div className="text-gray-700">Date: {(draft.data?.header?.date || draft.header?.date) ? new Date(draft.data?.header?.date || draft.header?.date).toLocaleDateString() : 'N/A'}</div>
+              <div className="text-gray-700">Date: {formatDate(draft.data?.header?.date || draft.header?.date)}</div>
               <div className="text-gray-700">Inspector: {draft.data?.header?.inspector || draft.header?.inspector || 'N/A'}</div>
               <div className="text-gray-700">Spread: {draft.data?.header?.spread || draft.header?.spread || 'N/A'}</div>
               <div className="text-gray-700">Inspection Type: {draft.data?.header?.inspection_type || draft.header?.inspection_type || 'N/A'}</div>

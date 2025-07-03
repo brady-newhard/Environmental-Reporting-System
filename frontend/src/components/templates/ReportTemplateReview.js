@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../common/PageHeader';
 import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { formatPhotoUrl } from '../../utils/photoUtils';
 
 const ReportTemplateReview = ({ config }) => {
   const location = useLocation();
@@ -69,6 +70,8 @@ const ReportTemplateReview = ({ config }) => {
   const sigDate = formatDate(data.sigDate);
   const photos = Array.isArray(data.photos) ? data.photos : [];
 
+  console.log('Review/Print photos:', photos);
+
   const renderPhotos = (photos) => {
     if (!photos || photos.length === 0) return null;
 
@@ -76,25 +79,45 @@ const ReportTemplateReview = ({ config }) => {
       <div className="mt-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Photos</h3>
         <div className="grid grid-cols-2 gap-4 w-full">
-          {photos.map((photo, index) => (
-            <div key={index} className="relative w-full">
-              <img
-                src={photo.url || photo.file || photo.preview || photo.image_url}
-                alt={photo.comment || `Photo ${index + 1}`}
-                className="w-full h-48 object-cover rounded-lg shadow-md"
-              />
-              {photo.comment && (
-                <div className="mt-2 text-sm text-gray-600">
-                  {photo.comment}
-                </div>
-              )}
-              {photo.location && (
-                <div className="mt-1 text-sm text-gray-500">
-                  Location: {photo.location}
-                </div>
-              )}
-            </div>
-          ))}
+          {photos.map((photo, index) => {
+            // Use the same robust photo URL extraction logic as ReportPhotoSection
+            let possibleImageUrl;
+            if (photo.image_url || photo.url) {
+              // Uploaded photo with server URL
+              possibleImageUrl = photo.image_url || photo.url;
+            } else if (photo.preview) {
+              // Local photo with blob preview URL
+              possibleImageUrl = photo.preview;
+            } else if (photo.file && photo.file instanceof File) {
+              // Local photo with File object - create object URL
+              possibleImageUrl = URL.createObjectURL(photo.file);
+            } else {
+              // Fallback to any other URL property
+              possibleImageUrl = photo.file || photo.image;
+            }
+            
+            const imageSrc = formatPhotoUrl(possibleImageUrl);
+            
+            return (
+              <div key={index} className="relative w-full">
+                <img
+                  src={imageSrc}
+                  alt={photo.comment || `Photo ${index + 1}`}
+                  className="w-full h-48 object-cover rounded-lg shadow-md"
+                />
+                {photo.comment && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    {photo.comment}
+                  </div>
+                )}
+                {photo.location && (
+                  <div className="mt-1 text-sm text-gray-500">
+                    Location: {photo.location}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );

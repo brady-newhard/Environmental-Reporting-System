@@ -5,6 +5,7 @@ import PageHeader from '../../../../components/common/PageHeader';
 import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import punchlistReportConfig from './punchlistReportConfig';
 import api from '../../../../services/api';
+import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 export default function PunchlistReportReview() {
   const { id } = useParams();
@@ -307,7 +308,7 @@ export default function PunchlistReportReview() {
                                   {row.photos.slice(0, 3).map((photo, photoIdx) => (
                                     <div key={photoIdx} className="w-8 h-8 rounded overflow-hidden border">
                                       <img
-                                        src={photo.url || photo.file || photo.preview || photo.image_url}
+                                        src={formatPhotoUrl(photo.url || photo.file || photo.preview || photo.image_url)}
                                         alt={`Photo ${photoIdx + 1}`}
                                         className="w-full h-full object-cover"
                                         title={`Photo ${photoIdx + 1}: ${photo.location || ''} - ${photo.description || photo.comment || ''}`}
@@ -345,7 +346,7 @@ export default function PunchlistReportReview() {
                             {row.photos.map((photo, photoIdx) => (
                               <div key={photoIdx} className="relative">
                                 <img
-                                  src={photo.url || photo.file || photo.preview || photo.image_url}
+                                  src={formatPhotoUrl(photo.url || photo.file || photo.preview || photo.image_url)}
                                   alt={`Item ${row.item_number} Photo ${photoIdx + 1}`}
                                   className="w-full h-32 object-cover rounded-lg shadow-md"
                                 />
@@ -428,7 +429,7 @@ export default function PunchlistReportReview() {
               {photos.map((photo, index) => (
                 <div key={index} className="aspect-square overflow-hidden rounded-lg border">
                   <img
-                    src={photo}
+                    src={formatPhotoUrl(photo)}
                     alt={`Photo ${index + 1}`}
                     className="w-full h-full object-cover"
                   />

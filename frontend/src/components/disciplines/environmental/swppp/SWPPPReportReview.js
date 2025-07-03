@@ -4,6 +4,7 @@ import PageHeader from '../../../common/PageHeader';
 import swpppReportConfig from './SWPPPConfig';
 import { loadDraft } from '../../../../utils/draftUtils';
 import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 const SWPPPReportReview = () => {
   const { draftId } = useParams();
@@ -99,25 +100,45 @@ const SWPPPReportReview = () => {
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Photos</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {photos.map((photo, index) => (
-            <div key={index} className="relative">
-              <img
-                src={photo.url || photo.file || photo.preview || photo.image_url}
-                alt={photo.comment || `Photo ${index + 1}`}
-                className="w-full h-48 object-cover rounded-lg shadow-md"
-              />
-              {(photo.location || photo.Location) && (
-                <div className="mt-2 text-sm text-gray-600">
-                  <span className="font-semibold">Location:</span> {photo.location || photo.Location}
-                </div>
-              )}
-              {(photo.comment || photo.comments || photo.description) && (
-                <div className="mt-1 text-sm text-gray-500">
-                  <span className="font-semibold">Comment:</span> {photo.comment || photo.comments || photo.description}
-                </div>
-              )}
-            </div>
-          ))}
+          {photos.map((photo, index) => {
+            // Use the same robust photo URL extraction logic as ReportPhotoSection
+            let possibleImageUrl;
+            if (photo.image_url || photo.url) {
+              // Uploaded photo with server URL
+              possibleImageUrl = photo.image_url || photo.url;
+            } else if (photo.preview) {
+              // Local photo with blob preview URL
+              possibleImageUrl = photo.preview;
+            } else if (photo.file && photo.file instanceof File) {
+              // Local photo with File object - create object URL
+              possibleImageUrl = URL.createObjectURL(photo.file);
+            } else {
+              // Fallback to any other URL property
+              possibleImageUrl = photo.file || photo.image;
+            }
+            
+            const imageSrc = formatPhotoUrl(possibleImageUrl);
+            
+            return (
+              <div key={index} className="relative">
+                <img
+                  src={imageSrc}
+                  alt={photo.comment || `Photo ${index + 1}`}
+                  className="w-full h-48 object-cover rounded-lg shadow-md"
+                />
+                {(photo.location || photo.Location) && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    <span className="font-semibold">Location:</span> {photo.location || photo.Location}
+                  </div>
+                )}
+                {(photo.comment || photo.comments || photo.description) && (
+                  <div className="mt-1 text-sm text-gray-500">
+                    <span className="font-semibold">Comment:</span> {photo.comment || photo.comments || photo.description}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );

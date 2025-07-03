@@ -55,9 +55,15 @@ export default function PunchlistDrafts() {
     }
   };
 
-  // Helper to format date as MM/DD/YYYY
+  // Helper to format date as MM/DD/YYYY without timezone issues
   const formatDate = (value) => {
     if (!value) return 'N/A';
+    // If value is already in YYYY-MM-DD format, format as MM/DD/YYYY
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-');
+      return `${parseInt(month, 10)}/${parseInt(day, 10)}/${year}`;
+    }
+    // Otherwise, try to parse as Date
     const d = new Date(value);
     if (isNaN(d)) return value;
     return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;

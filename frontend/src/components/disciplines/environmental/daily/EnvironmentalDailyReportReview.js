@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { loadDraft } from '../../../../utils/draftUtils';
 import PageHeader from '../../../../components/common/PageHeader';
 import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 const config = {
   headerFields: [
@@ -267,27 +268,47 @@ export default function EnvironmentalDailyReportReview() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Photos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {photos.map((photo, idx) => (
-            <div key={idx} className="flex flex-col items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
-              {(photo.url || photo.image_url || photo.file || photo.preview) && (
-                <img
-                  src={photo.url || photo.image_url || photo.file || photo.preview}
-                  alt={photo.comment || photo.description || `Photo ${idx + 1}`}
-                  className="w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow"
-                />
-              )}
-              {photo.location && (
-                <div className="text-sm text-gray-600 mb-1 w-full">
-                  <span className="font-medium">Location:</span> {photo.location}
-                </div>
-              )}
-              {(photo.comment || photo.description) && (
-                <div className="text-sm text-gray-700 w-full">
-                  <span className="font-medium">Comments:</span> {photo.comment || photo.description}
-                </div>
-              )}
-            </div>
-          ))}
+          {photos.map((photo, idx) => {
+            // Use the same robust photo URL extraction logic as ReportPhotoSection
+            let possibleImageUrl;
+            if (photo.image_url || photo.url) {
+              // Uploaded photo with server URL
+              possibleImageUrl = photo.image_url || photo.url;
+            } else if (photo.preview) {
+              // Local photo with blob preview URL
+              possibleImageUrl = photo.preview;
+            } else if (photo.file && photo.file instanceof File) {
+              // Local photo with File object - create object URL
+              possibleImageUrl = URL.createObjectURL(photo.file);
+            } else {
+              // Fallback to any other URL property
+              possibleImageUrl = photo.file || photo.image;
+            }
+            
+            const imageSrc = formatPhotoUrl(possibleImageUrl);
+            
+            return (
+              <div key={idx} className="flex flex-col items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
+                {imageSrc && (
+                  <img
+                    src={imageSrc}
+                    alt={photo.comment || photo.description || `Photo ${idx + 1}`}
+                    className="w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow"
+                  />
+                )}
+                {photo.location && (
+                  <div className="text-sm text-gray-600 mb-1 w-full">
+                    <span className="font-medium">Location:</span> {photo.location}
+                  </div>
+                )}
+                {(photo.comment || photo.description) && (
+                  <div className="text-sm text-gray-700 w-full">
+                    <span className="font-medium">Comments:</span> {photo.comment || photo.description}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
