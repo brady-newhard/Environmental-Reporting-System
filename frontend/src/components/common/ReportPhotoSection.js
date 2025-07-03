@@ -152,12 +152,29 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
     onPhotosChange(updated);
     setEditingIdx(null);
     setEditFields({ location: '', description: '' });
+    
+    // Check if this is a local photo (has file property or temp ID)
+    const isLocalPhoto = !photo || !photo.id || photo.id.toString().startsWith('temp_') || photo.file;
+    
+    if (isLocalPhoto) {
+      // Local photo - just update local state (already done above)
+      if (onNotification) {
+        onNotification('Photo details updated locally', 'success');
+      }
+      return;
+    }
+    
+    // Server photo - try to update on server
     try {
       const { default: axios } = await import('../../utils/axios');
       await axios.patch(`/api/photos/photos/${photo.id}/`, editFields);
-    } catch {
       if (onNotification) {
-        onNotification('Error saving photo details', 'error');
+        onNotification('Photo details updated successfully', 'success');
+      }
+    } catch (error) {
+      console.error('Error updating photo details:', error);
+      if (onNotification) {
+        onNotification('Error updating photo details', 'error');
       }
     }
   };
