@@ -78,13 +78,19 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
     setDeleteIdx(null);
     const photo = photos[idx];
     try {
-      if (!photo || !photo.id) {
+      // Check if this is a local photo (has file property or temp ID)
+      const isLocalPhoto = !photo || !photo.id || photo.id.toString().startsWith('temp_') || photo.file;
+      
+      if (isLocalPhoto) {
+        // Just remove from local state
         onPhotosChange(photos.filter((_, i) => i !== idx));
         if (onNotification) {
-          onNotification('Photo removed from local state (no server ID)', 'success');
+          onNotification('Photo removed from local state', 'success');
         }
         return;
       }
+      
+      // Server photo - try to delete from server
       const { deletePhoto } = await import('../../utils/photoUtils');
       await deletePhoto(photo.id);
       onPhotosChange(photos.filter((_, i) => i !== idx));
@@ -92,6 +98,7 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
         onNotification('Photo deleted successfully', 'success');
       }
     } catch (error) {
+      console.error('Error deleting photo:', error);
       if (onNotification) {
         onNotification('Error deleting photo: ' + (error.message || 'Unknown error'), 'error');
       }
@@ -162,7 +169,23 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {photos.map((photo, idx) => {
           // Safely extract the image URL from various possible properties
-          const possibleImageUrl = photo.image_url || photo.url || photo.file || photo.image;
+          // For uploaded photos, use image_url or url
+          // For local photos, use preview (blob URL) or create object URL from file
+          let possibleImageUrl;
+          if (photo.image_url || photo.url) {
+            // Uploaded photo with server URL
+            possibleImageUrl = photo.image_url || photo.url;
+          } else if (photo.preview) {
+            // Local photo with blob preview URL
+            possibleImageUrl = photo.preview;
+          } else if (photo.file && photo.file instanceof File) {
+            // Local photo with File object - create object URL
+            possibleImageUrl = URL.createObjectURL(photo.file);
+          } else {
+            // Fallback to any other URL property
+            possibleImageUrl = photo.file || photo.image;
+          }
+          
           const imageSrc = formatPhotoUrl(possibleImageUrl);
           // Debug: log computed image source
           console.log(`ReportPhotoSection - photo[${idx}]`, photo);
@@ -272,7 +295,18 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
               <XMarkIcon className="w-6 h-6" />
             </button>
             <img
-              src={formatPhotoUrl(modalPhoto.image_url || modalPhoto.file || modalPhoto.image)}
+              src={(() => {
+                // Use the same logic as the main photo display
+                if (modalPhoto.image_url || modalPhoto.url) {
+                  return formatPhotoUrl(modalPhoto.image_url || modalPhoto.url);
+                } else if (modalPhoto.preview) {
+                  return modalPhoto.preview;
+                } else if (modalPhoto.file && modalPhoto.file instanceof File) {
+                  return URL.createObjectURL(modalPhoto.file);
+                } else {
+                  return formatPhotoUrl(modalPhoto.file || modalPhoto.image);
+                }
+              })()}
               alt="Full size"
               className="w-full h-auto max-h-[60vh] object-contain bg-gray-100"
             />
