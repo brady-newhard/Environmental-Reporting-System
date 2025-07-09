@@ -71,7 +71,7 @@ const SignIn = () => {
         <div>
           <img
             className="mx-auto h-12 w-auto"
-            src="/staticfiles/PIPE-Logo.png"
+            src="/PIPE-Logo.png"
             alt="PIPE Logo"
           />
         </div>

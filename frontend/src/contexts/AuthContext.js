@@ -21,17 +21,36 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       console.log('[AuthContext] Token found, setting authenticated state');
       setIsAuthenticated(true);
+      // For now, set a basic user object since /users/me/ endpoint doesn't exist
       setUser({
-        username: 'dev_user',
-        first_name: 'Dev'
+        username: 'User',
+        email: 'user@example.com'
       });
+      setLoading(false);
     } else {
       console.log('[AuthContext] No token found');
+      setLoading(false);
     }
     
-    setLoading(false);
     console.log('[AuthContext] Initialization complete');
   }, []);
+
+  const fetchUserData = async (token) => {
+    try {
+      const response = await api.get('/users/me/', {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      localStorage.removeItem('token');
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (token, username, first_name) => {
     console.log('[AuthContext] Login called with token:', token);
@@ -46,6 +65,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
     setUser(null);
+    
+    // Try to call logout API if token exists, but don't fail if it doesn't work
     if (token) {
       try {
         await api.post('/logout/', {}, {
@@ -54,10 +75,11 @@ export const AuthProvider = ({ children }) => {
           }
         });
       } catch (error) {
-        console.error('Error during logout:', error);
+        // Log the error but don't throw - logout still works locally
+        console.log('Logout API call failed (this is normal if endpoint doesn\'t exist):', error.message);
       }
     }
-    window.location.href = '/login';
+    // Don't use window.location.href - let the Navigation component handle navigation
   };
 
   return (

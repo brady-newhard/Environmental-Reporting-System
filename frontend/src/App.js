@@ -1,6 +1,6 @@
 // import 'antd/dist/reset.css';
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -233,7 +233,7 @@ const theme = createTheme({
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
-  const location = window.location;
+  const location = useLocation();
 
   // Hide Navigation on login and signup pages
   const hideNav = location.pathname === '/login' || location.pathname === '/signup';

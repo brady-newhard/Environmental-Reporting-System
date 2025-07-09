@@ -29,7 +29,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-nnb6$&aupre_w8s3h0sgahlz)-j3@saidvu0m_yvjmo4+c!vb^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+# Auto-detect environment: if DATABASE_URL is set (Heroku), use production settings
+# Otherwise, use development settings
+IS_HEROKU = os.getenv('DATABASE_URL') is not None
+DEBUG = os.getenv('DEBUG', 'True' if not IS_HEROKU else 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.203', 'environmental-reporting-system-febba9464fe7.herokuapp.com']
 
@@ -249,6 +252,10 @@ else:
         "https://localhost:3000",
         "http://127.0.0.1:3000",
         "https://127.0.0.1:3000",
+        "http://localhost:5173",
+        "https://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://127.0.0.1:5173",
     ]
     CORS_ALLOW_CREDENTIALS = True
 
@@ -260,16 +267,20 @@ else:
         "https://127.0.0.1:3000",
         "http://192.168.1.203:3000",
         "https://192.168.1.203:3000",
+        "http://localhost:5173",
+        "https://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://127.0.0.1:5173",
     ]
 
     # Development CSP settings
-    CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
-    CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
-    CSP_FONT_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
-    CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
-    CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
+    CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+    CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+    CSP_FONT_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+    CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+    CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
 
 # Configure whitenoise
 WHITENOISE_USE_FINDERS = True
