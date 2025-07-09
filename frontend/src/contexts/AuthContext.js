@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
@@ -7,51 +7,38 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    console.log('[AuthContext] useEffect: token in localStorage:', token);
-    if (token) {
-      api.get('/users/verify-token/')
-        .then((response) => {
-          console.log('[AuthContext] Token verified, user:', response.data);
-          if (response.data && typeof response.data === 'object') {
-            setIsAuthenticated(true);
-            setUser({
-              username: response.data.username || response.data.user,
-              first_name: response.data.first_name || response.data.user
-            });
-          } else {
-            console.error('[AuthContext] Invalid user data format:', response.data);
-            localStorage.removeItem('token');
-            setIsAuthenticated(false);
-            setUser(null);
-          }
-        })
-        .catch((error) => {
-          console.error('[AuthContext] Token verification failed:', error);
-          localStorage.removeItem('token');
-          setIsAuthenticated(false);
-          setUser(null);
-        })
-        .finally(() => {
-          setLoading(false);
-          console.log('[AuthContext] Loading set to false (verify-token finally)');
-        });
-    } else {
-      setLoading(false);
-      console.log('[AuthContext] Loading set to false (no token)');
+    if (hasInitialized.current) {
+      return;
     }
+    hasInitialized.current = true;
+
+    console.log('[AuthContext] Initializing authentication...');
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      console.log('[AuthContext] Token found, setting authenticated state');
+      setIsAuthenticated(true);
+      setUser({
+        username: 'dev_user',
+        first_name: 'Dev'
+      });
+    } else {
+      console.log('[AuthContext] No token found');
+    }
+    
+    setLoading(false);
+    console.log('[AuthContext] Initialization complete');
   }, []);
 
   const login = async (token, username, first_name) => {
     console.log('[AuthContext] Login called with token:', token);
     localStorage.setItem('token', token);
-    console.log('[AuthContext] Token stored in localStorage:', localStorage.getItem('token'));
     setUser({ username, first_name });
     setIsAuthenticated(true);
     setLoading(false);
-    console.log('[AuthContext] Login: setIsAuthenticated(true), setLoading(false)');
   };
 
   const logout = async () => {

@@ -56,7 +56,7 @@ const config = {
 };
 
 export default function EnvironmentalDailyReportReview() {
-  const { draftId } = useParams();
+  const { id: draftId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [draft, setDraft] = useState(null);

@@ -5,6 +5,13 @@ import {
   Paper,
   IconButton,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Delete as DeleteIcon, Edit as EditIcon, Visibility as ViewIcon } from '@mui/icons-material';
@@ -13,6 +20,9 @@ import PageHeader from '../../../../components/common/PageHeader';
 const I3DailyUtilityReportDrafts = () => {
   const navigate = useNavigate();
   const [drafts, setDrafts] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [draftToDelete, setDraftToDelete] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     // Get all drafts from localStorage
@@ -32,10 +42,48 @@ const I3DailyUtilityReportDrafts = () => {
   }, []);
 
   const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this draft?')) {
-      localStorage.removeItem(id);
-      setDrafts(drafts.filter(draft => draft.id !== id));
+    const draft = drafts.find(d => d.id === id);
+    if (!draft) {
+      setSnackbar({
+        open: true,
+        message: 'Cannot delete draft: Draft not found',
+        severity: 'error'
+      });
+      return;
     }
+    setDraftToDelete(draft);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    try {
+      localStorage.removeItem(draftToDelete.id);
+      setDrafts(drafts.filter(draft => draft.id !== draftToDelete.id));
+      setSnackbar({
+        open: true,
+        message: 'Draft deleted successfully',
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error deleting draft:', err);
+      setSnackbar({
+        open: true,
+        message: 'Error deleting draft: ' + err.message,
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDraftToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setDraftToDelete(null);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const handleEdit = (draft) => {
@@ -103,6 +151,43 @@ const I3DailyUtilityReportDrafts = () => {
           </Stack>
         )}
       </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this draft? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

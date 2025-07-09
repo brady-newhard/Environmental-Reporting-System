@@ -10,6 +10,7 @@ cd frontend
 # In production, the frontend and backend are served from the same domain
 # Using empty string makes API calls relative to current domain
 export VITE_API_URL=""
+export NODE_ENV="production"
 
 # Use production build with increased memory usage
 NODE_OPTIONS="--max-old-space-size=4096" npm run build

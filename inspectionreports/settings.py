@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'inspectionreports.siddleware.HTTPSRedirectMiddleware',  # Custom HTTPS redirect middleware - disabled for development
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -69,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',  # Add CSP middleware
 ]
 
 ROOT_URLCONF = 'inspectionreports.urls'
@@ -156,11 +158,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
-]
+# CORS settings - will be overridden by environment-specific settings below
+CORS_ALLOWED_ORIGINS = []
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -184,13 +183,8 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# CSRF trusted origins for production
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://192.168.1.203:3000",
-    "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
-]
+# CSRF trusted origins - will be overridden by environment-specific settings below
+CSRF_TRUSTED_ORIGINS = []
 
 # REST Framework settings
 REST_FRAMEWORK = {
@@ -203,8 +197,36 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rest_framework.views.exception_handler',
 }
 
-# Security settings for development
-if DEBUG:
+# Security settings for production
+if not DEBUG:
+    # Production settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
+    USE_X_FORWARDED_PROTO = True
+    
+    # Production CORS settings
+    CORS_ALLOWED_ORIGINS = [
+        "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
+    ]
+    
+    # Production CSRF settings
+    CSRF_TRUSTED_ORIGINS = [
+        "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
+    ]
+    
+    # Production CSP settings
+    CSP_DEFAULT_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    CSP_IMG_SRC = ("'self'", "data:", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    CSP_FONT_SRC = ("'self'", "data:", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    CSP_CONNECT_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    CSP_MANIFEST_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+else:
     # Development settings
     SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
     SECURE_SSL_REDIRECT = False
@@ -214,22 +236,40 @@ if DEBUG:
     USE_X_FORWARDED_HOST = False
     USE_X_FORWARDED_PORT = False
     USE_X_FORWARDED_PROTO = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_CONTENT_TYPE_NOSNIFF = False
+    SECURE_BROWSER_XSS_FILTER = False
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
 
-    # CORS settings
+    # Development CORS settings
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:3000",
+        "https://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://127.0.0.1:3000",
     ]
     CORS_ALLOW_CREDENTIALS = True
 
-    # CSP settings
-    CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "http://localhost:3000")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http://localhost:8000", "http://localhost:3000")
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:8000", "http://localhost:3000")
-    CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "http://localhost:3000")
-    CSP_FONT_SRC = ("'self'", "data:", "http://localhost:8000", "http://localhost:3000")
-    CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "http://localhost:3000")
-    CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "http://localhost:3000")
+    # Development CSRF settings
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+        "https://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://127.0.0.1:3000",
+        "http://192.168.1.203:3000",
+        "https://192.168.1.203:3000",
+    ]
+
+    # Development CSP settings
+    CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
+    CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
+    CSP_FONT_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
+    CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
+    CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000")
 
 # Configure whitenoise
 WHITENOISE_USE_FINDERS = True

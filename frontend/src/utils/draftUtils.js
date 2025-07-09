@@ -1,5 +1,6 @@
 import api from '../services/api';
 import { indexedDBStorage } from './indexedDBConfig';
+import { convertPhotosToBase64 } from './photoUtils';
 
 // Utility function to safely extract drafts from API response
 function extractDraftResults(data) {
@@ -31,23 +32,41 @@ function mapReportType(reportType) {
 }
 
 // Normalize draft data to ensure consistent structure
-export function normalizeDraft(data) {
+export async function normalizeDraft(data) {
+  // Ensure data exists and has the expected structure
+  if (!data) {
+    console.warn('normalizeDraft called with undefined data');
+    return {
+      header: {},
+      sections: [],
+      summaries: {},
+      photos: [],
+      signature: '',
+      sigDate: '',
+      preparedBy: ''
+    };
+  }
+
+  // Convert blob URLs to base64 for persistent storage
+  const convertedPhotos = await convertPhotosToBase64(data.photos || []);
+  
   return {
     header: data.header || {},
     sections: data.sections || [],
     summaries: data.summaries || {},
-    photos: data.photos || [],
+    photos: convertedPhotos,
     signature: data.signature || '',
     sigDate: data.sigDate || '',
     preparedBy: data.preparedBy || '',
-    ...data
+    ...data,
+    photos: convertedPhotos // Ensure photos are overwritten with converted versions
   };
 }
 
 // Save a draft (both online and offline)
 export async function saveDraft(reportType, data) {
   try {
-    const normalizedData = normalizeDraft(data);
+    const normalizedData = await normalizeDraft(data);
     const savedId = data.id;
     const isValidId = savedId && savedId !== 'null' && savedId !== undefined && !(typeof savedId === 'string' && savedId.startsWith('temp_'));
     

@@ -1,30 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, Book, Wrench } from 'lucide-react';
-import PageHeader from '../../../common/PageHeader';
-import Footer from '../../../common/Footer';
 
-const CategoryCard = ({ title, icon: Icon, description, path }) => {
+const CategoryCard = ({ title, description, path }) => {
   const navigate = useNavigate();
 
   return (
-    <Card className="h-52 w-full flex flex-col bg-gray-800/40 backdrop-blur rounded-lg shadow hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray-700">
-      <CardContent className="flex-1 flex flex-col gap-4 p-6">
-        <div className="flex items-center gap-3">
-          <Icon className="text-white w-8 h-8" />
-          <span className="text-lg font-semibold text-white">{title}</span>
-        </div>
-        <span className="text-sm text-white/80 flex-1">{description}</span>
-        <Button
-          className="bg-black hover:bg-zinc-800 text-white font-medium h-10 text-sm w-full mt-auto"
-          onClick={() => navigate(path)}
-        >
-          View {title}
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="h-52 w-full flex flex-col bg-gray-800 rounded-lg shadow hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray-700 p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-white text-2xl">⚡</span>
+        <span className="text-lg font-semibold text-white">{title}</span>
+      </div>
+      <span className="text-sm text-white/80 flex-1 mb-4">{description}</span>
+      <button
+        className="bg-black hover:bg-zinc-800 text-white font-medium h-10 text-sm w-full mt-auto rounded"
+        onClick={() => navigate(path)}
+      >
+        View {title}
+      </button>
+    </div>
   );
 };
 
@@ -32,51 +25,41 @@ const UtilityDashboard = () => {
   const categories = [
     {
       title: "Reports",
-      icon: FileText,
       description: "Create and manage utility reports, inspections, and quality control documentation.",
       path: "/utility/reports"
     },
     {
       title: "Specifications",
-      icon: Book,
       description: "Access utility specifications, standards, and technical requirements.",
       path: "/utility/specifications"
     },
     {
       title: "Procedures",
-      icon: Wrench,
       description: "View and manage Utility Procedure Specifications and related documents.",
       path: "/utility/procedures"
     }
   ];
 
   return (
-    <div className="relative min-h-[calc(100vh-64px)] overflow-auto">
-      <div className="absolute inset-0 bg-[url('/pipeline-bg.jpg')] bg-cover bg-center z-0" />
-      <div className="absolute inset-0 bg-black/60 z-10" />
+    <div className="relative min-h-[calc(100vh-64px)] overflow-auto bg-gray-900">
       <div className="relative z-20 p-4 sm:p-6">
-        <PageHeader 
-          title={<span className="text-white">Utility Management</span>}
-          backPath="/"
-          backButtonStyle={{
-            backgroundColor: '#000000',
-            color: '#ffffff',
-            '&:hover': { backgroundColor: '#333333' }
-          }}
-        />
+        <div className="mb-6 mt-8">
+          <h1 className="font-semibold text-white text-2xl">Utility Management</h1>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {categories.map((category, index) => (
             <CategoryCard
               key={index}
               title={category.title}
-              icon={category.icon}
               description={category.description}
               path={category.path}
             />
           ))}
         </div>
       </div>
-      <Footer />
+      <footer className="w-full text-center py-4 text-white/80 text-sm relative z-20">
+        &copy; {new Date().getFullYear()} WildStone Solutions, LLC
+      </footer>
     </div>
   );
 };

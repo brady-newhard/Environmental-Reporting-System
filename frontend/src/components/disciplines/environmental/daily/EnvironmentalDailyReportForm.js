@@ -44,6 +44,16 @@ export default function EnvironmentalDailyReportForm() {
             header: {},
             sections: [
               {
+                name: 'Project Information',
+                isStatic: true,
+                rows: [{}]
+              },
+              {
+                name: 'Weather Information',
+                isStatic: true,
+                rows: [{}]
+              },
+              {
                 name: 'Crew Daily Summaries',
                 rows: [{ Crew: '', Foreman: '', 'Start Station': '', 'End Station': '', Summary: '' }]
               },
@@ -88,10 +98,15 @@ export default function EnvironmentalDailyReportForm() {
       const savedDraft = await saveDraft(reportType, dataToSave);
       console.log('Draft saved with ID:', savedDraft.id);
       
-      // Update the URL if this was a new draft
-      if (!dataToSave.id) {
+      // Update the draft state with the new ID
+      const updatedDraft = { ...savedDraft.data, id: savedDraft.id };
+      setDraft(updatedDraft);
+      
+      // Update the URL if this was a new draft (check if original ID was a temp ID)
+      const wasNewDraft = !dataToSave.id || String(dataToSave.id).startsWith('temp_');
+      if (wasNewDraft) {
         navigate(`/environmental/reports/daily/edit/${savedDraft.id}`, {
-          state: { draft: { ...savedDraft.data, id: savedDraft.id } }
+          state: { draft: updatedDraft }
         });
       }
       
@@ -102,6 +117,9 @@ export default function EnvironmentalDailyReportForm() {
         severity: 'success'
       });
       
+      // Return the saved draft data to ReportTemplate
+      return savedDraft;
+      
     } catch (error) {
       console.error('Error saving report:', error);
       setSnackbar({
@@ -109,6 +127,7 @@ export default function EnvironmentalDailyReportForm() {
         message: 'Error saving draft: ' + (error.response?.data?.message || error.message),
         severity: 'error'
       });
+      throw error; // Re-throw the error so ReportTemplate can handle it
     }
   };
 
@@ -147,7 +166,7 @@ export default function EnvironmentalDailyReportForm() {
   return (
     <div className="min-h-[calc(100vh-64px)] overflow-auto p-4 sm:p-6">
       <PageHeader 
-        title={<span className="text-white">Edit Daily Environmental Report</span>}
+        title={<span className="text-white">{id ? "Edit Daily Environmental Report" : "New Daily Environmental Report"}</span>}
         backPath={id ? "/environmental/reports/daily/drafts" : "/environmental/reports"}
         backButtonStyle={{
           backgroundColor: '#000000',

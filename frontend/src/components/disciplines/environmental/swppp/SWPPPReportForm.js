@@ -27,12 +27,14 @@ export default function SWPPPReportForm() {
     const initializeDraft = async () => {
       try {
         if (location.state && location.state.draft) {
-          setDraft(normalizeDraft(location.state.draft));
+          const normalizedDraft = await normalizeDraft(location.state.draft);
+          setDraft(normalizedDraft);
         } else if (id) {
           // Load existing draft
           const loadedDraft = await loadDraft(reportType, id);
           if (loadedDraft) {
-            setDraft(normalizeDraft(loadedDraft));
+            const normalizedDraft = await normalizeDraft(loadedDraft);
+            setDraft(normalizedDraft);
           } else {
             console.error('Failed to load draft with ID:', id);
             setSnackbar({
@@ -99,7 +101,8 @@ export default function SWPPPReportForm() {
             preparedBy: '',
             id: `temp_${Date.now()}`
           };
-          setDraft(normalizeDraft(emptyDraft));
+          const normalizedDraft = await normalizeDraft(emptyDraft);
+          setDraft(normalizedDraft);
         }
       } catch (error) {
         console.error('Error initializing draft:', error);
@@ -118,9 +121,13 @@ export default function SWPPPReportForm() {
 
   const handleSave = async (formData) => {
     try {
-      const dataToSave = normalizeDraft(formData);
+      const dataToSave = await normalizeDraft(formData);
       const prevId = draft?.id;
       const savedDraft = await saveDraft(reportType, dataToSave);
+
+      // Update the draft state with the new ID
+      const updatedDraft = { ...savedDraft.data, id: savedDraft.id };
+      setDraft(updatedDraft);
 
       // If the saved draft has a real ID, update the URL and state
       if (savedDraft.id && !String(savedDraft.id).startsWith('temp_')) {
@@ -134,7 +141,6 @@ export default function SWPPPReportForm() {
             state: { draft: { ...savedDraft.data, id: savedDraft.id } }
           });
         }
-        setDraft(normalizeDraft({ ...savedDraft.data, id: savedDraft.id }));
       }
 
       setSnackbar({
@@ -142,6 +148,9 @@ export default function SWPPPReportForm() {
         message: 'Draft saved successfully',
         severity: 'success'
       });
+
+      // Return the saved draft data for the ReportTemplate
+      return savedDraft;
     } catch (error) {
       console.error('Error saving report:', error);
       setSnackbar({
@@ -149,6 +158,7 @@ export default function SWPPPReportForm() {
         message: 'Error saving draft: ' + (error.response?.data?.message || error.message),
         severity: 'error'
       });
+      throw error;
     }
   };
 
@@ -175,6 +185,13 @@ export default function SWPPPReportForm() {
     }
   };
 
+  const handleReview = () => {
+    if (!draft?.id) return;
+    navigate(`/environmental/swppp/review/${draft.id}`, {
+      state: { reportData: draft }
+    });
+  };
+
   if (isLoading || !draft) {
     return <div>Loading...</div>;
   }
@@ -195,6 +212,7 @@ export default function SWPPPReportForm() {
         onChange={handleDraftChange}
         onSave={handleSave}
         onDelete={id ? handleDelete : undefined}
+        onReview={draft?.id ? handleReview : undefined}
         onCancel={handleCloseSnackbar}
         config={swpppReportConfig}
       />

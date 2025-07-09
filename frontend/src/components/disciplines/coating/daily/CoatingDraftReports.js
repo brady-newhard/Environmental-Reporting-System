@@ -12,11 +12,20 @@ import {
   TableRow,
   Button,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const CoatingDraftReports = () => {
   const [drafts, setDrafts] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [draftToDelete, setDraftToDelete] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,9 +38,49 @@ const CoatingDraftReports = () => {
   };
 
   const handleDeleteDraft = (draftId) => {
-    const updatedDrafts = drafts.filter(draft => draft.draftId !== draftId);
-    localStorage.setItem('dailyCoatingReportDrafts', JSON.stringify(updatedDrafts));
-    setDrafts(updatedDrafts);
+    const draft = drafts.find(d => d.draftId === draftId);
+    if (!draft) {
+      setSnackbar({
+        open: true,
+        message: 'Cannot delete draft: Draft not found',
+        severity: 'error'
+      });
+      return;
+    }
+    setDraftToDelete(draft);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    try {
+      const updatedDrafts = drafts.filter(draft => draft.draftId !== draftToDelete.draftId);
+      localStorage.setItem('dailyCoatingReportDrafts', JSON.stringify(updatedDrafts));
+      setDrafts(updatedDrafts);
+      setSnackbar({
+        open: true,
+        message: 'Draft deleted successfully',
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error deleting draft:', err);
+      setSnackbar({
+        open: true,
+        message: 'Error deleting draft: ' + err.message,
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDraftToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setDraftToDelete(null);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -126,6 +175,43 @@ const CoatingDraftReports = () => {
           </tbody>
         </Box>
       </TableContainer>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this draft? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

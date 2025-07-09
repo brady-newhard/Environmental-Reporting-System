@@ -4,6 +4,7 @@ distlib==0.3.9
 dj-database-url==3.0.0
 Django==5.2
 django-cors-headers==4.7.0
+django-csp==3.7
 djangorestframework==3.16.0
 drf-nested-routers==0.94.2
 drf-yasg==1.21.7

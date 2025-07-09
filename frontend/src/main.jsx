@@ -28,11 +28,11 @@ if (rootElement) {
   console.log('Created root:', root);
 
   root.render(
-    <React.StrictMode>
-      <BrowserRouter>
+    // <React.StrictMode>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </BrowserRouter>
-    </React.StrictMode>
+    // </React.StrictMode>
   );
   console.log('Rendered application');
 } else {

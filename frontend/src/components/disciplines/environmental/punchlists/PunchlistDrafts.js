@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, Card, CardContent, CardActions, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Snackbar, Alert } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { getAllDrafts } from '../../../../utils/draftUtils';
 import PageHeader from '../../../../components/common/PageHeader';
 import { PencilIcon, EyeIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
@@ -10,6 +14,9 @@ export default function PunchlistDrafts() {
   const [drafts, setDrafts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [draftToDelete, setDraftToDelete] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const reportType = 'punchlist';
 
   // Get the back path from location state or default to reports
@@ -44,15 +51,48 @@ export default function PunchlistDrafts() {
   };
 
   const handleDelete = async (draftId) => {
-    if (window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
-      try {
-        await import('../../../../utils/draftUtils').then(utils => utils.deleteDraft(reportType, draftId));
-        setDrafts(prev => prev.filter(draft => draft.id !== draftId));
-      } catch (err) {
-        console.error('Error deleting draft:', err);
-        alert('Error deleting draft: ' + err.message);
-      }
+    const draft = drafts.find(d => d.id === draftId);
+    if (!draft || !draft.id) {
+      setSnackbar({
+        open: true,
+        message: 'Cannot delete draft: Invalid draft ID',
+        severity: 'error'
+      });
+      return;
     }
+    setDraftToDelete(draft);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await import('../../../../utils/draftUtils').then(utils => utils.deleteDraft(reportType, draftToDelete.id));
+      setDrafts(prev => prev.filter(draft => draft.id !== draftToDelete.id));
+      setSnackbar({
+        open: true,
+        message: 'Draft deleted successfully',
+        severity: 'success'
+      });
+    } catch (err) {
+      console.error('Error deleting draft:', err);
+      setSnackbar({
+        open: true,
+        message: 'Error deleting draft: ' + err.message,
+        severity: 'error'
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDraftToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setDraftToDelete(null);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   // Helper to format date as MM/DD/YYYY without timezone issues
@@ -199,6 +239,43 @@ export default function PunchlistDrafts() {
             ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this draft? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 } 

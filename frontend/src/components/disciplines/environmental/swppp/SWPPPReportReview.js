@@ -7,7 +7,7 @@ import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon, PrinterIcon
 import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 const SWPPPReportReview = () => {
-  const { draftId } = useParams();
+  const { id: draftId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState(null);
@@ -117,27 +117,28 @@ const SWPPPReportReview = () => {
               possibleImageUrl = photo.file || photo.image;
             }
             
-            const imageSrc = formatPhotoUrl(possibleImageUrl);
-            
             return (
-              <div key={index} className="flex flex-col items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
-                {imageSrc && (
+              <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="relative">
                   <img
-                    src={imageSrc}
-                    alt={photo.comment || photo.description || `Photo ${index + 1}`}
-                    className="w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow"
+                    src={possibleImageUrl}
+                    alt={`Photo ${index + 1}`}
+                    className="w-full h-48 object-cover cursor-pointer"
+                    onClick={() => handlePhotoClick(photo)}
                   />
-                )}
-                {photo.location && (
-                  <div className="text-sm text-gray-600 mb-1 w-full">
-                    <span className="font-medium">Location:</span> {photo.location}
-                  </div>
-                )}
-                {(photo.comment || photo.description) && (
-                  <div className="text-sm text-gray-700 w-full">
-                    <span className="font-medium">Comments:</span> {photo.comment || photo.description}
-                  </div>
-                )}
+                </div>
+                <div className="p-4 space-y-2">
+                  {photo.location && (
+                    <div className="text-sm text-gray-700">
+                      <span className="font-medium">Location:</span> {photo.location}
+                    </div>
+                  )}
+                  {(photo.comment || photo.description) && (
+                    <div className="text-sm text-gray-700 w-full">
+                      <span className="font-medium">Comments:</span> {photo.comment || photo.description}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

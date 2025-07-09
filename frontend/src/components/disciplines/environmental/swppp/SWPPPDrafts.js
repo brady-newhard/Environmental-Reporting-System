@@ -178,12 +178,23 @@ export default function SWPPPDrafts() {
         .map((draft, index) => (
           <div key={`draft-${draft.id || index}`} className="rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between mb-4 bg-white w-full">
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-lg mb-1 truncate">Project: {draft.data?.header?.project || draft.header?.project || 'N/A'}</div>
-              <div className="text-gray-700">Date: {formatDate(draft.data?.header?.date || draft.header?.date)}</div>
-              <div className="text-gray-700">Inspector: {draft.data?.header?.inspector || draft.header?.inspector || 'N/A'}</div>
-              <div className="text-gray-700">Spread: {draft.data?.header?.spread || draft.header?.spread || 'N/A'}</div>
-              <div className="text-gray-700">Inspection Type: {draft.data?.header?.inspection_type || draft.header?.inspection_type || 'N/A'}</div>
-              <div className="text-gray-500 text-xs mt-1">Report ID: {draft.id || 'N/A'}</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                SWPPP Inspection Report
+              </h3>
+              <div className="text-gray-700">
+                Date: {formatDate(
+                  draft.data?.sections?.[0]?.inspection_date || 
+                  draft.data?.header?.date || 
+                  draft.header?.date ||
+                  draft.created_at
+                )}
+              </div>
+              <div className="text-gray-700">
+                Inspector: {draft.data?.sections?.[0]?.inspector || draft.data?.sections?.[1]?.inspector || 'Not specified'}
+              </div>
+              <div className="text-gray-700">
+                Project: {draft.data?.sections?.[1]?.project || 'Not specified'}
+              </div>
             </div>
             <div className="flex gap-2 ml-0 md:ml-4 mt-4 md:mt-0 shrink-0">
               {/* Edit Button */}

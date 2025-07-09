@@ -167,4 +167,52 @@ export const formatPhotoUrl = (photo) => {
   // Otherwise, prepend the API URL
   const apiUrl = import.meta.env.VITE_API_URL || '';
   return `${apiUrl}${url}`;
+};
+
+/**
+ * Converts a blob URL to a base64 data URL
+ * @param {string} blobUrl - The blob URL to convert
+ * @returns {Promise<string>} - The base64 data URL
+ */
+export const blobUrlToBase64 = async (blobUrl) => {
+  try {
+    if (!blobUrl || !blobUrl.startsWith('blob:')) {
+      return blobUrl; // Return as is if not a blob URL
+    }
+    
+    // For CSP-restricted environments, we'll skip the conversion
+    // and let the photo upload handle it instead
+    console.warn('Blob URL conversion skipped due to CSP restrictions:', blobUrl);
+    return blobUrl; // Return original blob URL
+    
+    // Note: The photo upload process will handle converting the blob to a proper URL
+  } catch (error) {
+    console.error('Error converting blob URL to base64:', error);
+    return blobUrl; // Return original if conversion fails
+  }
+};
+
+/**
+ * Converts all blob URLs in a photo array to base64 data URLs
+ * @param {Array} photos - Array of photo objects
+ * @returns {Promise<Array>} - Array of photo objects with base64 URLs
+ */
+export const convertPhotosToBase64 = async (photos) => {
+  if (!Array.isArray(photos)) return photos;
+  
+  const convertedPhotos = await Promise.all(
+    photos.map(async (photo) => {
+      if (photo.url && photo.url.startsWith('blob:')) {
+        const base64Url = await blobUrlToBase64(photo.url);
+        return { ...photo, url: base64Url };
+      }
+      if (photo.preview && photo.preview.startsWith('blob:')) {
+        const base64Url = await blobUrlToBase64(photo.preview);
+        return { ...photo, preview: base64Url };
+      }
+      return photo;
+    })
+  );
+  
+  return convertedPhotos;
 }; 

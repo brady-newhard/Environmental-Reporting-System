@@ -19,12 +19,14 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from users.views_auth import CustomAuthToken
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from django.views.static import serve
 from rest_framework import permissions
 # from drf_yasg.views import get_schema_view
 # from drf_yasg import openapi
 import os
+from django.http import HttpResponse
+import base64
 
 # schema_view = get_schema_view(
 #     openapi.Info(
@@ -39,6 +41,15 @@ import os
 #     permission_classes=(permissions.AllowAny,),
 # )
 
+def favicon_view(request):
+    # Return a simple 1x1 transparent PNG as favicon
+    # This is a 1x1 transparent PNG
+    png_data = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')
+    
+    response = HttpResponse(png_data, content_type='image/png')
+    response['Cache-Control'] = 'public, max-age=31536000'  # Cache for 1 year
+    return response
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
@@ -50,6 +61,9 @@ urlpatterns = [
     path('api/drafts/', include('drafts.urls')),
     path('api/login/', CustomAuthToken.as_view(), name='api_token_auth'),
     path('api/', include('core.urls')),
+    path('favicon.ico', favicon_view, name='favicon'),
+    path('staticfiles/favicon.ico', favicon_view, name='staticfiles_favicon'),
+    path('', RedirectView.as_view(url='/staticfiles/index.html', permanent=False)),
     # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

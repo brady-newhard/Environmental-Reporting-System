@@ -56,8 +56,12 @@ const PunchlistReport = () => {
       console.log('Saving punchlist form data:', formData);
       
       // Normalize and save the draft
-      const dataToSave = normalizeDraft(formData);
+      const dataToSave = await normalizeDraft(formData);
       const savedDraft = await saveDraft(reportType, dataToSave);
+      
+      // Update the draft state with the new ID
+      const updatedDraft = { ...savedDraft.data, id: savedDraft.id };
+      setDraft(updatedDraft);
       
       // Show success message
       setSnackbar({
@@ -67,14 +71,15 @@ const PunchlistReport = () => {
       });
       
       // Update URL with new ID if this was a new draft
-      if (!formData.id) {
+      if (!formData.id || String(formData.id).startsWith('temp_')) {
         navigate(`/environmental/reports/punchlist/edit/${savedDraft.id}`, { 
           state: { draft: { ...savedDraft.data, id: savedDraft.id } },
           replace: false 
         });
       }
       
-      return savedDraft.id;
+      // Return the saved draft data for the ReportTemplate
+      return savedDraft;
     } catch (error) {
       console.error('Error saving punchlist report:', error);
       setSnackbar({

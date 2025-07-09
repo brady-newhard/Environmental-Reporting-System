@@ -1,161 +1,227 @@
 import React, { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Menu, User } from 'lucide-react';
-
-const menuItems = [
-  { text: 'Home', path: '/' },
-  { text: 'Project Documents', path: '/project-documents' },
-  { text: 'Search Reports', path: '/search' },
-  { text: 'Contacts', path: '/contacts' },
-];
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Box,
+  Avatar,
+} from '@mui/material';
+import {
+  AccountCircle,
+  ArrowDropDown,
+  ExitToApp,
+  Person,
+} from '@mui/icons-material';
 
 const Navigation = () => {
-  const { isAuthenticated, logout, user } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [environmentalAnchorEl, setEnvironmentalAnchorEl] = useState(null);
+  const [weldingAnchorEl, setWeldingAnchorEl] = useState(null);
+  const [coatingAnchorEl, setCoatingAnchorEl] = useState(null);
+  const [utilityAnchorEl, setUtilityAnchorEl] = useState(null);
+  const [showEnvironmentalMenu, setShowEnvironmentalMenu] = useState(false);
+  const [showWeldingMenu, setShowWeldingMenu] = useState(false);
+  const [showCoatingMenu, setShowCoatingMenu] = useState(false);
+  const [showUtilityMenu, setShowUtilityMenu] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    handleClose();
+  };
+
+  const handleEnvironmentalMenu = (event) => {
+    setEnvironmentalAnchorEl(event.currentTarget);
+  };
+
+  const handleEnvironmentalClose = () => {
+    setEnvironmentalAnchorEl(null);
+  };
+
+  const handleWeldingMenu = (event) => {
+    setWeldingAnchorEl(event.currentTarget);
+  };
+
+  const handleWeldingClose = () => {
+    setWeldingAnchorEl(null);
+  };
+
+  const handleCoatingMenu = (event) => {
+    setCoatingAnchorEl(event.currentTarget);
+  };
+
+  const handleCoatingClose = () => {
+    setCoatingAnchorEl(null);
+  };
+
+  const handleUtilityMenu = (event) => {
+    setUtilityAnchorEl(event.currentTarget);
+  };
+
+  const handleUtilityClose = () => {
+    setUtilityAnchorEl(null);
   };
 
   return (
-    <>
-      <nav className="fixed top-0 left-0 w-full bg-black border-b border-black z-50">
-        <div className="flex items-center justify-between px-0.5 h-16 relative">
-          {/* Mobile Logo (left) */}
-          <div className="flex items-center flex-shrink-0">
-            <RouterLink to="/" className="flex items-center no-underline">
-              <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-20 w-auto object-contain" onError={(e) => {
-                console.error('Logo failed to load:', e.target.src);
-                e.target.src = '/staticfiles/PIPE-Logo-bk.png';
-              }} />
-            </RouterLink>
-          </div>
+    <AppBar position="static" sx={{ backgroundColor: '#000000' }}>
+      <Toolbar>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+          <img
+            src="http://localhost:8000/staticfiles/PIPE-Logo.png"
+            alt="PIPE Logo"
+            style={{ height: '40px', marginRight: '16px' }}
+          />
+          <Typography variant="h6" component="div" sx={{ color: '#ffffff' }}>
+            Environmental Reporting System
+          </Typography>
+        </Box>
 
-          {/* Desktop Nav Links and Profile (right) */}
-          <div className="flex-1 flex items-center justify-end gap-x-6">
-            <div className="hidden md:flex items-center gap-x-6">
-              {menuItems.map((item) => (
-                <RouterLink
-                  key={item.text}
-                  to={item.path}
-                  className="text-white font-medium hover:underline underline-offset-4 transition-colors"
-                >
-                  {item.text}
-                </RouterLink>
-              ))}
-            </div>
-            {/* Hamburger and User/Profile for mobile (right) */}
-            <div className="flex items-center gap-x-2 md:hidden">
-              <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-white w-14 h-14">
-                    <Menu className="w-10 h-10" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="p-0 w-64">
-                  <div className="flex flex-col h-full">
-                    <div className="px-6 py-4 border-b flex flex-col items-center">
-                      <img src="/staticfiles/PIPE-Logo-bk.png" alt="PIPE Logo" className="h-24 w-auto object-contain mb-2 mx-auto" onError={(e) => {
-                        console.error('Logo failed to load:', e.target.src);
-                        e.target.src = '/staticfiles/PIPE-Logo.png';
-                      }} />
-                      <span className="text-center text-sm text-zinc-400 italic font-medium">"Streamline the report. Elevate the result."</span>
-                    </div>
-                    <div className="flex-1 overflow-y-auto">
-                      <ul className="flex flex-col gap-y-1 mt-2">
-                        {menuItems.map((item) => (
-                          <li key={item.text}>
-                            <RouterLink
-                              to={item.path}
-                              className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium"
-                              onClick={() => setDrawerOpen(false)}
-                            >
-                              {item.text}
-                            </RouterLink>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="border-t mt-2" />
-                      {/* User/Profile or Auth Buttons in sidebar */}
-                      {isAuthenticated ? (
-                        <>
-                          <div className="flex items-center gap-2 px-6 py-4">
-                            <User className="w-6 h-6 text-black" />
-                            <span className="text-black font-medium text-base">{user?.first_name || user?.username || 'User'}</span>
-                          </div>
-                          <RouterLink to="/profile" className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium" onClick={() => setDrawerOpen(false)}>
-                            Profile
-                          </RouterLink>
-                          <RouterLink to="/settings" className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium" onClick={() => setDrawerOpen(false)}>
-                            Settings
-                          </RouterLink>
-                          <Button variant="ghost" className="w-full justify-start px-6 py-2 text-black font-medium" onClick={handleLogout}>
-                            Logout
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <RouterLink to="/login" className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium" onClick={() => setDrawerOpen(false)}>
-                            Login
-                          </RouterLink>
-                          <RouterLink to="/signup" className="block px-6 py-2 rounded hover:bg-muted transition-colors text-black font-medium" onClick={() => setDrawerOpen(false)}>
-                            Sign Up
-                          </RouterLink>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-            {/* User/Profile for desktop */}
-            <div className="hidden md:flex items-center gap-x-2">
-              {isAuthenticated ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-2 border border-white rounded-full px-3 py-1 cursor-pointer hover:bg-white/10 transition-colors">
-                      <span className="text-white font-medium text-base">{user?.first_name || user?.username || 'User'}</span>
-                      <User className="w-6 h-6 text-white" />
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <RouterLink to="/profile">Profile</RouterLink>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <RouterLink to="/settings">Settings</RouterLink>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <div className="hidden md:flex gap-x-2">
-                  <Button asChild variant="ghost" className="text-white">
-                    <RouterLink to="/login">Login</RouterLink>
-                  </Button>
-                  <Button asChild variant="ghost" className="text-white">
-                    <RouterLink to="/signup">Sign Up</RouterLink>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-      {/* Spacer for fixed navbar */}
-      <div className="h-16" />
-    </>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Button
+            color="inherit"
+            onClick={() => navigate('/')}
+            sx={{ color: '#ffffff' }}
+          >
+            Home
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => setShowEnvironmentalMenu(!showEnvironmentalMenu)}
+            endIcon={<ArrowDropDown />}
+            sx={{ color: '#ffffff' }}
+          >
+            Environmental
+          </Button>
+          {showEnvironmentalMenu && (
+            <Menu
+              anchorEl={environmentalAnchorEl}
+              open={Boolean(environmentalAnchorEl)}
+              onClose={handleEnvironmentalClose}
+            >
+              <MenuItem onClick={() => { navigate('/environmental'); handleEnvironmentalClose(); }}>
+                Overview
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/environmental/reports'); handleEnvironmentalClose(); }}>
+                Reports
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/environmental/reports/daily/new'); handleEnvironmentalClose(); }}>
+                Daily Report
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/environmental/swppp/new'); handleEnvironmentalClose(); }}>
+                SWPPP Report
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/environmental/reports/punchlist/new'); handleEnvironmentalClose(); }}>
+                Punchlist
+              </MenuItem>
+            </Menu>
+          )}
+
+          <Button
+            color="inherit"
+            onClick={() => navigate('/welding')}
+            endIcon={<ArrowDropDown />}
+            sx={{ color: '#ffffff' }}
+          >
+            Welding
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => navigate('/coating')}
+            endIcon={<ArrowDropDown />}
+            sx={{ color: '#ffffff' }}
+          >
+            Coating
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => navigate('/utility')}
+            endIcon={<ArrowDropDown />}
+            sx={{ color: '#ffffff' }}
+          >
+            Utility
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => navigate('/project-documents')}
+            sx={{ color: '#ffffff' }}
+          >
+            Documents
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => navigate('/search')}
+            sx={{ color: '#ffffff' }}
+          >
+            Search
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => navigate('/contacts')}
+            sx={{ color: '#ffffff' }}
+          >
+            Contacts
+          </Button>
+
+          <IconButton
+            size="large"
+            aria-label="account of current user"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
+            onClick={handleMenu}
+            color="inherit"
+            sx={{ color: '#ffffff' }}
+          >
+            <AccountCircle />
+          </IconButton>
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={() => { navigate('/profile'); handleClose(); }}>
+              <Person sx={{ mr: 1 }} />
+              Profile
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              <ExitToApp sx={{ mr: 1 }} />
+              Logout
+            </MenuItem>
+          </Menu>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

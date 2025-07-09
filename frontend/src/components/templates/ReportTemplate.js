@@ -242,20 +242,20 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
 
   // Call onChange prop whenever form data changes
   useEffect(() => {
-    if (onChange && draftId) { // Only call onChange if we have a draftId
+    if (onChange) { // Call onChange regardless of draftId status
       const formData = {
         id: draftId,
         header,
         sections,
         summaries,
         photos,
-        signature,
-        sigDate,
+        signature: sigPadRef.current ? sigPadRef.current.toDataURL() : '',
+        sigDate: sigDate || '',
         preparedBy,
       };
       onChange(formData);
     }
-  }, [header, sections, summaries, photos, signature, sigDate, preparedBy, draftId]);
+  }, [draftId, header, sections, summaries, photos, signature, sigDate, preparedBy, onChange]);
 
   // Handlers
   const handleHeaderChange = e => setHeader({ ...header, [e.target.name]: e.target.value });
@@ -418,66 +418,77 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
         const savedDraft = await onSave(formData);
         console.log('Save response:', savedDraft); // Debug log
         
-        // Update the draft ID if we got a new one
-        if (savedDraft && savedDraft.id && !String(savedDraft.id).startsWith('temp_')) {
-          setDraftId(savedDraft.id);
-          console.log('Updated draft ID to:', savedDraft.id); // Debug log
-        }
-        
-        if (savedDraft.id && String(savedDraft.id).startsWith('temp_') === false) {
-          // Find local photos (photos with isLocal flag or temp IDs)
-          const localPhotos = photos.filter(photo => 
-            photo.isLocal || 
-            (photo.id && String(photo.id).startsWith('temp_')) ||
-            (!photo.id && !photo.image_url && photo.file)
-          );
+        // Check if savedDraft exists before accessing its properties
+        if (savedDraft) {
+          // Update the draft ID if we got a new one
+          if (savedDraft.id && !String(savedDraft.id).startsWith('temp_')) {
+            setDraftId(savedDraft.id);
+            console.log('Updated draft ID to:', savedDraft.id); // Debug log
+          }
           
-          if (localPhotos.length > 0) {
-            try {
-              const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
-              const uploadedPhotos = await uploadMultiplePhotos(localPhotos.map(p => p.file), {
-                content_type: config.reportType || 'template',
-                object_id: savedDraft.id,
-              });
-              
-              // Merge uploaded photos with existing non-local photos
-              const updatedPhotos = [
-                ...photos.filter(photo => 
-                  !photo.isLocal && 
-                  !String(photo.id || '').startsWith('temp_') && 
-                  (photo.id || photo.image_url)
-                ),
-                ...uploadedPhotos
-              ];
-              
-              setPhotos(updatedPhotos);
-              
-              // Update the draft in storage with the new photos
-              if (typeof onChange === 'function') {
-                onChange({
-                  ...savedDraft.data,
-                  id: savedDraft.id,
-                  photos: updatedPhotos
+          if (savedDraft.id && String(savedDraft.id).startsWith('temp_') === false) {
+            // Find local photos (photos with isLocal flag or temp IDs)
+            const localPhotos = photos.filter(photo => 
+              photo.isLocal || 
+              (photo.id && String(photo.id).startsWith('temp_')) ||
+              (!photo.id && !photo.image_url && photo.file)
+            );
+            
+            if (localPhotos.length > 0) {
+              try {
+                const { uploadMultiplePhotos } = await import('../../utils/photoUtils');
+                const uploadedPhotos = await uploadMultiplePhotos(localPhotos.map(p => p.file), {
+                  content_type: config.reportType || 'template',
+                  object_id: savedDraft.id,
                 });
-              }
-              
-              // Show success message for photo uploads
-              if (localPhotos.length > 0) {
+                
+                // Merge uploaded photos with existing non-local photos
+                const updatedPhotos = [
+                  ...photos.filter(photo => 
+                    !photo.isLocal && 
+                    !String(photo.id || '').startsWith('temp_') && 
+                    (photo.id || photo.image_url)
+                  ),
+                  ...uploadedPhotos
+                ];
+                
+                setPhotos(updatedPhotos);
+                
+                // Update the draft in storage with the new photos
+                if (typeof onChange === 'function') {
+                  console.log('ReportTemplate - calling onChange with updated photos:', {
+                    ...savedDraft.data,
+                    id: savedDraft.id,
+                    photos: updatedPhotos
+                  });
+                  onChange({
+                    ...savedDraft.data,
+                    id: savedDraft.id,
+                    photos: updatedPhotos
+                  });
+                }
+                
+                // Show success message for photo uploads
+                if (localPhotos.length > 0) {
+                  setSnackbar({ 
+                    show: true, 
+                    message: `${localPhotos.length} photo(s) uploaded successfully`, 
+                    severity: 'success' 
+                  });
+                }
+              } catch (photoError) {
+                console.error('Error uploading photos:', photoError);
                 setSnackbar({ 
                   show: true, 
-                  message: `${localPhotos.length} photo(s) uploaded successfully`, 
-                  severity: 'success' 
+                  message: 'Draft saved but failed to upload photos. Please try again.', 
+                  severity: 'warning' 
                 });
               }
-            } catch (photoError) {
-              console.error('Error uploading photos:', photoError);
-              setSnackbar({ 
-                show: true, 
-                message: 'Draft saved but failed to upload photos. Please try again.', 
-                severity: 'warning' 
-              });
             }
           }
+        } else {
+          // Handle case where save failed but we still want to show some feedback
+          console.warn('Save returned undefined - likely due to CORS or network error');
         }
       }
       
@@ -517,7 +528,15 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
     if (shouldSave) {
       await handleSave();
     }
-    navigate(draftId ? '/environmental/reports/daily/drafts' : '/environmental/reports');
+    
+    // Navigate to the appropriate drafts page based on report type
+    if (config.reportType === 'swppp') {
+      navigate(draftId ? '/environmental/swppp/drafts' : '/environmental/reports');
+    } else if (config.reportType === 'punchlist') {
+      navigate(draftId ? '/environmental/reports/punchlist/drafts' : '/environmental/reports');
+    } else {
+      navigate(draftId ? '/environmental/reports/daily/drafts' : '/environmental/reports');
+    }
   };
 
   const handleReview = () => {
@@ -585,6 +604,7 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
           id: photo.id,
           url: possibleImageUrl,
           comment: photo.comment || photo.comments || photo.description || '',
+          description: photo.description || photo.comment || photo.comments || '', // Preserve description field
           location: photo.location || '',
         };
       }) : [],
@@ -794,8 +814,11 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
         <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* Dynamic Sections */}
           {(sections || []).map((section, sectionIdx) => {
+            console.log(`Processing section ${sectionIdx}:`, section.name);
             const sectionConfig = config.dynamicSections.find(s => s.name === section.name);
+            console.log(`Section config for "${section.name}":`, sectionConfig);
             const fields = sectionConfig ? sectionConfig.fields : [];
+            console.log(`Fields for "${section.name}":`, fields);
 
             // Validate section data
             if (!section || !section.name) {
@@ -1838,6 +1861,66 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div className="text-lg font-semibold mb-2">Delete Draft</div>
+            <div className="mb-4">Are you sure you want to delete this draft? This action cannot be undone.</div>
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => setDeleteDialogOpen(false)} 
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteConfirm} 
+                className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white font-semibold"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Exit Dialog */}
+      {exitDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div className="text-lg font-semibold mb-2">Exit Without Saving?</div>
+            <div className="mb-4">Do you want to save your changes before exiting?</div>
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => {
+                  setExitDialogOpen(false);
+                  handleExitConfirm(false);
+                }} 
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+              >
+                Don't Save
+              </button>
+              <button 
+                onClick={() => {
+                  setExitDialogOpen(false);
+                  handleExitConfirm(true);
+                }} 
+                className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white font-semibold"
+              >
+                Save & Exit
+              </button>
+              <button 
+                onClick={() => setExitDialogOpen(false)} 
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1884,7 +1967,20 @@ ReportTemplate.propTypes = {
     preparedBy: PropTypes.string,
     signature: PropTypes.string,
     sigDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
-    photos: PropTypes.arrayOf(PropTypes.string),
+    photos: PropTypes.arrayOf(PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        file: PropTypes.object,
+        preview: PropTypes.string,
+        image_url: PropTypes.string,
+        url: PropTypes.string,
+        location: PropTypes.string,
+        description: PropTypes.string,
+        comment: PropTypes.string,
+        isLocal: PropTypes.bool
+      })
+    ])),
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }),
   onSave: PropTypes.func.isRequired,
