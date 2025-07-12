@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/staticfiles/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/static/' : '/',
   server: {
     port: 3000,
     proxy: {
@@ -25,7 +25,7 @@ export default defineConfig({
           });
         },
       },
-      '/staticfiles': {
+      '/static': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
