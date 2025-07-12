@@ -22,10 +22,11 @@ import {
   ExitToApp,
   Person,
   Menu as MenuIcon,
+  DeveloperMode,
 } from '@mui/icons-material';
 
 const Navigation = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, toggleDevAutoSignIn } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -62,6 +63,8 @@ const Navigation = () => {
     { text: 'Documents', path: '/project-documents' },
     { text: 'Search', path: '/search' },
   ];
+
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   return (
     <AppBar position="static" sx={{ backgroundColor: '#000000' }}>
@@ -249,6 +252,38 @@ const Navigation = () => {
               />
             </ListItem>
           </List>
+
+          {/* Development Helper - Only show in development */}
+          {isDevelopment && (
+            <>
+              <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.3)', my: 2 }} />
+              <Typography variant="h6" sx={{ color: '#ffffff', mb: 2, fontWeight: 'bold' }}>
+                Development
+              </Typography>
+              <List>
+                <ListItem
+                  button
+                  onClick={() => { 
+                    toggleDevAutoSignIn(); 
+                    handleMobileMenuClose(); 
+                  }}
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    },
+                    borderRadius: 1,
+                    mb: 0.5,
+                  }}
+                >
+                  <DeveloperMode sx={{ mr: 2, color: '#ffffff' }} />
+                  <ListItemText 
+                    primary="Toggle Auto-Sign-In" 
+                    secondary="Switch to brady-newhard for development"
+                  />
+                </ListItem>
+              </List>
+            </>
+          )}
         </Box>
       </Drawer>
     </AppBar>
