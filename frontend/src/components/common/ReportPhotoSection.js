@@ -24,15 +24,26 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
     try {
       // Check if we have a valid object_id for uploading
       if (!object_id || String(object_id).startsWith('temp_')) {
-        // If no valid object_id, store photos locally until draft is saved
-        const localPhotos = files.map(file => ({
-          id: `temp_${Date.now()}_${Math.random()}`,
-          file,
-          preview: URL.createObjectURL(file),
-          location: '',
-          description: '',
-          isLocal: true
+        // If no valid object_id, convert files to base64 immediately for local storage
+        const localPhotos = await Promise.all(files.map(async (file) => {
+          // Convert file to base64 immediately
+          const base64Data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          
+          return {
+            id: `temp_${Date.now()}_${Math.random()}`,
+            file,
+            preview: base64Data, // Store as base64 instead of blob URL
+            location: '',
+            description: '',
+            isLocal: true
+          };
         }));
+        
         onPhotosChange([...photos, ...localPhotos]);
         setEditingIdx(photos.length); // index of first new photo
         setEditFields({ location: '', description: '' });
@@ -187,13 +198,13 @@ const ReportPhotoSection = ({ photos = [], onPhotosChange, editable = true, cont
         {photos.map((photo, idx) => {
           // Safely extract the image URL from various possible properties
           // For uploaded photos, use image_url or url
-          // For local photos, use preview (blob URL) or create object URL from file
+          // For local photos, use preview (base64 data URL) or create object URL from file
           let possibleImageUrl;
           if (photo.image_url || photo.url) {
             // Uploaded photo with server URL
             possibleImageUrl = photo.image_url || photo.url;
           } else if (photo.preview) {
-            // Local photo with blob preview URL
+            // Local photo with base64 data URL or blob URL
             possibleImageUrl = photo.preview;
           } else if (photo.file && photo.file instanceof File) {
             // Local photo with File object - create object URL

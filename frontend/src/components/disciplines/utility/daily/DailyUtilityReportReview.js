@@ -1,45 +1,173 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../../../../components/common/PageHeader';
-import { loadDraft } from '../../../../utils/draftUtils';
+import { loadDraft, deleteDraft } from '../../../../utils/draftUtils';
+import { PencilIcon, ArrowLeftOnRectangleIcon, TrashIcon, CheckIcon, PrinterIcon } from '@heroicons/react/24/outline';
 
 const DailyUtilityReportReview = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [draft, setDraft] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Smart back button path
   const backPath = state?.from || '/utility/reports/daily/drafts';
 
-  // Try to get draft from state, else from localStorage
-  const draft = useMemo(() => {
-    // Check if data was passed directly in state (from form)
-    if (state && (state.header || state.weather || state.rows)) {
-      console.log('Using data from form state:', state);
-      return state;
-    }
-    
-    // Check if draft object was passed in state
-    if (state && state.draft) {
-      console.log('Using draft from state:', state.draft);
-      return state.draft;
-    }
-    
-    // Try to load from draft storage
-    if (id) {
+  // Load draft data asynchronously
+  useEffect(() => {
+    const loadDraftData = async () => {
+      setIsLoading(true);
       try {
-        const loadedDraft = loadDraft('daily_utility', id);
-        console.log('Using draft from storage:', loadedDraft);
-        return loadedDraft;
-      } catch (error) {
-        console.error('Error loading draft:', error);
-        return null;
+        // Check if data was passed directly in state (from form) - prioritize this
+        if (state && (state.header || state.weather || state.rows)) {
+          console.log('Using data from form state:', state);
+          setDraft(state);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Check if draft object was passed in state
+        if (state && state.draft) {
+          console.log('Using draft from state:', state.draft);
+          setDraft(state.draft);
+          setIsLoading(false);
+          return;
+        }
+        
+        // If we have a valid ID and no state data, try to load from storage
+        if (id) {
+          try {
+            const loadedDraft = await loadDraft('daily_utility', id);
+            console.log('Using draft from storage:', loadedDraft);
+            if (loadedDraft) {
+              // Photos should already be base64 from storage, but check for any remaining blob URLs
+              if (loadedDraft.photos && loadedDraft.photos.length > 0) {
+                const hasBlobUrls = loadedDraft.photos.some(photo => 
+                  (photo.preview && photo.preview.startsWith('blob:')) ||
+                  (photo.url && photo.url.startsWith('blob:'))
+                );
+                
+                if (hasBlobUrls) {
+                  console.warn('Found blob URLs in storage, converting to base64');
+                  try {
+                    const { convertPhotosToBase64 } = await import('../../../../utils/photoUtils');
+                    const convertedPhotos = await convertPhotosToBase64(loadedDraft.photos);
+                    const processedDraft = { ...loadedDraft, photos: convertedPhotos };
+                    console.log('Converted photos from storage:', convertedPhotos);
+                    setDraft(processedDraft);
+                  } catch (conversionError) {
+                    console.error('Error converting photos from storage:', conversionError);
+                    setDraft(loadedDraft);
+                  }
+                } else {
+                  console.log('Photos from storage are already base64');
+                  setDraft(loadedDraft);
+                }
+              } else {
+                setDraft(loadedDraft);
+              }
+              setIsLoading(false);
+              return;
+            } else {
+              console.error('Draft not found in storage with ID:', id);
+            }
+          } catch (error) {
+            console.error('Error loading draft from storage:', error);
+          }
+        }
+        
+        // If we get here, we have no data
+        setDraft(null);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    
-    console.log('No draft data found');
-    return null;
+    };
+
+    loadDraftData();
   }, [state, id]);
+
+  // Button handlers
+  const handleEdit = () => {
+    navigate(`/utility/reports/daily/edit/${id}`);
+  };
+
+  const handleExit = () => {
+    navigate('/utility/reports');
+  };
+
+  const handleDelete = async () => {
+    setDeleteDialogOpen(false);
+    try {
+      await deleteDraft('daily_utility', id);
+      setSnackbar({ open: true, message: 'Draft deleted successfully.', severity: 'success' });
+      setTimeout(() => navigate('/utility/reports'), 1000);
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to delete draft.', severity: 'error' });
+    }
+  };
+
+  const handleSubmit = async () => {
+    setSubmitDialogOpen(false);
+    try {
+      // Here you would typically submit the report to the server
+      // For now, we'll just show a success message
+      setSnackbar({ open: true, message: 'Report submitted successfully.', severity: 'success' });
+      setTimeout(() => navigate('/utility/reports'), 1000);
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to submit report.', severity: 'error' });
+    }
+  };
+
+  const handlePrint = async () => {
+    // Photos are now stored as base64 from the start, so just save the draft
+    setIsPrinting(true);
+    try {
+      const { saveDraft } = await import('../../../../utils/draftUtils');
+      
+      // Ensure the draft has the correct ID
+      const draftToSave = { ...draft, id: id };
+      
+      // Save the draft (photos are already base64)
+      const savedDraft = await saveDraft('daily_utility', draftToSave);
+      console.log('Draft saved before print navigation:', {
+        id: savedDraft.id,
+        photoCount: savedDraft.photos ? savedDraft.photos.length : 0
+      });
+      
+      navigate(`/utility/reports/daily/print/${savedDraft.id}`, {
+        state: { reportData: savedDraft }
+      });
+    } catch (error) {
+      console.error('Error saving draft before print:', error);
+      // Navigate anyway with original draft
+      navigate(`/utility/reports/daily/print/${id}`, {
+        state: { reportData: draft }
+      });
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-black min-h-screen pt-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
+            <p className="text-center text-gray-600 py-8">Loading draft...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!draft) {
     return (
@@ -92,6 +220,23 @@ const DailyUtilityReportReview = () => {
     preparedBy,
     signature: signature ? 'Present' : 'Missing',
     sigDate
+  });
+  
+  // Debug photos specifically
+  console.log('Photos received in review:', photos);
+  photos.forEach((photo, idx) => {
+    console.log(`Review Photo ${idx}:`, {
+      id: photo.id,
+      url: photo.url,
+      preview: photo.preview,
+      image_url: photo.image_url,
+      file: photo.file,
+      location: photo.location,
+      description: photo.description,
+      isBlobUrl: photo.preview && photo.preview.startsWith('blob:'),
+      isBase64Url: photo.preview && photo.preview.startsWith('data:'),
+      isServerUrl: photo.url && (photo.url.startsWith('http') || photo.url.startsWith('/'))
+    });
   });
 
   return (
@@ -257,25 +402,45 @@ const DailyUtilityReportReview = () => {
                     // Uploaded photo with server URL
                     possibleImageUrl = photo.image_url || photo.url;
                   } else if (photo.preview) {
-                    // Local photo with blob preview URL
+                    // Local photo with blob preview URL or base64 data URL
                     possibleImageUrl = photo.preview;
                   } else if (photo.file && photo.file instanceof File) {
                     // Local photo with File object - create object URL
                     possibleImageUrl = URL.createObjectURL(photo.file);
+                  } else if (photo.file && typeof photo.file === 'string' && photo.file.startsWith('data:')) {
+                    // Base64 data URL
+                    possibleImageUrl = photo.file;
                   } else {
                     // Fallback to any other URL property
                     possibleImageUrl = photo.file || photo.image;
                   }
                   
+                  // Handle invalid blob URLs by showing a placeholder
+                  const isValidUrl = possibleImageUrl && 
+                    (possibleImageUrl.startsWith('http') || 
+                     possibleImageUrl.startsWith('blob:') || 
+                     possibleImageUrl.startsWith('data:'));
+                  
                   return (
                     <div key={idx} className="flex flex-col items-center border rounded-lg p-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
-                      {possibleImageUrl && (
+                      {isValidUrl ? (
                         <img
                           src={possibleImageUrl}
                           alt={photo.comment || photo.description || `Photo ${idx + 1}`}
                           className="w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow"
+                          onError={(e) => {
+                            console.error('Failed to load image:', possibleImageUrl);
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
                         />
-                      )}
+                      ) : null}
+                      <div 
+                        className={`w-full max-w-xs max-h-60 object-contain mb-3 rounded shadow bg-gray-200 flex items-center justify-center ${isValidUrl ? 'hidden' : ''}`}
+                        style={{ minHeight: '200px' }}
+                      >
+                        <span className="text-gray-500 text-sm">Photo not available</span>
+                      </div>
                       {photo.location && (
                         <div className="text-sm text-gray-600 mb-1 w-full">
                           <span className="font-medium">Location:</span> {photo.location}
@@ -315,7 +480,104 @@ const DailyUtilityReportReview = () => {
             </div>
           </div>
         </div>
+
+        {/* Action Buttons - Outside container, all inline */}
+        <div className="flex gap-4 justify-center mt-6">
+          <button
+            onClick={handleEdit}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <PencilIcon className="w-5 h-5 mr-2" />
+            <span className="hidden sm:inline">Edit</span>
+          </button>
+          <button
+            onClick={handleExit}
+            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+          >
+            <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
+            <span className="hidden sm:inline">Exit</span>
+          </button>
+          <button
+            onClick={() => setDeleteDialogOpen(true)}
+            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            <TrashIcon className="w-5 h-5 mr-2" />
+            <span className="hidden sm:inline">Delete</span>
+          </button>
+          <button
+            onClick={() => setSubmitDialogOpen(true)}
+            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            <CheckIcon className="w-5 h-5 mr-2" />
+            <span className="hidden sm:inline">Submit</span>
+          </button>
+          <button
+            onClick={handlePrint}
+            disabled={isPrinting}
+            className="inline-flex items-center px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition-colors no-print disabled:opacity-50"
+          >
+            <PrinterIcon className="h-5 w-5 mr-2" />
+            <span className="hidden sm:inline">{isPrinting ? 'Saving...' : 'Print'}</span>
+          </button>
+        </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Draft</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete this draft? This action cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteDialogOpen(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Confirmation Dialog */}
+      {submitDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Submit Report</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to submit this report? This action cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setSubmitDialogOpen(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Snackbar */}
+      {snackbar.open && (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded shadow-lg text-white text-center transition-all duration-300 ${snackbar.severity === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+             onClick={handleCloseSnackbar}
+        >
+          {snackbar.message}
+        </div>
+      )}
     </div>
   );
 };

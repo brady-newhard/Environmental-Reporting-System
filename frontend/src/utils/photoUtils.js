@@ -177,15 +177,30 @@ export const formatPhotoUrl = (photo) => {
 export const blobUrlToBase64 = async (blobUrl) => {
   try {
     if (!blobUrl || !blobUrl.startsWith('blob:')) {
+      console.log('blobUrlToBase64: Not a blob URL, returning as is:', blobUrl);
       return blobUrl; // Return as is if not a blob URL
     }
     
-    // For CSP-restricted environments, we'll skip the conversion
-    // and let the photo upload handle it instead
-    console.warn('Blob URL conversion skipped due to CSP restrictions:', blobUrl);
-    return blobUrl; // Return original blob URL
+    console.log('blobUrlToBase64: Converting blob URL to base64:', blobUrl);
     
-    // Note: The photo upload process will handle converting the blob to a proper URL
+    // Try to convert blob URL to base64
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    
+    console.log('blobUrlToBase64: Fetched blob, size:', blob.size, 'type:', blob.type);
+    
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        console.log('blobUrlToBase64: Conversion successful, result length:', reader.result.length);
+        resolve(reader.result);
+      };
+      reader.onerror = (error) => {
+        console.error('blobUrlToBase64: Conversion failed:', error);
+        reject(error);
+      };
+      reader.readAsDataURL(blob);
+    });
   } catch (error) {
     console.error('Error converting blob URL to base64:', error);
     return blobUrl; // Return original if conversion fails
@@ -200,19 +215,61 @@ export const blobUrlToBase64 = async (blobUrl) => {
 export const convertPhotosToBase64 = async (photos) => {
   if (!Array.isArray(photos)) return photos;
   
+  console.log('convertPhotosToBase64 called with:', photos);
+  
   const convertedPhotos = await Promise.all(
-    photos.map(async (photo) => {
+    photos.map(async (photo, idx) => {
+      const updatedPhoto = { ...photo };
+      
+      console.log(`Processing photo ${idx}:`, {
+        id: photo.id,
+        url: photo.url,
+        preview: photo.preview,
+        image_url: photo.image_url,
+        image: photo.image,
+        file: photo.file
+      });
+      
+      // Convert blob URLs in various properties to base64
       if (photo.url && photo.url.startsWith('blob:')) {
-        const base64Url = await blobUrlToBase64(photo.url);
-        return { ...photo, url: base64Url };
+        console.log(`Converting photo ${idx} url from blob to base64`);
+        updatedPhoto.url = await blobUrlToBase64(photo.url);
+        console.log(`Photo ${idx} url converted to:`, updatedPhoto.url.substring(0, 50) + '...');
       }
       if (photo.preview && photo.preview.startsWith('blob:')) {
-        const base64Url = await blobUrlToBase64(photo.preview);
-        return { ...photo, preview: base64Url };
+        console.log(`Converting photo ${idx} preview from blob to base64`);
+        updatedPhoto.preview = await blobUrlToBase64(photo.preview);
+        console.log(`Photo ${idx} preview converted to:`, updatedPhoto.preview.substring(0, 50) + '...');
       }
-      return photo;
+      if (photo.image_url && photo.image_url.startsWith('blob:')) {
+        console.log(`Converting photo ${idx} image_url from blob to base64`);
+        updatedPhoto.image_url = await blobUrlToBase64(photo.image_url);
+        console.log(`Photo ${idx} image_url converted to:`, updatedPhoto.image_url.substring(0, 50) + '...');
+      }
+      if (photo.image && photo.image.startsWith('blob:')) {
+        console.log(`Converting photo ${idx} image from blob to base64`);
+        updatedPhoto.image = await blobUrlToBase64(photo.image);
+        console.log(`Photo ${idx} image converted to:`, updatedPhoto.image.substring(0, 50) + '...');
+      }
+      if (photo.file && typeof photo.file === 'string' && photo.file.startsWith('blob:')) {
+        console.log(`Converting photo ${idx} file from blob to base64`);
+        updatedPhoto.file = await blobUrlToBase64(photo.file);
+        console.log(`Photo ${idx} file converted to:`, updatedPhoto.file.substring(0, 50) + '...');
+      }
+      
+      console.log(`Photo ${idx} final result:`, {
+        id: updatedPhoto.id,
+        url: updatedPhoto.url,
+        preview: updatedPhoto.preview,
+        image_url: updatedPhoto.image_url,
+        image: updatedPhoto.image,
+        file: updatedPhoto.file
+      });
+      
+      return updatedPhoto;
     })
   );
   
+  console.log('convertPhotosToBase64 returning:', convertedPhotos);
   return convertedPhotos;
 }; 

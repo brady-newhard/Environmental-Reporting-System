@@ -69,6 +69,7 @@ import UtilityReports from './components/disciplines/utility/main/UtilityReports
 import DailyUtilityReportForm from './components/templates/disciplines/utility/DailyUtilityReportForm';
 import DailyUtilityReportReview from './components/disciplines/utility/daily/DailyUtilityReportReview';
 import DailyUtilityReportDrafts from './components/disciplines/utility/daily/DailyUtilityReportDrafts';
+import DailyUtilityReportPrint from './components/disciplines/utility/daily/DailyUtilityReportPrint';
 import PayItemReportForm from './components/templates/disciplines/utility/PayItemReportForm';
 import PayItemReportDrafts from './components/disciplines/utility/daily/PayItemReportDrafts';
 import PayItemReportReview from './components/disciplines/utility/daily/PayItemReportReview';
@@ -622,6 +623,14 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <DailyUtilityReportReview />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/utility/reports/daily/print/:id"
+            element={
+              <PrivateRoute>
+                <DailyUtilityReportPrint />
               </PrivateRoute>
             }
           />

@@ -47,8 +47,26 @@ export async function normalizeDraft(data) {
     };
   }
 
+  console.log('normalizeDraft called with data:', {
+    hasHeader: !!data.header,
+    hasSections: !!data.sections,
+    hasPhotos: !!data.photos,
+    photoCount: data.photos ? data.photos.length : 0
+  });
+
   // Convert blob URLs to base64 for persistent storage
   const convertedPhotos = await convertPhotosToBase64(data.photos || []);
+  
+  console.log('normalizeDraft: Photos converted:', {
+    originalCount: data.photos ? data.photos.length : 0,
+    convertedCount: convertedPhotos.length,
+    convertedPhotos: convertedPhotos.map((photo, idx) => ({
+      idx,
+      id: photo.id,
+      preview: photo.preview ? photo.preview.substring(0, 50) + '...' : 'none',
+      url: photo.url ? photo.url.substring(0, 50) + '...' : 'none'
+    }))
+  });
   
   return {
     header: data.header || {},
@@ -70,6 +88,13 @@ export async function saveDraft(reportType, data) {
     const savedId = data.id;
     const isValidId = savedId && savedId !== 'null' && savedId !== undefined && !(typeof savedId === 'string' && savedId.startsWith('temp_'));
     
+    console.log('saveDraft called with:', {
+      reportType,
+      hasId: !!savedId,
+      isValidId,
+      photoCount: normalizedData.photos ? normalizedData.photos.length : 0
+    });
+    
     // Save to IndexedDB first (raw type) - this should always work
     await indexedDBStorage.saveDraft(reportType, savedId, normalizedData);
     console.log('Successfully saved to IndexedDB');
@@ -82,32 +107,53 @@ export async function saveDraft(reportType, data) {
           let response;
           if (isValidId) {
             // Update existing draft
+            console.log('Updating existing draft with ID:', savedId);
             response = await api.put(`/drafts/${savedId}/`, {
               report_type: mapReportType(reportType),
               data: normalizedData
             });
+            console.log('Update response:', response.data);
           } else {
             // Create new draft
+            console.log('Creating new draft');
             response = await api.post('/drafts/', {
               report_type: mapReportType(reportType),
               data: normalizedData
             });
             console.log('Draft creation response:', response.data);
-            // Update the data with the new draft ID
+            // Update the normalized data with the new draft ID
             normalizedData.id = response.data.id;
+            // Also save the updated data to IndexedDB
+            await indexedDBStorage.saveDraft(reportType, response.data.id, normalizedData);
           }
-          return {
+          
+          // Return consistent structure
+          const result = {
             id: response.data.id,
-            data: normalizedData
+            ...normalizedData
           };
+          console.log('Returning draft result:', { id: result.id, photoCount: result.photos ? result.photos.length : 0 });
+          return result;
         } catch (backendError) {
           console.error('Backend save failed, but local save succeeded:', backendError);
           // Return the local save result even if backend fails
-          return { id: savedId, data: normalizedData };
+          const result = {
+            id: savedId,
+            ...normalizedData
+          };
+          console.log('Returning local draft result:', { id: result.id, photoCount: result.photos ? result.photos.length : 0 });
+          return result;
         }
       }
     }
-    return { id: savedId, data: normalizedData };
+    
+    // Return local save result
+    const result = {
+      id: savedId,
+      ...normalizedData
+    };
+    console.log('Returning local-only draft result:', { id: result.id, photoCount: result.photos ? result.photos.length : 0 });
+    return result;
   } catch (error) {
     console.error('Error saving draft:', error);
     throw error;

@@ -19,6 +19,10 @@ function formatDate(value) {
 // Custom print CSS for page breaks and section avoidance
 const printPageBreakCss = `
 @media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
   .print-section { break-inside: avoid; page-break-inside: avoid; }
   .print-photo-break { break-before: page; page-break-before: always; }
   .report-table { width: 100%; border-collapse: separate; border-spacing: 0; }
@@ -171,13 +175,13 @@ export default function EnvironmentalDailyReportPrint() {
             <Button onClick={() => window.print()} className="ml-auto bg-yellow-400 hover:bg-yellow-500 text-black font-semibold">Send to Printer</Button>
           </div>
         )}
-        {/* Main printable area as a flex column for sticky footer */}
-        <div className="max-w-[816px] min-h-[1056px] bg-white shadow-2xl rounded-xl mx-auto flex flex-col print:shadow-none print:rounded-none print:w-full print:max-w-none print:min-h-0 print:p-0 print:m-0">
+        {/* Main printable area - align with header edges */}
+        <div className="w-full max-w-[816px] mx-auto bg-white shadow-2xl rounded-xl flex flex-col print:shadow-none print:rounded-none print:w-full print:max-w-none print:min-h-0 print:p-0 print:m-0">
           {/* Header */}
           <div className="w-full border-b-4 border-blue-500 bg-blue-900 text-white py-0.5 pl-1 pr-8 print:rounded-none rounded-t-xl">
             <div className="flex items-center mt-1 mb-1">
               <div className="flex-shrink-0 flex items-center justify-start" style={{ minWidth: '9rem' }}>
-                <img src="/staticfiles/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
+                <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <h1 className="text-3xl font-bold tracking-wide text-center">Environmental Daily Report</h1>

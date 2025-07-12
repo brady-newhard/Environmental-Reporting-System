@@ -168,6 +168,7 @@ const DailyUtilityReportForm = () => {
       setLoading(true);
       
       const dataToSave = {
+        id: draftId, // Include the current draft ID if it exists
         header,
         weather,
         am,
@@ -185,11 +186,28 @@ const DailyUtilityReportForm = () => {
         reportType: 'daily_utility'
       };
 
+      console.log('Saving draft with data:', {
+        hasId: !!draftId,
+        photoCount: photos.length,
+        photos: photos.map((photo, idx) => ({
+          idx,
+          id: photo.id,
+          isBase64: photo.preview && photo.preview.startsWith('data:'),
+          previewLength: photo.preview ? photo.preview.length : 0
+        }))
+      });
+
       const savedDraft = await saveDraft('daily_utility', dataToSave);
+      
+      console.log('Draft saved successfully:', {
+        id: savedDraft.id,
+        photoCount: savedDraft.photos ? savedDraft.photos.length : 0
+      });
       
       setSnackbar({ show: true, message: 'Draft saved successfully', severity: 'success' });
       
-      if (!draftId) {
+      // Update the draft ID if this is a new draft
+      if (!draftId && savedDraft.id) {
         setDraftId(savedDraft.id);
         navigate(`/utility/reports/daily/edit/${savedDraft.id}`, { replace: true });
       }
@@ -227,8 +245,10 @@ const DailyUtilityReportForm = () => {
     }
   };
 
-  const handleReview = () => {
+  const handleReview = async () => {
+    // Photos are now stored as base64 from the start, so no conversion needed
     const reviewData = { 
+      id: draftId, // Include the draft ID
       header, 
       weather, 
       am, 
@@ -246,6 +266,7 @@ const DailyUtilityReportForm = () => {
     };
     
     console.log('Passing data to review:', {
+      draftId,
       header: Object.keys(header),
       weather: Object.keys(weather),
       rows: rows.length,
@@ -260,9 +281,47 @@ const DailyUtilityReportForm = () => {
       sigDate: sigDate ? 'Present' : 'Empty'
     });
     
-    navigate(`/utility/reports/daily/review/${draftId}`, {
-      state: reviewData
+    // Debug photos specifically
+    console.log('Photos being passed to review:', photos);
+    photos.forEach((photo, idx) => {
+      console.log(`Photo ${idx}:`, {
+        id: photo.id,
+        url: photo.url,
+        preview: photo.preview ? photo.preview.substring(0, 50) + '...' : 'none',
+        image_url: photo.image_url,
+        file: photo.file,
+        location: photo.location,
+        description: photo.description,
+        isBase64: photo.preview && photo.preview.startsWith('data:')
+      });
     });
+    
+    // Save the draft before navigating to review
+    try {
+      const savedDraft = await saveDraft('daily_utility', reviewData);
+      console.log('Draft saved before review navigation:', {
+        id: savedDraft.id,
+        photoCount: savedDraft.photos ? savedDraft.photos.length : 0
+      });
+      
+      // Update the draft ID if it changed
+      if (savedDraft.id && savedDraft.id !== draftId) {
+        setDraftId(savedDraft.id);
+        navigate(`/utility/reports/daily/review/${savedDraft.id}`, {
+          state: savedDraft
+        });
+      } else {
+        navigate(`/utility/reports/daily/review/${draftId}`, {
+          state: savedDraft
+        });
+      }
+    } catch (error) {
+      console.error('Error saving draft before review:', error);
+      // Navigate anyway with the current data
+      navigate(`/utility/reports/daily/review/${draftId}`, {
+        state: reviewData
+      });
+    }
   };
 
   const handleExit = () => {
