@@ -184,10 +184,27 @@ export const getAllDrafts = async (reportType) => {
     console.log('Processed IndexedDB drafts:', processedIndexedDBDrafts);
     
     // Process backend drafts
-    const processedBackendDrafts = Array.isArray(backendDrafts) ? backendDrafts.map(draft => ({
-      ...draft,
-      source: 'backend'
-    })) : [];
+    const processedBackendDrafts = Array.isArray(backendDrafts) ? backendDrafts.map(draft => {
+      // Backend drafts have the actual data in a 'data' property
+      const processedDraft = {
+        ...draft,
+        source: 'backend'
+      };
+      
+      // If the draft has a data property, merge it with the top level
+      if (draft.data) {
+        Object.assign(processedDraft, draft.data);
+      }
+      
+      console.log('Processed backend draft:', {
+        id: processedDraft.id,
+        hasData: !!draft.data,
+        dataKeys: draft.data ? Object.keys(draft.data) : [],
+        headerKeys: processedDraft.header ? Object.keys(processedDraft.header) : []
+      });
+      
+      return processedDraft;
+    }) : [];
     console.log('Processed backend drafts:', processedBackendDrafts);
     
     // Merge drafts, preferring backend versions

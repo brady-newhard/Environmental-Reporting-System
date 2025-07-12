@@ -17,17 +17,54 @@ const DailyUtilityReportDrafts = () => {
     loadDrafts();
   }, []);
 
+  // Debug: log drafts when they change
+  useEffect(() => {
+    console.log('Drafts state updated:', drafts);
+  }, [drafts]);
+
   const loadDrafts = async () => {
     try {
       console.log('Loading daily utility drafts...');
       const allDrafts = await getAllDrafts('daily_utility');
       console.log('All drafts loaded:', allDrafts);
       
-      const processedDrafts = allDrafts.map(draft => ({
-        ...draft,
-        date: new Date(draft.header?.date || Date.now()).toLocaleDateString(),
-        lastModified: draft.lastModified || draft.updated_at || null,
-      }));
+      const processedDrafts = allDrafts.map(draft => {
+        // Handle different data structures from backend vs local storage
+        let draftData = draft;
+        
+        // If draft has a 'data' property (backend structure), use that
+        if (draft.data) {
+          draftData = draft.data;
+        }
+        
+        // Extract header information with fallbacks
+        const header = draftData.header || {};
+        const project = header.project || draftData.project || 'No Project';
+        const inspector = header.inspector || draftData.inspector || 'No Inspector';
+        const date = header.date || draftData.date || new Date().toISOString().split('T')[0];
+        
+        console.log('Processing draft:', {
+          id: draft.id,
+          project,
+          inspector,
+          date,
+          hasHeader: !!draftData.header,
+          headerKeys: draftData.header ? Object.keys(draftData.header) : [],
+          dataKeys: Object.keys(draftData)
+        });
+        
+        return {
+          ...draft,
+          header: {
+            ...header,
+            project,
+            inspector,
+            date
+          },
+          date: new Date(date).toLocaleDateString(),
+          lastModified: draft.lastModified || draft.updated_at || draft.created_at || null,
+        };
+      });
       
       // Sort by lastModified desc
       processedDrafts.sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
@@ -110,16 +147,16 @@ const DailyUtilityReportDrafts = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-800">
-                      Project: {draft.header?.project || '-'}
+                      Project: {draft.header?.project || 'No Project'}
                     </h3>
                     <p className="text-sm font-medium text-gray-700">
-                      Inspector: {draft.header?.inspector || '-'}
+                      Inspector: {draft.header?.inspector || 'No Inspector'}
                     </p>
                     <p className="text-sm font-medium text-gray-700">
-                      Date: {draft.header?.date ? new Date(draft.header.date).toLocaleDateString() : '-'}
+                      Date: {draft.date || 'No Date'}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Last Modified: {draft.lastModified ? new Date(draft.lastModified).toLocaleString() : '-'}
+                      Last Modified: {draft.lastModified ? new Date(draft.lastModified).toLocaleString() : 'Unknown'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
