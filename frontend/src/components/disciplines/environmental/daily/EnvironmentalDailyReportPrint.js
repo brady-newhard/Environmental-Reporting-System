@@ -181,7 +181,7 @@ export default function EnvironmentalDailyReportPrint() {
           <div className="w-full border-b-4 border-blue-500 bg-blue-900 text-white py-0.5 pl-1 pr-8 print:rounded-none rounded-t-xl">
             <div className="flex items-center mt-1 mb-1">
               <div className="flex-shrink-0 flex items-center justify-start" style={{ minWidth: '9rem' }}>
-                <img src="/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
+                <img src="/static/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <h1 className="text-3xl font-bold tracking-wide text-center">Environmental Daily Report</h1>

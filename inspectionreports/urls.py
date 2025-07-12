@@ -62,8 +62,7 @@ urlpatterns = [
     path('api/login/', CustomAuthToken.as_view(), name='api_token_auth'),
     path('api/', include('core.urls')),
     path('favicon.ico', favicon_view, name='favicon'),
-    path('staticfiles/favicon.ico', favicon_view, name='staticfiles_favicon'),
-    path('', RedirectView.as_view(url='/staticfiles/index.html', permanent=False)),
+    path('', RedirectView.as_view(url='/static/index.html', permanent=False)),
     # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
@@ -72,7 +71,7 @@ urlpatterns = [
 if not settings.DEBUG:
     # Serve static files from STATIC_ROOT
     urlpatterns += [
-        re_path(r'^staticfiles/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+        re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
         re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
         # Serve React frontend last
         re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),

@@ -85,7 +85,7 @@ const SignIn = () => {
             <div className="relative">
               <img
                 className="mx-auto lg:mx-0 h-48 lg:h-72 w-auto"
-                src="/PIPE-Logo.png"
+                src="/static/PIPE-Logo.png"
                 alt="PIPE Logo"
               />
               <p className="text-white/90 text-sm lg:text-base italic font-light absolute bottom-8 left-1/2 lg:left-1/2 transform -translate-x-1/2 whitespace-nowrap">

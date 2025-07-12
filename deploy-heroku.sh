@@ -13,7 +13,7 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 echo "Staging build output for commit..."
-git add staticfiles/
+git add -f staticfiles/
 
 echo "Committing build output..."
 git commit -m "Update build output for Heroku deploy" || echo "No changes to commit."

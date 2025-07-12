@@ -72,12 +72,11 @@ export async function normalizeDraft(data) {
     header: data.header || {},
     sections: data.sections || [],
     summaries: data.summaries || {},
-    photos: convertedPhotos,
     signature: data.signature || '',
     sigDate: data.sigDate || '',
     preparedBy: data.preparedBy || '',
-    ...data,
-    photos: convertedPhotos // Ensure photos are overwritten with converted versions
+    photos: convertedPhotos, // Ensure photos are overwritten with converted versions
+    ...data
   };
 }
 

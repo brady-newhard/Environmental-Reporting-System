@@ -71,7 +71,7 @@ const Navigation = () => {
       <Toolbar>
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
           <img
-            src="/PIPE-Logo.png"
+            src="/static/PIPE-Logo.png"
             alt="PIPE Logo"
             style={{ height: '80px', marginRight: '16px' }}
           />
@@ -167,7 +167,7 @@ const Navigation = () => {
           alignItems: 'center'
         }}>
           <img
-            src="/PIPE-Logo.png"
+            src="/static/PIPE-Logo.png"
             alt="PIPE Logo"
             style={{ height: '70px', marginBottom: '12px', display: 'block' }}
           />
