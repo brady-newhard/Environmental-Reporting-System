@@ -73,7 +73,7 @@ const Navigation = () => {
           <img
             src="/PIPE-Logo.png"
             alt="PIPE Logo"
-            style={{ height: '40px', marginRight: '16px' }}
+            style={{ height: '80px', marginRight: '16px' }}
           />
         </Box>
 

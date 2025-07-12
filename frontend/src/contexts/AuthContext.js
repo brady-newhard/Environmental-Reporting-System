@@ -33,12 +33,28 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // In production or when auto-sign-in is disabled, check for valid token
+    // Check for valid token and user data
     const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
     
-    if (token) {
+    if (token && savedUser) {
+      console.log('[AuthContext] Token and user data found, restoring session...');
+      try {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        setIsAuthenticated(true);
+        setLoading(false);
+        
+        // Validate token in background without blocking the UI
+        validateTokenSilently(token);
+      } catch (error) {
+        console.error('[AuthContext] Error parsing saved user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setLoading(false);
+      }
+    } else if (token) {
       console.log('[AuthContext] Token found, validating...');
-      // Validate the token by trying to fetch user data
       validateToken(token);
     } else {
       console.log('[AuthContext] No token found');
@@ -58,14 +74,37 @@ export const AuthProvider = ({ children }) => {
       console.log('[AuthContext] Token validated, user data:', response.data);
       setUser(response.data);
       setIsAuthenticated(true);
+      // Save user data for persistence
+      localStorage.setItem('user', JSON.stringify(response.data));
     } catch (error) {
       console.error('[AuthContext] Token validation failed:', error);
       // Token is invalid, remove it and require re-authentication
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setIsAuthenticated(false);
       setUser(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const validateTokenSilently = async (token) => {
+    try {
+      const response = await api.get('/users/me/', {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
+      console.log('[AuthContext] Silent token validation successful');
+      // Update user data if it changed
+      localStorage.setItem('user', JSON.stringify(response.data));
+    } catch (error) {
+      console.error('[AuthContext] Silent token validation failed:', error);
+      // Token is invalid, remove it and require re-authentication
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setIsAuthenticated(false);
+      setUser(null);
     }
   };
 
@@ -88,8 +127,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (token, username, first_name) => {
     console.log('[AuthContext] Login called with token:', token);
+    const userData = { username, first_name };
     localStorage.setItem('token', token);
-    setUser({ username, first_name });
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
     setIsAuthenticated(true);
     setLoading(false);
   };
@@ -97,6 +138,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     const token = localStorage.getItem('token');
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     // Also remove dev auto-sign-in setting
     localStorage.removeItem('devAutoSignIn');
     setIsAuthenticated(false);
