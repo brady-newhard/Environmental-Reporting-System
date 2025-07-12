@@ -6,7 +6,7 @@ import BaseDialogs from '../../../templates/base/BaseDialogs';
 import BaseSnackbar from '../../../templates/base/BaseSnackbar';
 import { getAllDrafts, deleteDraft } from '../../../../utils/draftUtils';
 
-const DailyUtilityReportDrafts = () => {
+const PayItemReportDrafts = () => {
   const navigate = useNavigate();
   const [drafts, setDrafts] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -19,8 +19,8 @@ const DailyUtilityReportDrafts = () => {
 
   const loadDrafts = async () => {
     try {
-      console.log('Loading daily utility drafts...');
-      const allDrafts = await getAllDrafts('daily_utility');
+      console.log('Loading pay item drafts...');
+      const allDrafts = await getAllDrafts('pay_item');
       console.log('All drafts loaded:', allDrafts);
       
       const processedDrafts = allDrafts.map(draft => ({
@@ -51,7 +51,7 @@ const DailyUtilityReportDrafts = () => {
   const handleDeleteConfirm = async () => {
     try {
       if (draftToDelete) {
-        await deleteDraft('daily_utility', draftToDelete.id);
+        await deleteDraft('pay_item', draftToDelete.id);
         setDrafts(drafts.filter(draft => draft.id !== draftToDelete.id));
         setSnackbar({
           show: true,
@@ -73,12 +73,12 @@ const DailyUtilityReportDrafts = () => {
   };
 
   const handleEdit = (draft) => {
-    navigate(`/utility/reports/daily/edit/${draft.id}`);
+    navigate(`/utility/reports/pay-item/edit/${draft.id}`);
   };
 
   const handleView = (draft) => {
-    navigate(`/utility/reports/daily/review/${draft.id}`, {
-      state: { from: '/utility/reports/daily/drafts', draft },
+    navigate(`/utility/reports/pay-item/review/${draft.id}`, {
+      state: { from: '/utility/reports/pay-item/drafts', draft },
     });
   };
 
@@ -86,7 +86,7 @@ const DailyUtilityReportDrafts = () => {
     <div className="bg-black min-h-screen pt-2">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <PageHeader
-          title="Daily Utility Report Drafts"
+          title="Pay Item Report Drafts"
           backPath="/utility/reports"
           backButtonStyle={{
             backgroundColor: '#000000',
@@ -176,4 +176,4 @@ const DailyUtilityReportDrafts = () => {
   );
 };
 
-export default DailyUtilityReportDrafts; 
+export default PayItemReportDrafts; 

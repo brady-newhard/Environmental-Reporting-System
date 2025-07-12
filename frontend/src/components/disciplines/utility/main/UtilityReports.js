@@ -65,24 +65,24 @@ const UtilityReports = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <ReportCard
-            title="Payload Report"
-            description="Complete the daily payload report for utility work."
-            path="/utility/reports/payload"
+            title="Daily Utility Report"
+            description="Complete the daily utility report with construction activities, weather, and equipment."
+            path="/utility/reports/daily/new"
             secondaryAction={{
               text: "View Draft Reports",
-              path: "/utility/reports/drafts"
+              path: "/utility/reports/daily/drafts"
             }}
-            reportType="utility_payload"
+            reportType="daily_utility"
           />
           <ReportCard
-            title="I3 Daily Report"
-            description="Complete the I3 daily report for utility work."
-            path="/utility/reports/i3"
+            title="Pay Item Report"
+            description="Complete the pay item report for tracking detailed work items and quantities."
+            path="/utility/reports/pay-item/new"
             secondaryAction={{
               text: "View Draft Reports",
-              path: "/utility/reports/i3-drafts"
+              path: "/utility/reports/pay-item/drafts"
             }}
-            reportType="utility_i3"
+            reportType="pay_item"
           />
         </div>
       </div>

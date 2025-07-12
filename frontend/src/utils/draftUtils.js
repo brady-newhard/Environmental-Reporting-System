@@ -373,3 +373,85 @@ export const cleanupInvalidLocalDrafts = async (reportType) => {
     return 0;
   }
 }; 
+
+// Migrate drafts from localStorage to IndexedDB
+export const migrateLocalStorageDrafts = async () => {
+  try {
+    console.log('Starting localStorage to IndexedDB migration...');
+    
+    // Get all localStorage keys that look like draft keys
+    const allKeys = Object.keys(localStorage);
+    const draftKeys = allKeys.filter(key => 
+      key.includes('draft_') || 
+      key.includes('_draft_') ||
+      key.includes('utility') ||
+      key.includes('environmental') ||
+      key.includes('swppp') ||
+      key.includes('punchlist')
+    );
+    
+    console.log('Found potential draft keys:', draftKeys);
+    
+    let migratedCount = 0;
+    
+    for (const key of draftKeys) {
+      try {
+        const draftData = localStorage.getItem(key);
+        if (!draftData) continue;
+        
+        const parsedData = JSON.parse(draftData);
+        if (!parsedData || typeof parsedData !== 'object') continue;
+        
+        // Determine report type from key
+        let reportType = 'generic';
+        if (key.includes('daily_utility') || key.includes('i3_utility')) {
+          reportType = 'daily_utility';
+        } else if (key.includes('pay_item') || key.includes('utility_payload')) {
+          reportType = 'pay_item';
+        } else if (key.includes('environmental_daily')) {
+          reportType = 'environmental_daily';
+        } else if (key.includes('swppp')) {
+          reportType = 'swppp';
+        } else if (key.includes('punchlist')) {
+          reportType = 'punchlist';
+        } else if (key.includes('welding')) {
+          reportType = 'welding';
+        } else if (key.includes('coating')) {
+          reportType = 'coating';
+        }
+        
+        // Extract draft ID from key
+        let draftId = key;
+        if (key.includes('draft_')) {
+          draftId = key.split('draft_')[1];
+        } else if (key.includes('_draft_')) {
+          draftId = key.split('_draft_')[1];
+        }
+        
+        // Ensure we have a valid ID
+        if (!draftId || draftId === 'null' || draftId === 'undefined') {
+          console.log('Skipping invalid draft ID:', draftId);
+          continue;
+        }
+        
+        // Save to IndexedDB
+        await indexedDBStorage.saveDraft(reportType, draftId, parsedData);
+        console.log(`Migrated draft ${draftId} to ${reportType} store`);
+        migratedCount++;
+        
+        // Remove from localStorage
+        localStorage.removeItem(key);
+        
+      } catch (error) {
+        console.error(`Error migrating draft ${key}:`, error);
+      }
+    }
+    
+    console.log(`Migration complete. Migrated ${migratedCount} drafts.`);
+    return migratedCount;
+    
+  } catch (error) {
+    console.error('Error during migration:', error);
+    return 0;
+  }
+}; 

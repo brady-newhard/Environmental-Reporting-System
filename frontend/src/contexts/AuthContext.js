@@ -8,6 +8,38 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const hasInitialized = useRef(false);
+  const tokenValidationInterval = useRef(null);
+
+  // Periodic token validation to prevent expiration issues
+  const startTokenValidation = () => {
+    // Clear any existing interval
+    if (tokenValidationInterval.current) {
+      clearInterval(tokenValidationInterval.current);
+    }
+    
+    // Validate token every 5 minutes
+    tokenValidationInterval.current = setInterval(() => {
+      const token = localStorage.getItem('token');
+      if (token && isAuthenticated) {
+        console.log('[AuthContext] Periodic token validation...');
+        validateTokenSilently(token);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+  };
+
+  const stopTokenValidation = () => {
+    if (tokenValidationInterval.current) {
+      clearInterval(tokenValidationInterval.current);
+      tokenValidationInterval.current = null;
+    }
+  };
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      stopTokenValidation();
+    };
+  }, []);
 
   useEffect(() => {
     if (hasInitialized.current) {
@@ -30,6 +62,7 @@ export const AuthProvider = ({ children }) => {
         first_name: 'Brady'
       });
       setLoading(false);
+      startTokenValidation();
       return;
     }
 
@@ -44,6 +77,7 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
         setLoading(false);
+        startTokenValidation();
         
         // Validate token in background without blocking the UI
         validateTokenSilently(token);
@@ -78,11 +112,19 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(response.data));
     } catch (error) {
       console.error('[AuthContext] Token validation failed:', error);
-      // Token is invalid, remove it and require re-authentication
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setIsAuthenticated(false);
-      setUser(null);
+      
+      // Only logout if it's a clear authentication error, not a network issue
+      if (error.response && error.response.status === 401) {
+        console.log('[AuthContext] Token is invalid, logging out user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+        setUser(null);
+      } else {
+        console.log('[AuthContext] Token validation failed due to network issue, keeping user logged in');
+        // For network errors, keep the user logged in but don't set authenticated state
+        // This allows the app to continue working if the network comes back
+      }
     } finally {
       setLoading(false);
     }
@@ -100,11 +142,18 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(response.data));
     } catch (error) {
       console.error('[AuthContext] Silent token validation failed:', error);
-      // Token is invalid, remove it and require re-authentication
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setIsAuthenticated(false);
-      setUser(null);
+      
+      // Only logout if it's a clear authentication error, not a network issue
+      if (error.response && error.response.status === 401) {
+        console.log('[AuthContext] Token is invalid, logging out user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+        setUser(null);
+      } else {
+        console.log('[AuthContext] Token validation failed due to network issue, keeping user logged in');
+        // Don't logout for network errors - keep the user logged in
+      }
     }
   };
 
@@ -133,6 +182,7 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
     setIsAuthenticated(true);
     setLoading(false);
+    startTokenValidation();
   };
 
   const logout = async () => {
@@ -143,6 +193,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('devAutoSignIn');
     setIsAuthenticated(false);
     setUser(null);
+    stopTokenValidation();
     
     // Try to call logout API if token exists, but don't fail if it doesn't work
     if (token) {
@@ -180,11 +231,13 @@ export const AuthProvider = ({ children }) => {
         email: 'brady@example.com',
         first_name: 'Brady'
       });
+      startTokenValidation();
     } else {
       console.log('[AuthContext] Development auto-sign-in disabled');
       setIsAuthenticated(false);
       setUser(null);
       localStorage.removeItem('token');
+      stopTokenValidation();
     }
   };
 

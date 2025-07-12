@@ -15,40 +15,57 @@ const api = axios.create({
   withCredentials: false, // Disable sending cookies since we're using token auth
 });
 
+// Track failed requests to prevent infinite logout loops
+let consecutiveAuthFailures = 0;
+const MAX_AUTH_FAILURES = 3;
+
 // Add token to all requests if it exists
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  console.log('Request interceptor - token:', token);
   if (token) {
     config.headers.Authorization = `Token ${token}`;
   }
-  console.log('Request config:', config);
   return config;
 });
 
 // Add response interceptor to handle errors
 api.interceptors.response.use(
   (response) => {
+    // Reset auth failure counter on successful request
+    consecutiveAuthFailures = 0;
+    
     // Check if response is HTML instead of JSON
     if (typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
       console.error('Received HTML instead of JSON response:', response.data);
       return Promise.reject(new Error('Invalid response format: received HTML instead of JSON'));
     }
-    console.log('Response interceptor - response:', response);
     return response;
   },
   (error) => {
     console.error('Response interceptor - error:', error);
+    
     if (error.response) {
-      // Handle 401 Unauthorized errors
+      // Handle 401 Unauthorized errors more carefully
       if (error.response.status === 401) {
         const isLogoutRequest = error.config.url.includes('/logout/');
         const isLoginRequest = error.config.url.includes('/login/');
         const isOnLoginPage = window.location.pathname === '/login';
-        // Don't redirect for logout or login requests, or if already on login page
-        if (!isLogoutRequest && !isLoginRequest && !isOnLoginPage) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+        const isTokenValidationRequest = error.config.url.includes('/users/me/');
+        
+        // Don't redirect for logout, login, or token validation requests, or if already on login page
+        if (!isLogoutRequest && !isLoginRequest && !isOnLoginPage && !isTokenValidationRequest) {
+          consecutiveAuthFailures++;
+          
+          // Only logout after multiple consecutive failures to prevent false positives
+          if (consecutiveAuthFailures >= MAX_AUTH_FAILURES) {
+            console.log(`Multiple auth failures (${consecutiveAuthFailures}), logging out user`);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            consecutiveAuthFailures = 0; // Reset counter
+            window.location.href = '/login';
+          } else {
+            console.log(`Auth failure ${consecutiveAuthFailures}/${MAX_AUTH_FAILURES}, not logging out yet`);
+          }
         }
       }
     }

@@ -7,6 +7,11 @@ const reportStores = {
     storeName: 'drafts',
     description: 'Storage for environmental report drafts'
   }),
+  environmental_daily: localforage.createInstance({
+    name: 'EnvironmentalDailyReports',
+    storeName: 'drafts',
+    description: 'Storage for environmental daily report drafts'
+  }),
   swppp: localforage.createInstance({
     name: 'SWPPPReports',
     storeName: 'drafts',
@@ -16,6 +21,31 @@ const reportStores = {
     name: 'PunchlistReports',
     storeName: 'drafts',
     description: 'Storage for punchlist report drafts'
+  }),
+  daily_utility: localforage.createInstance({
+    name: 'DailyUtilityReports',
+    storeName: 'drafts',
+    description: 'Storage for daily utility report drafts'
+  }),
+  pay_item: localforage.createInstance({
+    name: 'PayItemReports',
+    storeName: 'drafts',
+    description: 'Storage for pay item report drafts'
+  }),
+  utility: localforage.createInstance({
+    name: 'UtilityReports',
+    storeName: 'drafts',
+    description: 'Storage for utility report drafts'
+  }),
+  welding: localforage.createInstance({
+    name: 'WeldingReports',
+    storeName: 'drafts',
+    description: 'Storage for welding report drafts'
+  }),
+  coating: localforage.createInstance({
+    name: 'CoatingReports',
+    storeName: 'drafts',
+    description: 'Storage for coating report drafts'
   })
 };
 
@@ -27,7 +57,23 @@ export const indexedDBStorage = {
    * @returns {Object} - The localforage instance for that report type
    */
   getStore(reportType) {
-    return reportStores[reportType] || reportStores.environmental;
+    if (reportStores[reportType]) {
+      return reportStores[reportType];
+    }
+    
+    // Fallback logic for unknown report types
+    console.warn(`No specific store found for report type: ${reportType}, using generic store`);
+    
+    // Create a generic store for unknown report types
+    if (!reportStores.generic) {
+      reportStores.generic = localforage.createInstance({
+        name: 'GenericReports',
+        storeName: 'drafts',
+        description: 'Storage for generic report drafts'
+      });
+    }
+    
+    return reportStores.generic;
   },
 
   /**

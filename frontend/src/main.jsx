@@ -1,5 +1,5 @@
-// Dev helper: Always set the token in localStorage during development
-if (window.location.hostname === 'localhost' && import.meta.env.VITE_DEV_TOKEN) {
+// Dev helper: Set token only if explicitly enabled
+if (window.location.hostname === 'localhost' && import.meta.env.VITE_DEV_TOKEN && localStorage.getItem('devAutoSignIn') === 'true') {
   localStorage.setItem('token', import.meta.env.VITE_DEV_TOKEN);
 }
 
