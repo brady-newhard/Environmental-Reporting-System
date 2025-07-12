@@ -11,17 +11,24 @@ import {
   MenuItem,
   Box,
   Avatar,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import {
   AccountCircle,
   ExitToApp,
   Person,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 
 const Navigation = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -37,6 +44,25 @@ const Navigation = () => {
     handleClose();
   };
 
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    handleMobileMenuClose();
+  };
+
+  const navigationItems = [
+    { text: 'Home', path: '/' },
+    { text: 'Documents', path: '/project-documents' },
+    { text: 'Search', path: '/search' },
+  ];
+
   return (
     <AppBar position="static" sx={{ backgroundColor: '#000000' }}>
       <Toolbar>
@@ -48,31 +74,35 @@ const Navigation = () => {
           />
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button
+        {/* Desktop Navigation - Hidden on mobile */}
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+          {navigationItems.map((item) => (
+            <Button
+              key={item.text}
+              color="inherit"
+              onClick={() => navigate(item.path)}
+              sx={{ color: '#ffffff' }}
+            >
+              {item.text}
+            </Button>
+          ))}
+        </Box>
+
+        {/* Mobile Hamburger Menu */}
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 1 }}>
+          <IconButton
+            size="large"
+            aria-label="menu"
+            onClick={handleMobileMenuToggle}
             color="inherit"
-            onClick={() => navigate('/')}
             sx={{ color: '#ffffff' }}
           >
-            Home
-          </Button>
+            <MenuIcon />
+          </IconButton>
+        </Box>
 
-          <Button
-            color="inherit"
-            onClick={() => navigate('/project-documents')}
-            sx={{ color: '#ffffff' }}
-          >
-            Documents
-          </Button>
-
-          <Button
-            color="inherit"
-            onClick={() => navigate('/search')}
-            sx={{ color: '#ffffff' }}
-          >
-            Search
-          </Button>
-
+        {/* User Menu - Only visible on desktop */}
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
           <IconButton
             size="large"
             aria-label="account of current user"
@@ -110,6 +140,117 @@ const Navigation = () => {
           </Menu>
         </Box>
       </Toolbar>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={handleMobileMenuClose}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 280,
+            backgroundColor: '#000000',
+            color: '#ffffff',
+          },
+        }}
+      >
+        {/* Logo and Slogan Section */}
+        <Box sx={{ 
+          p: 3, 
+          borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
+          <img
+            src="/PIPE-Logo.png"
+            alt="PIPE Logo"
+            style={{ height: '70px', marginBottom: '12px', display: 'block' }}
+          />
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: '#ffffff', 
+              opacity: 0.8,
+              fontStyle: 'italic',
+              fontSize: '0.65rem',
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Streamlining Reports. Elevating Results.
+          </Typography>
+        </Box>
+
+        {/* Navigation Items */}
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ color: '#ffffff', mb: 2, fontWeight: 'bold' }}>
+            Navigation
+          </Typography>
+          <List>
+            {navigationItems.map((item) => (
+              <ListItem
+                key={item.text}
+                button
+                onClick={() => handleNavigation(item.path)}
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  borderRadius: 1,
+                  mb: 0.5,
+                }}
+              >
+                <ListItemText primary={item.text} />
+              </ListItem>
+            ))}
+          </List>
+
+          <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.3)', my: 2 }} />
+
+          {/* User Section */}
+          <Typography variant="h6" sx={{ color: '#ffffff', mb: 2, fontWeight: 'bold' }}>
+            Account
+          </Typography>
+          <List>
+            <ListItem
+              button
+              onClick={() => { handleNavigation('/profile'); handleMobileMenuClose(); }}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                borderRadius: 1,
+                mb: 0.5,
+              }}
+            >
+              <Person sx={{ mr: 2, color: '#ffffff' }} />
+              <ListItemText 
+                primary={user?.username || user?.email || 'Profile'} 
+                secondary="Manage your account"
+              />
+            </ListItem>
+            <ListItem
+              button
+              onClick={() => { handleLogout(); handleMobileMenuClose(); }}
+              sx={{
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+                borderRadius: 1,
+                mb: 0.5,
+              }}
+            >
+              <ExitToApp sx={{ mr: 2, color: '#ffffff' }} />
+              <ListItemText 
+                primary="Logout" 
+                secondary="Sign out of your account"
+              />
+            </ListItem>
+          </List>
+        </Box>
+      </Drawer>
     </AppBar>
   );
 };

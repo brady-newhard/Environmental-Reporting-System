@@ -601,7 +601,7 @@ const DailyWeldingReportForm = () => {
                 sx: { fontSize: { xs: '1rem', sm: '1.25rem' } }
               }}
             >
-              <MenuItem value="">Select...</MenuItem>
+              <MenuItem value=""></MenuItem>
               {WEATHER_OPTIONS.map(opt => (
                 <MenuItem key={opt} value={opt}>{opt}</MenuItem>
               ))}
@@ -627,7 +627,7 @@ const DailyWeldingReportForm = () => {
                 sx: { fontSize: { xs: '1rem', sm: '1.25rem' } }
               }}
             >
-              <MenuItem value="">Select...</MenuItem>
+              <MenuItem value=""></MenuItem>
               {PRECIP_TYPE_OPTIONS.map(opt => (
                 <MenuItem key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</MenuItem>
               ))}
@@ -885,7 +885,7 @@ const DailyWeldingReportForm = () => {
             <TextField label="Size" value={form.roadXing.size} onChange={e => handleSectionChange('roadXing', 'size', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1', sm: 'auto' } }} />
             <TextField label="Footage" value={form.roadXing.footage} onChange={e => handleSectionChange('roadXing', 'footage', e.target.value)} fullWidth sx={{ gridColumn: { xs: '2', sm: 'auto' } }} />
             <TextField select label="Bore / Open Cut / Conduit" value={form.roadXing.bore} onChange={e => handleSectionChange('roadXing', 'bore', e.target.value)} fullWidth sx={{ gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
-              <MenuItem value="">Select...</MenuItem>
+              <MenuItem value=""></MenuItem>
               <MenuItem value="Yes">Yes</MenuItem>
               <MenuItem value="No">No</MenuItem>
             </TextField>

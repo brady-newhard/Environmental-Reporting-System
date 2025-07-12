@@ -363,7 +363,7 @@ const ReportForm = () => {
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
-                  <MenuItem value="">Select Spread</MenuItem>
+                  <MenuItem value="">Spread</MenuItem>
                   {/* Add spread options */}
                 </Select>
               </FormControl>
@@ -377,7 +377,7 @@ const ReportForm = () => {
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
-                  <MenuItem value="">Select Facility</MenuItem>
+                  <MenuItem value="">Facility</MenuItem>
                   {/* Add facility options */}
                 </Select>
               </FormControl>
@@ -392,7 +392,7 @@ const ReportForm = () => {
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
-                  <MenuItem value="">Select State</MenuItem>
+                  <MenuItem value="">State</MenuItem>
                   {/* Add state options */}
                 </Select>
               </FormControl>
@@ -407,7 +407,7 @@ const ReportForm = () => {
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
-                  <MenuItem value="">Select County</MenuItem>
+                  <MenuItem value="">County</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -502,7 +502,7 @@ const ReportForm = () => {
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
-                  <MenuItem value="">Select Activity Group</MenuItem>
+                  <MenuItem value="">Activity Group</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -516,7 +516,7 @@ const ReportForm = () => {
                   onChange={handleChange}
                   sx={{ height: '40px' }}
                 >
-                  <MenuItem value="">Select Activity Type</MenuItem>
+                  <MenuItem value="">Activity Type</MenuItem>
                 </Select>
               </FormControl>
             </Box>

@@ -596,7 +596,7 @@ const DailyWeldingReportStationForm = () => {
                 sx: { fontSize: { xs: '1rem', sm: '1.25rem' } }
               }}
             >
-              <MenuItem value="">Select...</MenuItem>
+              <MenuItem value=""></MenuItem>
               {WEATHER_OPTIONS.map(opt => (
                 <MenuItem key={opt} value={opt}>{opt}</MenuItem>
               ))}
@@ -622,7 +622,7 @@ const DailyWeldingReportStationForm = () => {
                 sx: { fontSize: { xs: '1rem', sm: '1.25rem' } }
               }}
             >
-              <MenuItem value="">Select...</MenuItem>
+              <MenuItem value=""></MenuItem>
               {PRECIP_TYPE_OPTIONS.map(opt => (
                 <MenuItem key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</MenuItem>
               ))}
