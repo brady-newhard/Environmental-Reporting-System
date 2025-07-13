@@ -1,0 +1,517 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import { loadDraft } from '../../../../utils/draftUtils';
+import PageHeader from '@/components/common/PageHeader';
+import { Button } from '@/components/ui/button';
+import { formatPhotoUrl } from '../../../../utils/photoUtils';
+
+function formatDate(value) {
+  if (!value) return '—';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split('-');
+    return `${parseInt(month, 10)}/${parseInt(day, 10)}/${year}`;
+  }
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+}
+
+// Custom print CSS for page breaks and section avoidance
+const printPageBreakCss = `
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+  .print-section { break-inside: avoid; page-break-inside: avoid; }
+  .print-photo-break { break-before: page; page-break-before: always; }
+  .report-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tbody { display: table-row-group; }
+}
+`;
+
+export default function DailyUtilityReport2Print() {
+  const { id } = useParams();
+  const location = useLocation();
+  const [draft, setDraft] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDraftData = async () => {
+      setIsLoading(true);
+      try {
+        if (location.state?.reportData) {
+          console.log('Print component: Using data from location state:', location.state.reportData);
+          setDraft(location.state.reportData);
+          setIsLoading(false);
+          return;
+        }
+        console.log('Print component: Loading draft from storage:', id);
+        const loadedDraft = await loadDraft('daily_utility_2', id);
+        console.log('Print component: Loaded draft from storage:', loadedDraft);
+        setDraft(loadedDraft);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadDraftData();
+  }, [id, location.state]);
+
+  // For page numbers in print (optional, can be improved with a real print lib)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = () => {
+      const totalPages = Math.max(1, Math.round(document.body.scrollHeight / window.innerHeight));
+      document.querySelectorAll('.print-footer-page').forEach((el, idx) => {
+        el.textContent = `Page ${idx + 1} of ${totalPages}`;
+      });
+    };
+    window.addEventListener('afterprint', handler);
+    setTimeout(handler, 500);
+    return () => window.removeEventListener('afterprint', handler);
+  }, []);
+
+  if (isLoading || !draft) {
+    return <div className="flex items-center justify-center min-h-screen bg-black text-lg">Loading...</div>;
+  }
+
+  // Extract all data from draft, with fallbacks
+  const {
+    header = {},
+    headcounts = {},
+    subcontractors = [],
+    inspectionPersonnel = [],
+    craft = '',
+    environmental = '',
+    survey = '',
+    land = '',
+    morningTemp = '',
+    midTemp = '',
+    wind = '',
+    weather = '',
+    precipitation = '',
+    abnormalConditions = '',
+    crewAdverse = '',
+    progressRows = [],
+    payItems = [],
+    remarks = '',
+    equipment = [],
+    crews = [],
+    preparedBy = '',
+    signature = '',
+    sigDate = '',
+    photos = []
+  } = draft;
+
+  // Filter out empty progress rows (only show rows with data)
+  const filledProgressRows = progressRows.filter(row => 
+    row.from || row.to || row.feet || row.comments
+  );
+
+  // Filter out empty pay item rows (only show rows with data)
+  const filledPayItems = payItems.filter(item => 
+    item.from || item.to || item.qty || item.comments
+  );
+
+  console.log('Print component data:', {
+    header: Object.keys(header),
+    headcounts: Object.keys(headcounts),
+    progressRows: filledProgressRows.length,
+    payItems: filledPayItems.length,
+    photos: photos.length,
+    remarks: remarks ? 'Present' : 'Empty',
+    preparedBy: preparedBy ? 'Present' : 'Empty',
+    signature: signature ? 'Present' : 'Missing',
+    sigDate: sigDate ? 'Present' : 'Empty'
+  });
+
+  // Project Info
+  const projectInfoRows = [
+    [
+      { label: 'Section', value: header.section },
+      { label: 'Spread', value: header.spread },
+    ],
+    [
+      { label: 'Contractor', value: header.contractor },
+      { label: 'Work Date', value: formatDate(header.workDate) },
+    ],
+  ];
+
+  return (
+    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
+      <style>{printPageBreakCss}</style>
+      <style>{`
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-bg-gray-200 { background-color: #e5e7eb !important; }
+  .print-footer { display: block !important; position: fixed !important; bottom: 0; left: 0; right: 0; width: 100vw; z-index: 9999; }
+  .no-print-footer { display: none !important; }
+  .print-section table { 
+    font-size: 0.7rem !important; 
+    width: 100% !important; 
+    table-layout: fixed !important;
+  }
+  .print-section th, .print-section td { 
+    font-size: 0.7rem !important; 
+    padding: 2px 4px !important; 
+    border: 1px solid #d1d5db !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .print-section th { 
+    font-weight: bold !important; 
+    background-color: #f3f4f6 !important; 
+  }
+}
+`}</style>
+      <div className="w-full flex flex-col items-center print:block">
+        {/* Add PageHeader and Print button above the main print area, only visible on screen */}
+        {typeof window !== 'undefined' && (
+          <div className="flex items-center gap-4 mb-4 print:hidden w-full max-w-[816px] mx-auto">
+            <PageHeader title="Print Preview" backPath={`/utility/reports/daily2/review/${id}`} />
+            <Button onClick={() => window.print()} className="ml-auto bg-yellow-400 hover:bg-yellow-500 text-black font-semibold">Send to Printer</Button>
+          </div>
+        )}
+        {/* Main printable area - align with header edges */}
+        <div className="w-full max-w-[816px] mx-auto bg-white shadow-2xl rounded-xl flex flex-col print:shadow-none print:rounded-none print:w-full print:max-w-none print:min-h-0 print:p-0 print:m-0">
+          {/* Header */}
+          <div className="w-full border-b-4 border-blue-500 bg-blue-900 text-white py-0.5 pl-1 pr-8 print:rounded-none rounded-t-xl">
+            <div className="flex items-center mt-1 mb-1">
+              <div className="flex-shrink-0 flex items-center justify-start" style={{ minWidth: '9rem' }}>
+                <img src="/static/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                <h1 className="text-3xl font-bold tracking-wide text-center">Daily Utility Report 2</h1>
+              </div>
+              <div className="flex-shrink-0" style={{ minWidth: '9rem' }}></div>
+            </div>
+          </div>
+          {/* Main Content */}
+          <div className="flex-1 px-8 py-8 print:px-8 print:py-8 flex flex-col">
+            {/* Project Info */}
+            <div className="print-section">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Project Information</h2>
+                <div className="text-base font-semibold text-blue-800 ml-4">Date: {formatDate(header.workDate)}</div>
+              </div>
+              <table className="w-full mb-6 text-sm">
+                <tbody>
+                  {projectInfoRows.map((row, rowIdx) => (
+                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                      {row.map((item, colIdx) => (
+                        item ? (
+                          <React.Fragment key={colIdx}>
+                            <td className="font-semibold py-1 pr-4 w-48 text-gray-700">{item.label}</td>
+                            <td className="py-1 text-gray-900">{item.value || '—'}</td>
+                          </React.Fragment>
+                        ) : (
+                          <td key={colIdx} colSpan={2}></td>
+                        )
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Contractor Headcount */}
+            <div className="print-section">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Contractor Headcount</h2>
+              </div>
+              <table className="w-full mb-6 text-sm">
+                <thead>
+                  <tr className="bg-blue-50">
+                    {Object.keys(headcounts).map(key => (
+                      <th key={key} className="font-bold py-1 px-2 text-left">{key.charAt(0).toUpperCase() + key.slice(1)}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {Object.values(headcounts).map((value, index) => (
+                      <td key={index} className="py-1 px-2">{value || '—'}</td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Subcontractors & Inspection Personnel */}
+            <div className="print-section">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Subcontractors & Inspection Personnel</h2>
+              </div>
+              <table className="w-full mb-6 text-sm">
+                <thead>
+                  <tr className="bg-blue-50">
+                    <th className="font-bold py-1 px-2 text-left">Type</th>
+                    <th className="font-bold py-1 px-2 text-left">Company</th>
+                    <th className="font-bold py-1 px-2 text-left">Headcount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subcontractors.length > 0 && subcontractors[0]?.company && (
+                    <tr>
+                      <td className="py-1 px-2">Subcontractor</td>
+                      <td className="py-1 px-2">{subcontractors[0].company}</td>
+                      <td className="py-1 px-2">{subcontractors[0].headcount}</td>
+                    </tr>
+                  )}
+                  {inspectionPersonnel.length > 0 && inspectionPersonnel[0]?.company && (
+                    <tr>
+                      <td className="py-1 px-2">Inspection Personnel</td>
+                      <td className="py-1 px-2">{inspectionPersonnel[0].company}</td>
+                      <td className="py-1 px-2">{inspectionPersonnel[0].headcount}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Other Info */}
+            <div className="print-section">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Other Info</h2>
+              </div>
+              <table className="w-full mb-6 text-sm">
+                <tbody>
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Craft:</td>
+                    <td className="py-1 text-gray-900">{craft || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Environmental:</td>
+                    <td className="py-1 text-gray-900">{environmental || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Survey:</td>
+                    <td className="py-1 text-gray-900">{survey || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Land:</td>
+                    <td className="py-1 text-gray-900">{land || '—'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Weather & Working Conditions */}
+            <div className="print-section">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Weather & Working Conditions</h2>
+              </div>
+              <table className="w-full mb-6 text-sm">
+                <tbody>
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Morning Temp:</td>
+                    <td className="py-1 text-gray-900">{morningTemp || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Mid Temp:</td>
+                    <td className="py-1 text-gray-900">{midTemp || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Wind:</td>
+                    <td className="py-1 text-gray-900">{wind || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Weather:</td>
+                    <td className="py-1 text-gray-900">{weather || '—'}</td>
+                  </tr>
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Precipitation:</td>
+                    <td className="py-1 text-gray-900">{precipitation || '—'}</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Did ABNORMAL working conditions exist that adversely affected progress?</td>
+                    <td className="py-1 text-gray-900" colSpan="3">{abnormalConditions || '—'}</td>
+                  </tr>
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Any Crews affected by adverse weather, right-of-way or other working conditions?</td>
+                    <td className="py-1 text-gray-900" colSpan="3">{crewAdverse || '—'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Progress/Activity Table - Only show filled rows */}
+            {filledProgressRows.length > 0 && (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Progress / Activity</h2>
+                </div>
+                <div className="overflow-x-auto mb-6">
+                  <table className="w-full text-xs print:text-xs">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="font-bold py-1 px-1 text-left text-xs">Activity</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">From</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">To</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Feet Today</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Comments</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filledProgressRows.map((row, rowIdx) => (
+                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                          <td className="py-1 px-1 text-xs">{row.activity}</td>
+                          <td className="py-1 px-1 text-xs">{row.from || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row.to || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row.feet || '—'}</td>
+                          <td className="py-1 px-1 text-xs" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>{row.comments || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Pay Item Logs Table - Only show filled rows */}
+            {filledPayItems.length > 0 && (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Pay Item Logs</h2>
+                </div>
+                <div className="overflow-x-auto mb-6">
+                  <table className="w-full text-xs print:text-xs">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="font-bold py-1 px-1 text-left text-xs">Item</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">UOM</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">From</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">To</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Quantity Today</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Comments</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filledPayItems.map((item, rowIdx) => (
+                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                          <td className="py-1 px-1 text-xs">{item.item}</td>
+                          <td className="py-1 px-1 text-xs">{item.uom}</td>
+                          <td className="py-1 px-1 text-xs">{item.from || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{item.to || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{item.qty || '—'}</td>
+                          <td className="py-1 px-1 text-xs" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>{item.comments || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Remarks */}
+            {remarks && (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Remarks</h2>
+                </div>
+                <div className="mb-6 text-base">
+                  <p className="text-gray-900 whitespace-pre-wrap">{remarks}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Equipment & Crews */}
+            {(equipment.length > 0 && equipment[0]?.name) || (crews.length > 0 && crews[0]?.name) ? (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Equipment & Crews</h2>
+                </div>
+                <table className="w-full mb-6 text-sm">
+                  <thead>
+                    <tr className="bg-blue-50">
+                      <th className="font-bold py-1 px-2 text-left">Type</th>
+                      <th className="font-bold py-1 px-2 text-left">Name</th>
+                      <th className="font-bold py-1 px-2 text-left">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {equipment.length > 0 && equipment[0]?.name && (
+                      <tr>
+                        <td className="py-1 px-2">Equipment</td>
+                        <td className="py-1 px-2">{equipment[0].name}</td>
+                        <td className="py-1 px-2">{equipment[0].qty}</td>
+                      </tr>
+                    )}
+                    {crews.length > 0 && crews[0]?.name && (
+                      <tr className="bg-gray-50 print-bg-gray-100">
+                        <td className="py-1 px-2">Crew</td>
+                        <td className="py-1 px-2">{crews[0].name}</td>
+                        <td className="py-1 px-2">{crews[0].qty}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+
+            {/* Signature Section */}
+            <div className="flex flex-row items-center gap-6 mt-12 mb-8 print-section">
+              <div className="text-base font-semibold whitespace-nowrap"><b>Prepared by:</b> {preparedBy || '—'}</div>
+              {signature && (
+                <img src={signature} alt="Signature" className="max-h-16 max-w-xs border border-gray-300 rounded bg-white shadow mb-0" />
+              )}
+              <div className="text-base font-semibold whitespace-nowrap"><b>Date:</b> {formatDate(sigDate)}</div>
+            </div>
+
+            {/* Photos */}
+            {photos && photos.length > 0 && (
+              <div className="mt-10 mb-10 print-photo-break">
+                <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4">Photos</h2>
+                <div className="grid grid-cols-2 gap-6">
+                  {photos.map((photo, idx) => {
+                    // Use the same robust photo URL extraction logic as ReportPhotoSection
+                    let possibleImageUrl;
+                    if (photo.image_url || photo.url) {
+                      // Uploaded photo with server URL
+                      possibleImageUrl = photo.image_url || photo.url;
+                    } else if (photo.preview) {
+                      // Local photo with blob preview URL
+                      possibleImageUrl = photo.preview;
+                    } else if (photo.file && photo.file instanceof File) {
+                      // Local photo with File object - create object URL
+                      possibleImageUrl = URL.createObjectURL(photo.file);
+                    } else {
+                      // Fallback to any other URL property
+                      possibleImageUrl = photo.file || photo.image;
+                    }
+                    
+                    const imageSrc = formatPhotoUrl(possibleImageUrl);
+                    
+                    return (
+                      <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 shadow-sm p-4 flex flex-col items-center w-full">
+                        {imageSrc ? (
+                          <img src={imageSrc} alt={photo.comment || photo.description || `Photo ${idx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
+                        ) : (
+                          <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
+                        )}
+                        {photo.location && (
+                          <div className="text-xs text-gray-600 mb-1 w-full"><b>Location:</b> {photo.location}</div>
+                        )}
+                        {(photo.comment || photo.description) && (photo.comment || photo.description).trim() !== '' && (
+                          <div className="text-xs text-gray-700 w-full"><b>Comments:</b> {photo.comment || photo.description}</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Footer always at the bottom */}
+          <div className="w-full border-t-4 border-blue-500 bg-blue-900 text-white py-2 px-8 print:rounded-none rounded-b-xl text-sm flex justify-between items-center mt-auto no-print-footer">
+            <span className="flex-1 text-center">&copy; {new Date().getFullYear()} WildStone Solutions, LLC</span>
+            <span className="print-footer-page">Page 1 of 1</span>
+          </div>
+          {/* Print-only sticky footer */}
+          <div className="print-footer hidden print:flex w-full border-t-4 border-blue-500 bg-blue-900 text-white py-2 px-8 text-sm items-center" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999 }}>
+            <div className="flex-1 text-center">&copy; {new Date().getFullYear()} WildStone Solutions, LLC</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+} 

@@ -84,6 +84,16 @@ const UtilityReports = () => {
             }}
             reportType="pay_item"
           />
+          <ReportCard
+            title="Daily Utility Report 2"
+            description="Complete the new daily utility report with expanded fields and pay item logs."
+            path="/utility/reports/daily2/new"
+            secondaryAction={{
+              text: "View Draft Reports",
+              path: "/utility/reports/daily2/drafts"
+            }}
+            reportType="daily_utility_2"
+          />
         </div>
       </div>
       <footer className="w-full text-center py-4 text-white/80 text-sm relative z-20">

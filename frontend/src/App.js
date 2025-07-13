@@ -74,6 +74,10 @@ import PayItemReportForm from './components/templates/disciplines/utility/PayIte
 import PayItemReportDrafts from './components/disciplines/utility/daily/PayItemReportDrafts';
 import PayItemReportReview from './components/disciplines/utility/daily/PayItemReportReview';
 import PayItemReportPrint from './components/disciplines/utility/daily/PayItemReportPrint';
+import DailyUtilityReport2Form from './components/templates/disciplines/utility/DailyUtilityReport2Form';
+import DailyUtilityReport2Drafts from './components/disciplines/utility/daily/DailyUtilityReport2Drafts';
+import DailyUtilityReport2Review from './components/disciplines/utility/daily/DailyUtilityReport2Review';
+import DailyUtilityReport2Print from './components/disciplines/utility/daily/DailyUtilityReport2Print';
 
 const theme = createTheme({
   palette: {
@@ -632,6 +636,46 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <DailyUtilityReportPrint />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/utility/reports/daily2/new"
+            element={
+              <PrivateRoute>
+                <DailyUtilityReport2Form />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/utility/reports/daily2/edit/:id"
+            element={
+              <PrivateRoute>
+                <DailyUtilityReport2Form />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/utility/reports/daily2/review/:id"
+            element={
+              <PrivateRoute>
+                <DailyUtilityReport2Review />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/utility/reports/daily2/print/:id"
+            element={
+              <PrivateRoute>
+                <DailyUtilityReport2Print />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/utility/reports/daily2/drafts"
+            element={
+              <PrivateRoute>
+                <DailyUtilityReport2Drafts />
               </PrivateRoute>
             }
           />
