@@ -23,11 +23,30 @@ const PayItemReportDrafts = () => {
       const allDrafts = await getAllDrafts('pay_item');
       console.log('All drafts loaded:', allDrafts);
       
-      const processedDrafts = allDrafts.map(draft => ({
-        ...draft,
-        date: new Date(draft.header?.date || Date.now()).toLocaleDateString(),
-        lastModified: draft.lastModified || draft.updated_at || null,
-      }));
+      const processedDrafts = allDrafts.map(draft => {
+        // Handle different data structures from backend vs local storage
+        let draftData = draft;
+        
+        // If draft has a 'data' property (backend structure), use that
+        if (draft.data) {
+          draftData = draft.data;
+        }
+        
+        // Extract header information with fallbacks
+        const header = draftData.header || {};
+        const project = header.project || draftData.project || '-';
+        const inspector = header.inspector || draftData.inspector || '-';
+        const date = header.date || draftData.date || null;
+        
+        return {
+          ...draft,
+          header: header,
+          project,
+          inspector,
+          date: date ? new Date(date).toLocaleDateString() : '-',
+          lastModified: draft.lastModified || draft.updated_at || null,
+        };
+      });
       
       // Sort by lastModified desc
       processedDrafts.sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));

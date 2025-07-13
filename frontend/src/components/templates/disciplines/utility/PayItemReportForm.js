@@ -7,6 +7,7 @@ import BaseFieldRenderer from '../../base/BaseFieldRenderer';
 import BaseSignatureSection from '../../base/BaseSignatureSection';
 import BaseDialogs from '../../base/BaseDialogs';
 import BaseSnackbar from '../../base/BaseSnackbar';
+import ReportPhotoSection from '../../../common/ReportPhotoSection';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 // Default items for pay item reports
@@ -125,6 +126,7 @@ const PayItemReportForm = () => {
   const [preparedBy, setPreparedBy] = useState('');
   const [signature, setSignature] = useState('');
   const [sigDate, setSigDate] = useState('');
+  const [photos, setPhotos] = useState([]);
 
   // Load existing draft if editing
   useEffect(() => {
@@ -139,6 +141,7 @@ const PayItemReportForm = () => {
             setPreparedBy(loadedDraft.preparedBy || preparedBy);
             setSignature(loadedDraft.signature || signature);
             setSigDate(loadedDraft.sigDate || sigDate);
+            setPhotos(loadedDraft.photos || []);
           }
         } catch (error) {
           console.error('Error loading draft:', error);
@@ -190,12 +193,14 @@ const PayItemReportForm = () => {
       setLoading(true);
       
       const dataToSave = {
+        id: draftId, // Include the current draft ID if it exists
         header,
         items,
         comments,
         preparedBy,
         signature,
         sigDate,
+        photos,
         reportType: 'pay_item'
       };
 
@@ -249,7 +254,8 @@ const PayItemReportForm = () => {
         comments, 
         preparedBy, 
         signature, 
-        sigDate 
+        sigDate,
+        photos
       }
     });
   };
@@ -468,6 +474,14 @@ const PayItemReportForm = () => {
               placeholder="Enter any additional comments..."
             />
           </div>
+
+          {/* Photos Section */}
+          <ReportPhotoSection
+            photos={photos}
+            setPhotos={setPhotos}
+            title="Project Photos"
+            description="Upload photos related to the pay items and project progress"
+          />
 
           {/* Signature Section */}
           <BaseSignatureSection

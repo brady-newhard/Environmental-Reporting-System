@@ -57,7 +57,7 @@ const ReportCard = ({ title, description, path, secondaryAction, reportType }) =
 const UtilityReports = () => {
   return (
     <div className="relative min-h-[calc(100vh-64px)] overflow-auto">
-      <div className="absolute inset-0 bg-[url('/pipeline-bg.jpg')] bg-cover bg-center z-0" />
+              <div className="absolute inset-0 bg-[url('/static/pipeline-bg.jpg')] bg-cover bg-center z-0" />
       <div className="absolute inset-0 bg-black/60 z-10" />
       <div className="relative z-20 p-4 sm:p-6">
         <div className="mb-6 mt-8">

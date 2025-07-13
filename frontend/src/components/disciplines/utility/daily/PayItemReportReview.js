@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { PrinterIcon } from '@heroicons/react/24/outline';
 import PageHeader from '../../../../components/common/PageHeader';
-import { loadDraft } from '../../../../utils/draftUtils';
+import { loadDraft, saveDraft } from '../../../../utils/draftUtils';
 
 const PayItemReportReview = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // Smart back button path
   const backPath = state?.from || '/utility/reports/pay-item/drafts';
@@ -46,12 +48,33 @@ const PayItemReportReview = () => {
     );
   }
 
-  const { header, items, comments, preparedBy, signature, sigDate } = draft;
+  const { header, items, comments, preparedBy, signature, sigDate, photos } = draft;
 
   // Filter out items with no data
   const filledItems = items.filter(item => 
     item.startSta || item.endSta || item.dailyQty || item.comments || item.unitQty
   );
+
+  const handlePrint = async () => {
+    setIsPrinting(true);
+    try {
+      // Save the draft before navigation
+      await saveDraft('pay_item', draft);
+      console.log('Draft saved before print navigation');
+      
+      navigate(`/utility/reports/pay-item/print/${id}`, {
+        state: { reportData: draft }
+      });
+    } catch (error) {
+      console.error('Error saving draft before print:', error);
+      // Navigate anyway with original draft
+      navigate(`/utility/reports/pay-item/print/${id}`, {
+        state: { reportData: draft }
+      });
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   return (
     <div className="bg-black min-h-screen pt-2">
@@ -130,6 +153,31 @@ const PayItemReportReview = () => {
             </div>
           )}
 
+          {/* Photos */}
+          {photos && photos.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-3">Project Photos</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {photos.map((photo, index) => (
+                  <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                    <img 
+                      src={photo.preview || photo.url} 
+                      alt={`Project photo ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg"
+                      onError={(e) => {
+                        e.target.src = '/static/placeholder-image.png';
+                        e.target.alt = 'Image not available';
+                      }}
+                    />
+                    {photo.caption && (
+                      <p className="text-sm text-gray-600 mt-2">{photo.caption}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Signature */}
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-3">Inspector Signature</h2>
@@ -150,6 +198,18 @@ const PayItemReportReview = () => {
                 <span className="font-medium">Date:</span> {sigDate || '-'}
               </div>
             </div>
+          </div>
+
+          {/* Print Button */}
+          <div className="flex justify-center mt-8">
+            <button
+              onClick={handlePrint}
+              disabled={isPrinting}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <PrinterIcon className="h-5 w-5 mr-2" />
+              {isPrinting ? 'Preparing...' : 'Print Report'}
+            </button>
           </div>
         </div>
       </div>

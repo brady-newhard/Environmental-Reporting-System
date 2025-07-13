@@ -73,6 +73,7 @@ import DailyUtilityReportPrint from './components/disciplines/utility/daily/Dail
 import PayItemReportForm from './components/templates/disciplines/utility/PayItemReportForm';
 import PayItemReportDrafts from './components/disciplines/utility/daily/PayItemReportDrafts';
 import PayItemReportReview from './components/disciplines/utility/daily/PayItemReportReview';
+import PayItemReportPrint from './components/disciplines/utility/daily/PayItemReportPrint';
 
 const theme = createTheme({
   palette: {
@@ -665,6 +666,14 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <PayItemReportReview />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/utility/reports/pay-item/print/:id"
+            element={
+              <PrivateRoute>
+                <PayItemReportPrint />
               </PrivateRoute>
             }
           />

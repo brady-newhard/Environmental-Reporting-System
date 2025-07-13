@@ -67,7 +67,7 @@ const SignIn = () => {
     <div 
       className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative"
       style={{
-        backgroundImage: 'url(/pipeline-bg.jpg)',
+        backgroundImage: 'url(/static/pipeline-bg.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
