@@ -340,7 +340,7 @@ const DailyUtilityReport2Form = () => {
 
   return (
     <div className="bg-black min-h-screen pt-2">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6">
         <PageHeader
           title="Daily Utility Report 2"
           backPath="/utility/reports"
@@ -350,7 +350,7 @@ const DailyUtilityReport2Form = () => {
           {/* Header Section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Section</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.section} onChange={e => setHeader({ ...header, section: e.target.value })} />
@@ -373,7 +373,7 @@ const DailyUtilityReport2Form = () => {
           {/* Contractor Headcount Section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Contractor Headcount</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {Object.keys(headcounts).map(key => (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-600 mb-1">{key.charAt(0).toUpperCase() + key.slice(1)}</label>
@@ -386,7 +386,7 @@ const DailyUtilityReport2Form = () => {
           {/* Subcontractors & Inspection Personnel */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Subcontractors</h2>
-            <div className="grid grid-cols-2 gap-4 mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Company</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={subcontractors[0]?.company || ''} onChange={e => setSubcontractors([{ ...subcontractors[0], company: e.target.value }])} />
@@ -397,7 +397,7 @@ const DailyUtilityReport2Form = () => {
               </div>
             </div>
             <h2 className="text-xl font-bold text-gray-800 mb-4 mt-6">Inspection Personnel</h2>
-            <div className="grid grid-cols-2 gap-4 mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Company</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={inspectionPersonnel[0]?.company || ''} onChange={e => setInspectionPersonnel([{ ...inspectionPersonnel[0], company: e.target.value }])} />
@@ -412,7 +412,7 @@ const DailyUtilityReport2Form = () => {
           {/* Craft/Environmental/Survey/Land */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Other Info</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Craft</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={craft} onChange={e => setCraft(e.target.value)} />
@@ -435,7 +435,7 @@ const DailyUtilityReport2Form = () => {
           {/* Weather & Working Conditions */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Weather & Working Conditions</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Morning Temp</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={morningTemp} onChange={e => setMorningTemp(e.target.value)} />
@@ -457,7 +457,7 @@ const DailyUtilityReport2Form = () => {
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={precipitation} onChange={e => setPrecipitation(e.target.value)} />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Did ABNORMAL working conditions exist that adversely affected progress?</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={abnormalConditions} onChange={e => setAbnormalConditions(e.target.value)} />
@@ -469,54 +469,56 @@ const DailyUtilityReport2Form = () => {
             </div>
           </div>
 
-          {/* Progress/Activity Table */}
+          {/* Progress/Activity Section - Mobile Responsive Cards */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Progress / Activity</h2>
-            <div className="">
-              <table className="min-w-full divide-y divide-gray-200" style={{ tableLayout: 'fixed', width: '100%' }}>
+            
+            {/* Desktop Table View */}
+            <div className="hidden lg:block">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal break-words" style={{ width: '220px' }}>Activity</th>
-                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '90px' }}>From</th>
-                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '90px' }}>To</th>
-                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '90px' }}>Feet Today</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal break-words" style={{ width: '100%' }}>Comments</th>
-                    <th style={{ width: '48px' }}></th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
+                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From</th>
+                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To</th>
+                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feet Today</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {progressRows.map((row, idx) => (
                     <tr key={idx}>
-                      <td className="px-2 py-2 whitespace-normal break-words text-sm text-gray-900 w-48 align-top">{row.activity}</td>
-                      <td className="px-1 py-2 align-top">
+                      <td className="px-2 py-2 text-sm text-gray-900">{row.activity}</td>
+                      <td className="px-1 py-2">
                         <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={row.from} onChange={e => {
                           const newRows = [...progressRows];
                           newRows[idx].from = e.target.value;
                           setProgressRows(newRows);
                         }} />
                       </td>
-                      <td className="px-1 py-2 align-top">
+                      <td className="px-1 py-2">
                         <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={row.to} onChange={e => {
                           const newRows = [...progressRows];
                           newRows[idx].to = e.target.value;
                           setProgressRows(newRows);
                         }} />
                       </td>
-                      <td className="px-1 py-2 align-top">
+                      <td className="px-1 py-2">
                         <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={row.feet} onChange={e => {
                           const newRows = [...progressRows];
                           newRows[idx].feet = e.target.value;
                           setProgressRows(newRows);
                         }} />
                       </td>
-                      <td className="px-2 py-2 whitespace-normal break-words align-top">
+                      <td className="px-2 py-2">
                         <textarea className="w-full border border-gray-300 rounded px-2 py-1 text-sm min-h-[2.5rem] resize-y" rows={2} value={row.comments} onChange={e => {
                           const newRows = [...progressRows];
                           newRows[idx].comments = e.target.value;
                           setProgressRows(newRows);
                         }} />
                       </td>
-                      <td className="px-1 py-2 align-top flex gap-1" style={{ width: '48px', textAlign: 'center' }}>
+                      <td className="px-1 py-2 flex gap-1">
                         <button type="button" onClick={() => {
                           const newRows = [...progressRows];
                           newRows.splice(idx + 1, 0, {
@@ -530,7 +532,6 @@ const DailyUtilityReport2Form = () => {
                         }} className="text-green-600 hover:text-green-800 p-1" title="Add another entry for this activity">
                           <PlusIcon className="h-4 w-4" />
                         </button>
-                        {/* Show trashcan only if there is more than one row for this activity */}
                         {progressRows.filter(r => r.activity === row.activity).length > 1 && (
                           <button type="button" onClick={() => {
                             const newRows = progressRows.filter((_, i) => i !== idx);
@@ -545,58 +546,129 @@ const DailyUtilityReport2Form = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-4">
+              {progressRows.map((row, idx) => (
+                <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Activity</label>
+                    <div className="text-sm text-gray-900 font-medium">{row.activity}</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+                      <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={row.from} onChange={e => {
+                        const newRows = [...progressRows];
+                        newRows[idx].from = e.target.value;
+                        setProgressRows(newRows);
+                      }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">To</label>
+                      <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={row.to} onChange={e => {
+                        const newRows = [...progressRows];
+                        newRows[idx].to = e.target.value;
+                        setProgressRows(newRows);
+                      }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Feet Today</label>
+                      <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={row.feet} onChange={e => {
+                        const newRows = [...progressRows];
+                        newRows[idx].feet = e.target.value;
+                        setProgressRows(newRows);
+                      }} />
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Comments</label>
+                    <textarea className="w-full border border-gray-300 rounded px-2 py-1 text-sm min-h-[2.5rem] resize-y" rows={2} value={row.comments} onChange={e => {
+                      const newRows = [...progressRows];
+                      newRows[idx].comments = e.target.value;
+                      setProgressRows(newRows);
+                    }} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => {
+                      const newRows = [...progressRows];
+                      newRows.splice(idx + 1, 0, {
+                        activity: row.activity,
+                        from: '',
+                        to: '',
+                        feet: '',
+                        comments: ''
+                      });
+                      setProgressRows(newRows);
+                    }} className="text-green-600 hover:text-green-800 p-1" title="Add another entry for this activity">
+                      <PlusIcon className="h-4 w-4" />
+                    </button>
+                    {progressRows.filter(r => r.activity === row.activity).length > 1 && (
+                      <button type="button" onClick={() => {
+                        const newRows = progressRows.filter((_, i) => i !== idx);
+                        setProgressRows(newRows);
+                      }} className="text-red-600 hover:text-red-800 p-1" title="Remove this entry">
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Pay Item Logs Table */}
+          {/* Pay Item Logs Section - Mobile Responsive Cards */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Pay Item Logs</h2>
-            <div className="">
-              <table className="min-w-full divide-y divide-gray-200" style={{ tableLayout: 'fixed', width: '100%' }}>
+            
+            {/* Desktop Table View */}
+            <div className="hidden lg:block">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal break-words" style={{ width: '220px' }}>Item</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '60px' }}>UOM</th>
-                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '90px' }}>From</th>
-                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '90px' }}>To</th>
-                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '90px' }}>Quantity Today</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-normal break-words" style={{ width: '100%' }}>Comments</th>
-                    <th style={{ width: '48px' }}></th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM</th>
+                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From</th>
+                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To</th>
+                    <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Today</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {payItems.map((item, idx) => (
                     <tr key={idx}>
-                      <td className="px-2 py-2 whitespace-normal break-words text-sm text-gray-900 w-48 align-top">{item.item}</td>
-                      <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900 w-12 align-top">{item.uom}</td>
-                      <td className="px-1 py-2 align-top">
+                      <td className="px-2 py-2 text-sm text-gray-900">{item.item}</td>
+                      <td className="px-2 py-2 text-sm text-gray-900">{item.uom}</td>
+                      <td className="px-1 py-2">
                         <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={item.from} onChange={e => {
                           const newItems = [...payItems];
                           newItems[idx].from = e.target.value;
                           setPayItems(newItems);
                         }} />
                       </td>
-                      <td className="px-1 py-2 align-top">
+                      <td className="px-1 py-2">
                         <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={item.to} onChange={e => {
                           const newItems = [...payItems];
                           newItems[idx].to = e.target.value;
                           setPayItems(newItems);
                         }} />
                       </td>
-                      <td className="px-1 py-2 align-top">
+                      <td className="px-1 py-2">
                         <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={item.qty} onChange={e => {
                           const newItems = [...payItems];
                           newItems[idx].qty = e.target.value;
                           setPayItems(newItems);
                         }} />
                       </td>
-                      <td className="px-2 py-2 whitespace-normal break-words align-top">
+                      <td className="px-2 py-2">
                         <textarea className="w-full border border-gray-300 rounded px-2 py-1 text-sm min-h-[2.5rem] resize-y" rows={2} value={item.comments} onChange={e => {
                           const newItems = [...payItems];
                           newItems[idx].comments = e.target.value;
                           setPayItems(newItems);
                         }} />
                       </td>
-                      <td className="px-1 py-2 align-top flex gap-1" style={{ width: '48px', textAlign: 'center' }}>
+                      <td className="px-1 py-2 flex gap-1">
                         <button type="button" onClick={() => {
                           const newItems = [...payItems];
                           newItems.splice(idx + 1, 0, { ...item, from: '', to: '', qty: '', comments: '' });
@@ -604,7 +676,6 @@ const DailyUtilityReport2Form = () => {
                         }} className="text-green-600 hover:text-green-800 p-1" title="Add another entry for this pay item">
                           <PlusIcon className="h-4 w-4" />
                         </button>
-                        {/* Show trashcan only if there is more than one row for this pay item */}
                         {payItems.filter((i) => i.item === item.item).length > 1 && (
                           <button type="button" onClick={() => {
                             const newItems = payItems.filter((_, i) => i !== idx);
@@ -619,6 +690,73 @@ const DailyUtilityReport2Form = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-4">
+              {payItems.map((item, idx) => (
+                <div key={idx} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Item</label>
+                    <div className="text-sm text-gray-900 font-medium">{item.item}</div>
+                  </div>
+                  <div className="grid grid-cols-4 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+                      <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={item.from} onChange={e => {
+                        const newItems = [...payItems];
+                        newItems[idx].from = e.target.value;
+                        setPayItems(newItems);
+                      }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">To</label>
+                      <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={item.to} onChange={e => {
+                        const newItems = [...payItems];
+                        newItems[idx].to = e.target.value;
+                        setPayItems(newItems);
+                      }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Qty Today</label>
+                      <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={item.qty} onChange={e => {
+                        const newItems = [...payItems];
+                        newItems[idx].qty = e.target.value;
+                        setPayItems(newItems);
+                      }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">UOM</label>
+                      <div className="text-sm text-gray-900 bg-gray-100 px-2 py-1 rounded border">{item.uom}</div>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Comments</label>
+                    <textarea className="w-full border border-gray-300 rounded px-2 py-1 text-sm min-h-[2.5rem] resize-y" rows={2} value={item.comments} onChange={e => {
+                      const newItems = [...payItems];
+                      newItems[idx].comments = e.target.value;
+                      setPayItems(newItems);
+                    }} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => {
+                      const newItems = [...payItems];
+                      newItems.splice(idx + 1, 0, { ...item, from: '', to: '', qty: '', comments: '' });
+                      setPayItems(newItems);
+                    }} className="text-green-600 hover:text-green-800 p-1" title="Add another entry for this pay item">
+                      <PlusIcon className="h-4 w-4" />
+                    </button>
+                    {payItems.filter((i) => i.item === item.item).length > 1 && (
+                      <button type="button" onClick={() => {
+                        const newItems = payItems.filter((_, i) => i !== idx);
+                        setPayItems(newItems);
+                      }} className="text-red-600 hover:text-red-800 p-1" title="Remove this entry">
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Remarks Section */}
@@ -630,7 +768,7 @@ const DailyUtilityReport2Form = () => {
           {/* Equipment & Crews Section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Equipment & Crews</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Equipment</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={equipment[0]?.name || ''} onChange={e => setEquipment([{ ...equipment[0], name: e.target.value }])} placeholder="Equipment name" />
