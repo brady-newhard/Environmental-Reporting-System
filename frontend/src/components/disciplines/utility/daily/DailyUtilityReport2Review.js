@@ -175,7 +175,6 @@ const DailyUtilityReport2Review = () => {
     land = '',
     morningTemp = '',
     midTemp = '',
-    wind = '',
     weather = '',
     precipitation = '',
     abnormalConditions = '',
@@ -184,6 +183,7 @@ const DailyUtilityReport2Review = () => {
     payItems = [],
     remarks = '',
     equipment = [],
+    trucking = [],
     crews = [],
     preparedBy = '',
     signature = '',
@@ -223,23 +223,23 @@ const DailyUtilityReport2Review = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Section</label>
-                <p className="text-sm text-gray-900">{header.section || '—'}</p>
+                <p className="text-sm text-gray-900 text-center">{header.section || '—'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Spread</label>
-                <p className="text-sm text-gray-900">{header.spread || '—'}</p>
+                <p className="text-sm text-gray-900 text-center">{header.spread || '—'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Contractor</label>
-                <p className="text-sm text-gray-900">{header.contractor || '—'}</p>
+                <p className="text-sm text-gray-900 text-center">{header.contractor || '—'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Inspector</label>
-                <p className="text-sm text-gray-900">{header.inspector || '—'}</p>
+                <p className="text-sm text-gray-900 text-center">{header.inspector || '—'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Work Date</label>
-                <p className="text-sm text-gray-900">{header.workDate || '—'}</p>
+                <p className="text-sm text-gray-900 text-center">{header.workDate || '—'}</p>
               </div>
             </div>
           </div>
@@ -350,10 +350,7 @@ const DailyUtilityReport2Review = () => {
                 <label className="block text-sm font-medium text-gray-600 mb-1">Mid Temp</label>
                 <p className="text-sm text-gray-900">{midTemp || '—'}</p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Wind</label>
-                <p className="text-sm text-gray-900">{wind || '—'}</p>
-              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Weather</label>
                 <p className="text-sm text-gray-900">{weather || '—'}</p>
@@ -383,21 +380,21 @@ const DailyUtilityReport2Review = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity</th>
-                      <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From</th>
-                      <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To</th>
-                      <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feet Today</th>
-                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Activity</th>
+                      <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/10">From</th>
+                      <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/10">To</th>
+                      <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/10">Feet Today</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2">Comments</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filledProgressRows.map((row, idx) => (
                       <tr key={idx}>
-                        <td className="px-2 py-2 text-sm text-gray-900">{row.activity}</td>
-                        <td className="px-1 py-2 text-sm text-gray-900">{row.from || '—'}</td>
-                        <td className="px-1 py-2 text-sm text-gray-900">{row.to || '—'}</td>
-                        <td className="px-1 py-2 text-sm text-gray-900">{row.feet || '—'}</td>
-                        <td className="px-2 py-2 text-sm text-gray-900">{row.comments || '—'}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{row.activity}</td>
+                        <td className="px-1 py-2 text-sm text-gray-900 text-center">{row.from || '—'}</td>
+                        <td className="px-1 py-2 text-sm text-gray-900 text-center">{row.to || '—'}</td>
+                        <td className="px-1 py-2 text-sm text-gray-900 text-center">{row.feet || '—'}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{row.comments || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -414,23 +411,98 @@ const DailyUtilityReport2Review = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UOM</th>
-                      <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From</th>
-                      <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To</th>
-                      <th className="px-1 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Today</th>
-                      <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Item</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">UOM</th>
+                      <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">From</th>
+                      <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">To</th>
+                      <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Quantity Today</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Comments</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filledPayItems.map((item, idx) => (
                       <tr key={idx}>
-                        <td className="px-2 py-2 text-sm text-gray-900">{item.item}</td>
-                        <td className="px-2 py-2 text-sm text-gray-900">{item.uom}</td>
-                        <td className="px-1 py-2 text-sm text-gray-900">{item.from || '—'}</td>
-                        <td className="px-1 py-2 text-sm text-gray-900">{item.to || '—'}</td>
-                        <td className="px-1 py-2 text-sm text-gray-900">{item.qty || '—'}</td>
-                        <td className="px-2 py-2 text-sm text-gray-900">{item.comments || '—'}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.item}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.uom}</td>
+                        <td className="px-1 py-2 text-sm text-gray-900 text-center">{item.from || '—'}</td>
+                        <td className="px-1 py-2 text-sm text-gray-900 text-center">{item.to || '—'}</td>
+                        <td className="px-1 py-2 text-sm text-gray-900 text-center">{item.qty || '—'}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.comments || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Equipment */}
+          {equipment.length > 0 && equipment.some(e => e.type) && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Equipment</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {equipment.filter(e => e.type).map((item, idx) => (
+                      <tr key={idx}>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.isCustom ? item.customType : item.type}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.qty || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Trucking */}
+          {trucking.length > 0 && trucking.some(t => t.type) && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Trucking</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {trucking.filter(t => t.type).map((item, idx) => (
+                      <tr key={idx}>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.isCustom ? item.customType : item.type}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.qty || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Crews */}
+          {crews.length > 0 && crews.some(c => c.type) && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Crews</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {crews.filter(c => c.type).map((item, idx) => (
+                      <tr key={idx}>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.isCustom ? item.customType : item.type}</td>
+                        <td className="px-2 py-2 text-sm text-gray-900 text-center">{item.qty || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -446,39 +518,6 @@ const DailyUtilityReport2Review = () => {
               <p className="text-sm text-gray-900 whitespace-pre-wrap">{remarks}</p>
             </div>
           )}
-
-          {/* Equipment & Crews */}
-          {(equipment.length > 0 && equipment[0]?.name) || (crews.length > 0 && crews[0]?.name) ? (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Equipment & Crews</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {equipment.length > 0 && equipment[0]?.name && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Equipment</label>
-                      <p className="text-sm text-gray-900">{equipment[0].name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
-                      <p className="text-sm text-gray-900">{equipment[0].qty}</p>
-                    </div>
-                  </>
-                )}
-                {crews.length > 0 && crews[0]?.name && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Crew</label>
-                      <p className="text-sm text-gray-900">{crews[0].name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
-                      <p className="text-sm text-gray-900">{crews[0].qty}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : null}
 
           {/* Photos */}
           {photos && photos.length > 0 && (

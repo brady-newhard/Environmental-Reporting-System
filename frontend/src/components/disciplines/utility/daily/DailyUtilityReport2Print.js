@@ -89,7 +89,6 @@ export default function DailyUtilityReport2Print() {
     land = '',
     morningTemp = '',
     midTemp = '',
-    wind = '',
     weather = '',
     precipitation = '',
     abnormalConditions = '',
@@ -98,6 +97,7 @@ export default function DailyUtilityReport2Print() {
     payItems = [],
     remarks = '',
     equipment = [],
+    trucking = [],
     crews = [],
     preparedBy = '',
     signature = '',
@@ -133,10 +133,7 @@ export default function DailyUtilityReport2Print() {
       { label: 'Section', value: header.section },
       { label: 'Spread', value: header.spread },
       { label: 'Contractor', value: header.contractor },
-    ],
-    [
       { label: 'Inspector', value: header.inspector },
-      { label: 'Work Date', value: formatDate(header.workDate) },
     ],
   ];
 
@@ -202,20 +199,18 @@ export default function DailyUtilityReport2Print() {
               </div>
               <table className="w-full mb-6 text-sm">
                 <tbody>
-                  {projectInfoRows.map((row, rowIdx) => (
-                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                      {row.map((item, colIdx) => (
-                        item ? (
-                          <React.Fragment key={colIdx}>
-                            <td className="font-semibold py-1 pr-4 w-48 text-gray-700">{item.label}</td>
-                            <td className="py-1 text-gray-900">{item.value || '—'}</td>
-                          </React.Fragment>
-                        ) : (
-                          <td key={colIdx} colSpan={2}></td>
-                        )
-                      ))}
-                    </tr>
-                  ))}
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Section:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.section || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Spread:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.spread || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Contractor:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.contractor || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Inspector:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.inspector || '—'}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -234,24 +229,27 @@ export default function DailyUtilityReport2Print() {
                     {/* Line 1: Office and Foreman */}
                     <tr className="bg-gray-50 print-bg-gray-100">
                       <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Office:</td>
-                      <td className="py-1 text-gray-900">{headcounts.office || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.office || '—'}</td>
                       <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Foreman Name:</td>
-                      <td className="py-1 text-gray-900">{headcounts.foreman || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.foreman || '—'}</td>
                     </tr>
-                    {/* Line 2: Remaining fields */}
+                    {/* Line 2: Laborers, Operators, Teamsters */}
                     <tr>
                       <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Laborers:</td>
-                      <td className="py-1 text-gray-900">{headcounts.laborers || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.laborers || '—'}</td>
                       <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Operators:</td>
-                      <td className="py-1 text-gray-900">{headcounts.operators || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.operators || '—'}</td>
                       <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Teamsters:</td>
-                      <td className="py-1 text-gray-900">{headcounts.teamsters || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.teamsters || '—'}</td>
+                    </tr>
+                    {/* Line 3: Welders, Helpers, Other */}
+                    <tr className="bg-gray-50 print-bg-gray-100">
                       <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Welders:</td>
-                      <td className="py-1 text-gray-900">{headcounts.welders || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.welders || '—'}</td>
                       <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Helpers:</td>
-                      <td className="py-1 text-gray-900">{headcounts.helpers || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.helpers || '—'}</td>
                       <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Other:</td>
-                      <td className="py-1 text-gray-900">{headcounts.other || '—'}</td>
+                      <td className="py-1 text-gray-900 text-center">{headcounts.other || '—'}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -304,38 +302,43 @@ export default function DailyUtilityReport2Print() {
               </table>
             </div>
 
-            {/* Weather & Working Conditions */}
+            {/* Weather */}
             <div className="print-section">
               <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
-                <h2 className="text-xl font-bold text-blue-800">Weather & Working Conditions</h2>
+                <h2 className="text-xl font-bold text-blue-800">Weather</h2>
               </div>
               <table className="w-full mb-6 text-sm">
                 <tbody>
                   <tr className="bg-gray-50 print-bg-gray-100">
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Morning Temp:</td>
-                    <td className="py-1 text-gray-900">{morningTemp || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{morningTemp || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Mid Temp:</td>
-                    <td className="py-1 text-gray-900">{midTemp || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{midTemp || '—'}</td>
                   </tr>
                   <tr>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Wind:</td>
-                    <td className="py-1 text-gray-900">{wind || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Weather:</td>
-                    <td className="py-1 text-gray-900">{weather || '—'}</td>
-                  </tr>
-                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="py-1 text-gray-900 text-center">{weather || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Precipitation:</td>
-                    <td className="py-1 text-gray-900">{precipitation || '—'}</td>
-                    <td></td>
-                    <td></td>
+                    <td className="py-1 text-gray-900 text-center">{precipitation || '—'}</td>
                   </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Working Conditions Questions */}
+            <div className="print-section">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Working Conditions</h2>
+              </div>
+              <table className="w-full mb-6 text-sm">
+                <tbody>
                   <tr>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Did ABNORMAL working conditions exist that adversely affected progress?</td>
-                    <td className="py-1 text-gray-900" colSpan="3">{abnormalConditions || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700 whitespace-nowrap">Did ABNORMAL working conditions exist that adversely affected progress?</td>
+                    <td className="py-1 text-gray-900 text-center">{abnormalConditions || '—'}</td>
                   </tr>
                   <tr className="bg-gray-50 print-bg-gray-100">
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Any Crews affected by adverse weather, right-of-way or other working conditions?</td>
-                    <td className="py-1 text-gray-900" colSpan="3">{crewAdverse || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700 whitespace-nowrap">Any Crews affected by adverse weather, right-of-way or other working conditions?</td>
+                    <td className="py-1 text-gray-900 text-center">{crewAdverse || '—'}</td>
                   </tr>
                 </tbody>
               </table>
@@ -351,21 +354,21 @@ export default function DailyUtilityReport2Print() {
                   <table className="w-full text-xs print:text-xs">
                     <thead>
                       <tr className="bg-blue-50">
-                        <th className="font-bold py-1 px-1 text-left text-xs">Activity</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">From</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">To</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">Feet Today</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">Comments</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/5">Activity</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/10">From</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/10">To</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/10">Feet Today</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/2">Comments</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filledProgressRows.map((row, rowIdx) => (
                         <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                          <td className="py-1 px-1 text-xs">{row.activity}</td>
-                          <td className="py-1 px-1 text-xs">{row.from || '—'}</td>
-                          <td className="py-1 px-1 text-xs">{row.to || '—'}</td>
-                          <td className="py-1 px-1 text-xs">{row.feet || '—'}</td>
-                          <td className="py-1 px-1 text-xs" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>{row.comments || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center">{row.activity}</td>
+                          <td className="py-1 px-1 text-xs text-center">{row.from || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center">{row.to || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center">{row.feet || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>{row.comments || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -384,28 +387,103 @@ export default function DailyUtilityReport2Print() {
                   <table className="w-full text-xs print:text-xs">
                     <thead>
                       <tr className="bg-blue-50">
-                        <th className="font-bold py-1 px-1 text-left text-xs">Item</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">UOM</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">From</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">To</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">Quantity Today</th>
-                        <th className="font-bold py-1 px-1 text-left text-xs">Comments</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/6">Item</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/12">UOM</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/12">From</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/12">To</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/12">Quantity Today</th>
+                        <th className="font-bold py-1 px-1 text-center text-xs w-1/3">Comments</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filledPayItems.map((item, rowIdx) => (
                         <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                          <td className="py-1 px-1 text-xs">{item.item}</td>
-                          <td className="py-1 px-1 text-xs">{item.uom}</td>
-                          <td className="py-1 px-1 text-xs">{item.from || '—'}</td>
-                          <td className="py-1 px-1 text-xs">{item.to || '—'}</td>
-                          <td className="py-1 px-1 text-xs">{item.qty || '—'}</td>
-                          <td className="py-1 px-1 text-xs" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>{item.comments || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center">{item.item}</td>
+                          <td className="py-1 px-1 text-xs text-center">{item.uom}</td>
+                          <td className="py-1 px-1 text-xs text-center">{item.from || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center">{item.to || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center">{item.qty || '—'}</td>
+                          <td className="py-1 px-1 text-xs text-center" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>{item.comments || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+
+            {/* Equipment */}
+            {equipment.length > 0 && equipment.some(e => e.type) && (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Equipment</h2>
+                </div>
+                <table className="w-full mb-6 text-sm">
+                  <thead>
+                    <tr className="bg-blue-50">
+                      <th className="font-bold py-1 px-2 text-center">Type</th>
+                      <th className="font-bold py-1 px-2 text-center">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {equipment.filter(e => e.type).map((item, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                        <td className="py-1 px-2 text-center">{item.isCustom ? item.customType : item.type}</td>
+                        <td className="py-1 px-2 text-center">{item.qty || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Trucking */}
+            {trucking.length > 0 && trucking.some(t => t.type) && (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Trucking</h2>
+                </div>
+                <table className="w-full mb-6 text-sm">
+                  <thead>
+                    <tr className="bg-blue-50">
+                      <th className="font-bold py-1 px-2 text-center">Type</th>
+                      <th className="font-bold py-1 px-2 text-center">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trucking.filter(t => t.type).map((item, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                        <td className="py-1 px-2 text-center">{item.isCustom ? item.customType : item.type}</td>
+                        <td className="py-1 px-2 text-center">{item.qty || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Crews */}
+            {crews.length > 0 && crews.some(c => c.type) && (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Crews</h2>
+                </div>
+                <table className="w-full mb-6 text-sm">
+                  <thead>
+                    <tr className="bg-blue-50">
+                      <th className="font-bold py-1 px-2 text-center">Type</th>
+                      <th className="font-bold py-1 px-2 text-center">Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {crews.filter(c => c.type).map((item, idx) => (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                        <td className="py-1 px-2 text-center">{item.isCustom ? item.customType : item.type}</td>
+                        <td className="py-1 px-2 text-center">{item.qty || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
@@ -420,40 +498,6 @@ export default function DailyUtilityReport2Print() {
                 </div>
               </div>
             )}
-
-            {/* Equipment & Crews */}
-            {(equipment.length > 0 && equipment[0]?.name) || (crews.length > 0 && crews[0]?.name) ? (
-              <div className="print-section">
-                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
-                  <h2 className="text-xl font-bold text-blue-800">Equipment & Crews</h2>
-                </div>
-                <table className="w-full mb-6 text-sm">
-                  <thead>
-                    <tr className="bg-blue-50">
-                      <th className="font-bold py-1 px-2 text-left">Type</th>
-                      <th className="font-bold py-1 px-2 text-left">Name</th>
-                      <th className="font-bold py-1 px-2 text-left">Quantity</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {equipment.length > 0 && equipment[0]?.name && (
-                      <tr>
-                        <td className="py-1 px-2">Equipment</td>
-                        <td className="py-1 px-2">{equipment[0].name}</td>
-                        <td className="py-1 px-2">{equipment[0].qty}</td>
-                      </tr>
-                    )}
-                    {crews.length > 0 && crews[0]?.name && (
-                      <tr className="bg-gray-50 print-bg-gray-100">
-                        <td className="py-1 px-2">Crew</td>
-                        <td className="py-1 px-2">{crews[0].name}</td>
-                        <td className="py-1 px-2">{crews[0].qty}</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            ) : null}
 
             {/* Signature Section */}
             <div className="flex flex-row items-center gap-6 mt-12 mb-8 print-section">

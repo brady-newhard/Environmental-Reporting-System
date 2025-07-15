@@ -401,23 +401,23 @@ const DailyUtilityReport2Form = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Section</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.section} onChange={e => setHeader({ ...header, section: e.target.value })} />
+                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-center" value={header.section} onChange={e => setHeader({ ...header, section: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Spread</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.spread} onChange={e => setHeader({ ...header, spread: e.target.value })} />
+                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-center" value={header.spread} onChange={e => setHeader({ ...header, spread: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Contractor</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.contractor} onChange={e => setHeader({ ...header, contractor: e.target.value })} />
+                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-center" value={header.contractor} onChange={e => setHeader({ ...header, contractor: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Inspector</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.inspector} onChange={e => setHeader({ ...header, inspector: e.target.value })} />
+                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-center" value={header.inspector} onChange={e => setHeader({ ...header, inspector: e.target.value })} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Work Date</label>
-                <input type="date" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.workDate} onChange={e => setHeader({ ...header, workDate: e.target.value })} />
+                <input type="date" className="w-full border border-gray-300 rounded px-2 py-1 text-sm text-center" value={header.workDate} onChange={e => setHeader({ ...header, workDate: e.target.value })} />
               </div>
             </div>
           </div>
@@ -922,12 +922,6 @@ const DailyUtilityReport2Form = () => {
             </div>
           </div>
 
-          {/* Remarks Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Remarks</h2>
-            <textarea className="w-full border border-gray-300 rounded px-2 py-1 text-sm min-h-[2.5rem] resize-y" rows={3} value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Enter any remarks or notes..." />
-          </div>
-
           {/* Equipment Section - Dropdown List */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Equipment</h2>
@@ -1223,6 +1217,12 @@ const DailyUtilityReport2Form = () => {
             >
               + Add Crew
             </button>
+          </div>
+
+          {/* Remarks Section */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Remarks</h2>
+            <textarea className="w-full border border-gray-300 rounded px-2 py-1 text-sm min-h-[2.5rem] resize-y" rows={3} value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Enter any remarks or notes..." />
           </div>
 
           {/* Photos Section */}
