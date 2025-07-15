@@ -109,6 +109,7 @@ const DailyUtilityReport2Form = () => {
     section: '',
     spread: '',
     contractor: '',
+    inspector: '',
     workDate: new Date().toISOString().split('T')[0],
   });
   const [headcounts, setHeadcounts] = useState(defaultHeadcounts);
@@ -122,7 +123,6 @@ const DailyUtilityReport2Form = () => {
   // Weather/conditions
   const [morningTemp, setMorningTemp] = useState('');
   const [midTemp, setMidTemp] = useState('');
-  const [wind, setWind] = useState('');
   const [weather, setWeather] = useState('');
   const [precipitation, setPrecipitation] = useState('');
   const [abnormalConditions, setAbnormalConditions] = useState('');
@@ -137,8 +137,56 @@ const DailyUtilityReport2Form = () => {
 
   // Remarks, equipment, crews
   const [remarks, setRemarks] = useState('');
-  const [equipment, setEquipment] = useState([{ name: '', qty: '' }]);
-  const [crews, setCrews] = useState([{ name: '', qty: '' }]);
+  
+  // Equipment options for dropdown
+  const equipmentOptions = [
+    'MINI EXCAVATOR 305/50',
+    'TRACK LOADER 259/T66',
+    'EXCAVATOR 313/130',
+    'EXCAVATOR 320/210',
+    'DOZER D4/650',
+    'DOZER D6T/850',
+    'ROLLER 84"',
+    'TELEHANDLER 12K',
+    'TRACK TRUCK 14 TON',
+    'ART. DUMP TRUCK 30 TON',
+    'CTL/MINI EXCAVATOR ATTACH',
+    'UTILITY TRAILER',
+    'CREW TRUCK W/TOOLS',
+    'WELDING RIG',
+    'DUMPTRUCK TRI-AXLE',
+    '10 TON DUMP TRUCK',
+    'SIDE X SIDE',
+    'HAMMER ATTACH 130/210',
+    'ROTOBUC ATTACH',
+  ];
+  
+  // Trucking options for dropdown
+  const truckingOptions = [
+    'TRACTOR W/LOWBOY',
+    'ROLLBACK',
+    'ESCORT/PILOT',
+    '1 TON FLAT BED',
+  ];
+  
+  // Crew options for dropdown
+  const crewOptions = [
+    '1 MAN CREW W/TRUCK',
+    '2 MAN CREW W/TRUCK',
+    '3 MAN CREW W/TRUCK',
+    '4 MAN CREW W/TRUCK',
+    '5 MAN CREW W/TRUCK',
+    '6 MAN CREW W/TRUCK',
+  ];
+  
+  // Equipment state - dynamic list
+  const [equipment, setEquipment] = useState([{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
+  
+  // Trucking state - dynamic list (remove names)
+  const [trucking, setTrucking] = useState([{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
+  
+  // Crews state - dynamic list
+  const [crews, setCrews] = useState([{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
 
   // Photos/signature
   const [photos, setPhotos] = useState([]);
@@ -163,7 +211,6 @@ const DailyUtilityReport2Form = () => {
             setLand(loadedDraft.land || '');
             setMorningTemp(loadedDraft.morningTemp || '');
             setMidTemp(loadedDraft.midTemp || '');
-            setWind(loadedDraft.wind || '');
             setWeather(loadedDraft.weather || '');
             setPrecipitation(loadedDraft.precipitation || '');
             setAbnormalConditions(loadedDraft.abnormalConditions || '');
@@ -174,8 +221,9 @@ const DailyUtilityReport2Form = () => {
             // setPayItemFields(loadedDraft.payItemFields || fixedPayItems.map(() => ({ from: '', to: '', qty: '', comments: '' })));
             setPayItems(loadedDraft.payItems || initialPayItems);
             setRemarks(loadedDraft.remarks || '');
-            setEquipment(loadedDraft.equipment || [{ name: '', qty: '' }]);
-            setCrews(loadedDraft.crews || [{ name: '', qty: '' }]);
+            setEquipment(loadedDraft.equipment || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
+            setTrucking(loadedDraft.trucking || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
+            setCrews(loadedDraft.crews || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
             setPhotos(loadedDraft.photos || []);
             setPreparedBy(loadedDraft.preparedBy || '');
             setSignature(loadedDraft.signature || '');
@@ -208,7 +256,6 @@ const DailyUtilityReport2Form = () => {
         land,
         morningTemp,
         midTemp,
-        wind,
         weather,
         precipitation,
         abnormalConditions,
@@ -217,6 +264,7 @@ const DailyUtilityReport2Form = () => {
         payItems,
         remarks,
         equipment,
+        trucking,
         crews,
         photos,
         preparedBy,
@@ -269,18 +317,18 @@ const DailyUtilityReport2Form = () => {
       environmental,
       survey,
       land,
-      morningTemp,
-      midTemp,
-      wind,
-      weather,
+              morningTemp,
+        midTemp,
+        weather,
       precipitation,
       abnormalConditions,
       crewAdverse,
       progressRows,
       payItems,
-      remarks,
-      equipment,
-      crews,
+              remarks,
+        equipment,
+        trucking,
+        crews,
       photos,
       preparedBy,
       signature,
@@ -350,7 +398,7 @@ const DailyUtilityReport2Form = () => {
           {/* Header Section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Section</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.section} onChange={e => setHeader({ ...header, section: e.target.value })} />
@@ -364,55 +412,121 @@ const DailyUtilityReport2Form = () => {
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.contractor} onChange={e => setHeader({ ...header, contractor: e.target.value })} />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Inspector</label>
+                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.inspector} onChange={e => setHeader({ ...header, inspector: e.target.value })} />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Work Date</label>
                 <input type="date" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={header.workDate} onChange={e => setHeader({ ...header, workDate: e.target.value })} />
               </div>
             </div>
           </div>
 
-          {/* Contractor Headcount Section */}
+          {/* Contractor/Subcontractor Headcount Section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Contractor Headcount</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Object.keys(headcounts).map(key => (
-                <div key={key}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">{key.charAt(0).toUpperCase() + key.slice(1)}</label>
-                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts[key]} onChange={e => setHeadcounts({ ...headcounts, [key]: e.target.value })} />
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Contractor/Subcontractor Headcount</h2>
+            
+            {/* Contractor Headcount */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">Contractor</h3>
+              
+              {/* Line 1: Office and Foreman */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Office</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.office} onChange={e => setHeadcounts({ ...headcounts, office: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Foreman Name</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.foreman} onChange={e => setHeadcounts({ ...headcounts, foreman: e.target.value })} />
+                </div>
+              </div>
+              
+              {/* Line 2: Remaining headcount fields */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Laborers</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.laborers} onChange={e => setHeadcounts({ ...headcounts, laborers: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Operators</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.operators} onChange={e => setHeadcounts({ ...headcounts, operators: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Teamsters</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.teamsters} onChange={e => setHeadcounts({ ...headcounts, teamsters: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Welders</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.welders} onChange={e => setHeadcounts({ ...headcounts, welders: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Helpers</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.helpers} onChange={e => setHeadcounts({ ...headcounts, helpers: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Other</label>
+                  <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={headcounts.other} onChange={e => setHeadcounts({ ...headcounts, other: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* Subcontractors */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">Subcontractors</h3>
+              {subcontractors.map((subcontractor, idx) => (
+                <div key={idx} className="flex flex-row gap-2 mb-2 items-end">
+                  <div className="flex-1">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Company</label>
+                    <input 
+                      type="text" 
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm" 
+                      value={subcontractor.company || ''} 
+                      onChange={e => {
+                        const newList = [...subcontractors];
+                        newList[idx].company = e.target.value;
+                        setSubcontractors(newList);
+                      }} 
+                    />
+                  </div>
+                  <div className="w-24">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Headcount</label>
+                    <input 
+                      type="text" 
+                      className="w-full border border-gray-300 rounded px-2 py-1 text-sm" 
+                      value={subcontractor.headcount || ''} 
+                      onChange={e => {
+                        const newList = [...subcontractors];
+                        newList[idx].headcount = e.target.value;
+                        setSubcontractors(newList);
+                      }} 
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="text-red-600 hover:text-red-800 px-2"
+                    onClick={() => setSubcontractors(subcontractors.filter((_, i) => i !== idx))}
+                    disabled={subcontractors.length === 1}
+                    title="Remove"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Subcontractors & Inspection Personnel */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Subcontractors</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Company</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={subcontractors[0]?.company || ''} onChange={e => setSubcontractors([{ ...subcontractors[0], company: e.target.value }])} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Headcount</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={subcontractors[0]?.headcount || ''} onChange={e => setSubcontractors([{ ...subcontractors[0], headcount: e.target.value }])} />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4 mt-6">Inspection Personnel</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Company</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={inspectionPersonnel[0]?.company || ''} onChange={e => setInspectionPersonnel([{ ...inspectionPersonnel[0], company: e.target.value }])} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Headcount</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={inspectionPersonnel[0]?.headcount || ''} onChange={e => setInspectionPersonnel([{ ...inspectionPersonnel[0], headcount: e.target.value }])} />
-              </div>
+              <button
+                type="button"
+                className="mt-2 px-3 py-1 bg-black text-white rounded hover:bg-gray-800"
+                onClick={() => setSubcontractors([...subcontractors, { company: '', headcount: '' }])}
+              >
+                + Add Subcontractor
+              </button>
             </div>
           </div>
 
           {/* Craft/Environmental/Survey/Land */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Other Info</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Inspection Personnel</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Craft</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={craft} onChange={e => setCraft(e.target.value)} />
@@ -435,7 +549,7 @@ const DailyUtilityReport2Form = () => {
           {/* Weather & Working Conditions */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Weather & Working Conditions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Morning Temp</label>
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={morningTemp} onChange={e => setMorningTemp(e.target.value)} />
@@ -445,26 +559,75 @@ const DailyUtilityReport2Form = () => {
                 <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={midTemp} onChange={e => setMidTemp(e.target.value)} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Wind</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={wind} onChange={e => setWind(e.target.value)} />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Weather</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={weather} onChange={e => setWeather(e.target.value)} />
+                <select className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={weather} onChange={e => setWeather(e.target.value)}>
+                  <option value="">Select Weather</option>
+                  <option value="Sunny">Sunny</option>
+                  <option value="Mostly Sunny">Mostly Sunny</option>
+                  <option value="Partly Sunny">Partly Sunny</option>
+                  <option value="Cloudy">Cloudy</option>
+                  <option value="Overcast">Overcast</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Precipitation</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={precipitation} onChange={e => setPrecipitation(e.target.value)} />
+                <select className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={precipitation} onChange={e => setPrecipitation(e.target.value)}>
+                  <option value="">Select Precipitation</option>
+                  <option value="none">None</option>
+                  <option value="drizzle">Drizzle</option>
+                  <option value="rain">Rain</option>
+                  <option value="snow">Snow</option>
+                  <option value="sleet">Sleet</option>
+                  <option value="hail">Hail</option>
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Did ABNORMAL working conditions exist that adversely affected progress?</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={abnormalConditions} onChange={e => setAbnormalConditions(e.target.value)} />
+                <div className="flex items-center gap-4 mt-1">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                      checked={abnormalConditions === 'yes'}
+                      onChange={() => setAbnormalConditions(abnormalConditions === 'yes' ? '' : 'yes')}
+                    />
+                    <span className="ml-2">Yes</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                      checked={abnormalConditions === 'no'}
+                      onChange={() => setAbnormalConditions(abnormalConditions === 'no' ? '' : 'no')}
+                    />
+                    <span className="ml-2">No</span>
+                  </label>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Any Crews affected by adverse weather, right-of-way or other working conditions?</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={crewAdverse} onChange={e => setCrewAdverse(e.target.value)} />
+                <div className="flex items-center gap-4 mt-1">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                      checked={crewAdverse === 'yes'}
+                      onChange={() => setCrewAdverse(crewAdverse === 'yes' ? '' : 'yes')}
+                    />
+                    <span className="ml-2">Yes</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                      checked={crewAdverse === 'no'}
+                      onChange={() => setCrewAdverse(crewAdverse === 'no' ? '' : 'no')}
+                    />
+                    <span className="ml-2">No</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -765,27 +928,301 @@ const DailyUtilityReport2Form = () => {
             <textarea className="w-full border border-gray-300 rounded px-2 py-1 text-sm min-h-[2.5rem] resize-y" rows={3} value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Enter any remarks or notes..." />
           </div>
 
-          {/* Equipment & Crews Section */}
+          {/* Equipment Section - Dropdown List */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Equipment & Crews</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Equipment</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={equipment[0]?.name || ''} onChange={e => setEquipment([{ ...equipment[0], name: e.target.value }])} placeholder="Equipment name" />
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Equipment</h2>
+            {equipment.map((item, idx) => (
+              <div key={idx} className="flex flex-row gap-2 mb-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                  {item.isCustom && item.isCustomComplete ? (
+                    <div className="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50">
+                      {item.customType}
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                        value={item.type}
+                        onChange={e => {
+                          const newList = [...equipment];
+                          newList[idx].type = e.target.value;
+                          newList[idx].isCustom = e.target.value === 'CUSTOM';
+                          if (e.target.value !== 'CUSTOM') {
+                            newList[idx].customType = '';
+                          }
+                          setEquipment(newList);
+                        }}
+                      >
+                        <option value="">Select equipment</option>
+                        {equipmentOptions.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                        <option value="CUSTOM">Custom...</option>
+                      </select>
+                      {item.isCustom && (
+                        <div className="mt-1">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Custom Equipment</label>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                            value={item.customType}
+                            onChange={e => {
+                              const newList = [...equipment];
+                              newList[idx].customType = e.target.value;
+                              setEquipment(newList);
+                            }}
+                            onBlur={e => {
+                              if (e.target.value.trim() !== '') {
+                                const newList = [...equipment];
+                                newList[idx].isCustomComplete = true;
+                                setEquipment(newList);
+                              }
+                            }}
+                            onKeyPress={e => {
+                              if (e.key === 'Enter' && e.target.value.trim() !== '') {
+                                const newList = [...equipment];
+                                newList[idx].isCustomComplete = true;
+                                setEquipment(newList);
+                              }
+                            }}
+                            placeholder="Enter custom equipment name"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className="w-24">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Qty</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    value={item.qty}
+                    onChange={e => {
+                      const newList = [...equipment];
+                      newList[idx].qty = e.target.value;
+                      setEquipment(newList);
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="text-red-600 hover:text-red-800 px-2"
+                  onClick={() => setEquipment(equipment.filter((_, i) => i !== idx))}
+                  disabled={equipment.length === 1}
+                  title="Remove"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={equipment[0]?.qty || ''} onChange={e => setEquipment([{ ...equipment[0], qty: e.target.value }])} placeholder="Qty" />
+            ))}
+            <button
+              type="button"
+              className="mt-2 px-3 py-1 bg-black text-white rounded hover:bg-gray-800"
+              onClick={() => setEquipment([...equipment, { type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }])}
+            >
+              + Add Equipment
+            </button>
+          </div>
+
+          {/* Trucking Section - Dropdown List */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Trucking</h2>
+            {trucking.map((item, idx) => (
+              <div key={idx} className="flex flex-row gap-2 mb-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                  {item.isCustom && item.isCustomComplete ? (
+                    <div className="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50">
+                      {item.customType}
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                        value={item.type}
+                        onChange={e => {
+                          const newList = [...trucking];
+                          newList[idx].type = e.target.value;
+                          newList[idx].isCustom = e.target.value === 'CUSTOM';
+                          if (e.target.value !== 'CUSTOM') {
+                            newList[idx].customType = '';
+                          }
+                          setTrucking(newList);
+                        }}
+                      >
+                        <option value="">Select trucking</option>
+                        {truckingOptions.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                        <option value="CUSTOM">Custom...</option>
+                      </select>
+                      {item.isCustom && (
+                        <div className="mt-1">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Custom Trucking</label>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                            value={item.customType}
+                            onChange={e => {
+                              const newList = [...trucking];
+                              newList[idx].customType = e.target.value;
+                              setTrucking(newList);
+                            }}
+                            onBlur={e => {
+                              if (e.target.value.trim() !== '') {
+                                const newList = [...trucking];
+                                newList[idx].isCustomComplete = true;
+                                setTrucking(newList);
+                              }
+                            }}
+                            onKeyPress={e => {
+                              if (e.key === 'Enter' && e.target.value.trim() !== '') {
+                                const newList = [...trucking];
+                                newList[idx].isCustomComplete = true;
+                                setTrucking(newList);
+                              }
+                            }}
+                            placeholder="Enter custom trucking name"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className="w-24">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Qty</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    value={item.qty}
+                    onChange={e => {
+                      const newList = [...trucking];
+                      newList[idx].qty = e.target.value;
+                      setTrucking(newList);
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="text-red-600 hover:text-red-800 px-2"
+                  onClick={() => setTrucking(trucking.filter((_, i) => i !== idx))}
+                  disabled={trucking.length === 1}
+                  title="Remove"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Crew</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={crews[0]?.name || ''} onChange={e => setCrews([{ ...crews[0], name: e.target.value }])} placeholder="Crew name" />
+            ))}
+            <button
+              type="button"
+              className="mt-2 px-3 py-1 bg-black text-white rounded hover:bg-gray-800"
+              onClick={() => setTrucking([...trucking, { type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }])}
+            >
+              + Add Trucking
+            </button>
+          </div>
+
+          {/* Crews Section - Dropdown List */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Crews</h2>
+            {crews.map((item, idx) => (
+              <div key={idx} className="flex flex-row gap-2 mb-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                  {item.isCustom && item.isCustomComplete ? (
+                    <div className="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50">
+                      {item.customType}
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                        value={item.type}
+                        onChange={e => {
+                          const newList = [...crews];
+                          newList[idx].type = e.target.value;
+                          newList[idx].isCustom = e.target.value === 'CUSTOM';
+                          if (e.target.value !== 'CUSTOM') {
+                            newList[idx].customType = '';
+                          }
+                          setCrews(newList);
+                        }}
+                      >
+                        <option value="">Select crew</option>
+                        {crewOptions.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                        <option value="CUSTOM">Custom...</option>
+                      </select>
+                      {item.isCustom && (
+                        <div className="mt-1">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Custom Crew</label>
+                          <input
+                            type="text"
+                            className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                            value={item.customType}
+                            onChange={e => {
+                              const newList = [...crews];
+                              newList[idx].customType = e.target.value;
+                              setCrews(newList);
+                            }}
+                            onBlur={e => {
+                              if (e.target.value.trim() !== '') {
+                                const newList = [...crews];
+                                newList[idx].isCustomComplete = true;
+                                setCrews(newList);
+                              }
+                            }}
+                            onKeyPress={e => {
+                              if (e.key === 'Enter' && e.target.value.trim() !== '') {
+                                const newList = [...crews];
+                                newList[idx].isCustomComplete = true;
+                                setCrews(newList);
+                              }
+                            }}
+                            placeholder="Enter custom crew name"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className="w-24">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Qty</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                    value={item.qty}
+                    onChange={e => {
+                      const newList = [...crews];
+                      newList[idx].qty = e.target.value;
+                      setCrews(newList);
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="text-red-600 hover:text-red-800 px-2"
+                  onClick={() => setCrews(crews.filter((_, i) => i !== idx))}
+                  disabled={crews.length === 1}
+                  title="Remove"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
-                <input type="text" className="w-full border border-gray-300 rounded px-2 py-1 text-sm" value={crews[0]?.qty || ''} onChange={e => setCrews([{ ...crews[0], qty: e.target.value }])} placeholder="Qty" />
-              </div>
-            </div>
+            ))}
+            <button
+              type="button"
+              className="mt-2 px-3 py-1 bg-black text-white rounded hover:bg-gray-800"
+              onClick={() => setCrews([...crews, { type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }])}
+            >
+              + Add Crew
+            </button>
           </div>
 
           {/* Photos Section */}

@@ -220,7 +220,7 @@ const DailyUtilityReport2Review = () => {
           {/* Project Information */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Section</label>
                 <p className="text-sm text-gray-900">{header.section || '—'}</p>
@@ -234,51 +234,82 @@ const DailyUtilityReport2Review = () => {
                 <p className="text-sm text-gray-900">{header.contractor || '—'}</p>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Inspector</label>
+                <p className="text-sm text-gray-900">{header.inspector || '—'}</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Work Date</label>
                 <p className="text-sm text-gray-900">{header.workDate || '—'}</p>
               </div>
             </div>
           </div>
 
-          {/* Contractor Headcount */}
+          {/* Contractor/Subcontractor Headcount */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Contractor Headcount</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(headcounts).map(([key, value]) => (
-                <div key={key}>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">{key.charAt(0).toUpperCase() + key.slice(1)}</label>
-                  <p className="text-sm text-gray-900">{value || '—'}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Subcontractors & Inspection Personnel */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Subcontractors</h2>
-            {subcontractors.length > 0 && subcontractors[0]?.company && (
-              <div className="grid grid-cols-2 gap-4 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Contractor/Subcontractor Headcount</h2>
+            
+            {/* Contractor Headcount */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3">Contractor</h3>
+              
+              {/* Line 1: Office and Foreman */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Company</label>
-                  <p className="text-sm text-gray-900">{subcontractors[0].company}</p>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Office</label>
+                  <p className="text-sm text-gray-900">{headcounts.office || '—'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Headcount</label>
-                  <p className="text-sm text-gray-900">{subcontractors[0].headcount}</p>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Foreman Name</label>
+                  <p className="text-sm text-gray-900">{headcounts.foreman || '—'}</p>
                 </div>
               </div>
-            )}
-            
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Inspection Personnel</h2>
-            {inspectionPersonnel.length > 0 && inspectionPersonnel[0]?.company && (
-              <div className="grid grid-cols-2 gap-4">
+              
+              {/* Line 2: Remaining headcount fields */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Company</label>
-                  <p className="text-sm text-gray-900">{inspectionPersonnel[0].company}</p>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Laborers</label>
+                  <p className="text-sm text-gray-900">{headcounts.laborers || '—'}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Headcount</label>
-                  <p className="text-sm text-gray-900">{inspectionPersonnel[0].headcount}</p>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Operators</label>
+                  <p className="text-sm text-gray-900">{headcounts.operators || '—'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Teamsters</label>
+                  <p className="text-sm text-gray-900">{headcounts.teamsters || '—'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Welders</label>
+                  <p className="text-sm text-gray-900">{headcounts.welders || '—'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Helpers</label>
+                  <p className="text-sm text-gray-900">{headcounts.helpers || '—'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">Other</label>
+                  <p className="text-sm text-gray-900">{headcounts.other || '—'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Subcontractors */}
+            {subcontractors.length > 0 && subcontractors.some(s => s.company) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">Subcontractors</h3>
+                <div className="space-y-4">
+                  {subcontractors.filter(s => s.company).map((subcontractor, idx) => (
+                    <div key={idx} className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Company</label>
+                        <p className="text-sm text-gray-900">{subcontractor.company}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Headcount</label>
+                        <p className="text-sm text-gray-900">{subcontractor.headcount}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -286,7 +317,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Other Info */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Other Info</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Inspection Personnel</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Craft</label>

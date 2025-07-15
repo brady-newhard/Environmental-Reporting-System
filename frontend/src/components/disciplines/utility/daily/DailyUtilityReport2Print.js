@@ -132,9 +132,10 @@ export default function DailyUtilityReport2Print() {
     [
       { label: 'Section', value: header.section },
       { label: 'Spread', value: header.spread },
+      { label: 'Contractor', value: header.contractor },
     ],
     [
-      { label: 'Contractor', value: header.contractor },
+      { label: 'Inspector', value: header.inspector },
       { label: 'Work Date', value: formatDate(header.workDate) },
     ],
   ];
@@ -219,65 +220,71 @@ export default function DailyUtilityReport2Print() {
               </table>
             </div>
 
-            {/* Contractor Headcount */}
+            {/* Contractor/Subcontractor Headcount */}
             <div className="print-section">
               <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
-                <h2 className="text-xl font-bold text-blue-800">Contractor Headcount</h2>
+                <h2 className="text-xl font-bold text-blue-800">Contractor/Subcontractor Headcount</h2>
               </div>
-              <table className="w-full mb-6 text-sm">
-                <thead>
-                  <tr className="bg-blue-50">
-                    {Object.keys(headcounts).map(key => (
-                      <th key={key} className="font-bold py-1 px-2 text-left">{key.charAt(0).toUpperCase() + key.slice(1)}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    {Object.values(headcounts).map((value, index) => (
-                      <td key={index} className="py-1 px-2">{value || '—'}</td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+              
+              {/* Contractor Headcount */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-blue-700 mb-2">Contractor</h3>
+                <table className="w-full mb-4 text-sm">
+                  <tbody>
+                    {/* Line 1: Office and Foreman */}
+                    <tr className="bg-gray-50 print-bg-gray-100">
+                      <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Office:</td>
+                      <td className="py-1 text-gray-900">{headcounts.office || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Foreman Name:</td>
+                      <td className="py-1 text-gray-900">{headcounts.foreman || '—'}</td>
+                    </tr>
+                    {/* Line 2: Remaining fields */}
+                    <tr>
+                      <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Laborers:</td>
+                      <td className="py-1 text-gray-900">{headcounts.laborers || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Operators:</td>
+                      <td className="py-1 text-gray-900">{headcounts.operators || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Teamsters:</td>
+                      <td className="py-1 text-gray-900">{headcounts.teamsters || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Welders:</td>
+                      <td className="py-1 text-gray-900">{headcounts.welders || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Helpers:</td>
+                      <td className="py-1 text-gray-900">{headcounts.helpers || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-32 text-gray-700">Other:</td>
+                      <td className="py-1 text-gray-900">{headcounts.other || '—'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Subcontractors & Inspection Personnel */}
-            <div className="print-section">
-              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
-                <h2 className="text-xl font-bold text-blue-800">Subcontractors & Inspection Personnel</h2>
-              </div>
-              <table className="w-full mb-6 text-sm">
-                <thead>
-                  <tr className="bg-blue-50">
-                    <th className="font-bold py-1 px-2 text-left">Type</th>
-                    <th className="font-bold py-1 px-2 text-left">Company</th>
-                    <th className="font-bold py-1 px-2 text-left">Headcount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {subcontractors.length > 0 && subcontractors[0]?.company && (
-                    <tr>
-                      <td className="py-1 px-2">Subcontractor</td>
-                      <td className="py-1 px-2">{subcontractors[0].company}</td>
-                      <td className="py-1 px-2">{subcontractors[0].headcount}</td>
-                    </tr>
-                  )}
-                  {inspectionPersonnel.length > 0 && inspectionPersonnel[0]?.company && (
-                    <tr>
-                      <td className="py-1 px-2">Inspection Personnel</td>
-                      <td className="py-1 px-2">{inspectionPersonnel[0].company}</td>
-                      <td className="py-1 px-2">{inspectionPersonnel[0].headcount}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              {/* Subcontractors */}
+              {subcontractors.length > 0 && subcontractors.some(s => s.company) && (
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-700 mb-2">Subcontractors</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="font-bold py-1 px-2 text-left">Company</th>
+                        <th className="font-bold py-1 px-2 text-left">Headcount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subcontractors.filter(s => s.company).map((subcontractor, idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                          <td className="py-1 px-2">{subcontractor.company}</td>
+                          <td className="py-1 px-2">{subcontractor.headcount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
 
             {/* Other Info */}
             <div className="print-section">
               <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
-                <h2 className="text-xl font-bold text-blue-800">Other Info</h2>
+                <h2 className="text-xl font-bold text-blue-800">Inspection Personnel</h2>
               </div>
               <table className="w-full mb-6 text-sm">
                 <tbody>
