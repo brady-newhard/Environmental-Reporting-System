@@ -439,7 +439,7 @@ export const cleanupInvalidLocalDrafts = async (reportType) => {
 // Clear IndexedDB drafts that don't belong to the current user
 export const clearOtherUserDrafts = async () => {
   try {
-    console.log('Clearing drafts from other users...');
+    console.log('=== CLEARING OTHER USER DRAFTS ===');
     
     // Get current user info
     const token = localStorage.getItem('token');
@@ -452,6 +452,7 @@ export const clearOtherUserDrafts = async () => {
     try {
       const response = await api.get('/users/profile/');
       currentUser = response.data;
+      console.log('Current user for clearing:', currentUser);
     } catch (error) {
       console.log('Could not get current user, skipping clear');
       return 0;
@@ -463,17 +464,23 @@ export const clearOtherUserDrafts = async () => {
     
     for (const reportType of reportTypes) {
       try {
+        console.log(`Checking ${reportType} store...`);
         const store = indexedDBStorage.getStore(reportType);
         const keys = await store.keys();
+        console.log(`Found ${keys.length} keys in ${reportType} store:`, keys);
         
         for (const key of keys) {
           const draft = await store.getItem(key);
+          console.log(`Draft ${key}:`, draft);
           if (draft) {
             const draftUser = draft.user || draft.user_id || draft.username;
+            console.log(`Draft ${key} user: ${draftUser}, current user: ${currentUser.username}`);
             if (draftUser && draftUser !== currentUser.username) {
-              console.log(`Clearing draft ${key} - belongs to user ${draftUser}, not ${currentUser.username}`);
+              console.log(`CLEARING draft ${key} - belongs to user ${draftUser}, not ${currentUser.username}`);
               await store.removeItem(key);
               clearedCount++;
+            } else {
+              console.log(`KEEPING draft ${key} - belongs to current user`);
             }
           }
         }
@@ -482,7 +489,7 @@ export const clearOtherUserDrafts = async () => {
       }
     }
     
-    console.log(`Cleared ${clearedCount} drafts from other users`);
+    console.log(`=== CLEARED ${clearedCount} DRAFTS FROM OTHER USERS ===`);
     return clearedCount;
   } catch (error) {
     console.error('Error clearing other user drafts:', error);
@@ -493,7 +500,7 @@ export const clearOtherUserDrafts = async () => {
 // Migrate drafts from localStorage to IndexedDB
 export const migrateLocalStorageDrafts = async () => {
   try {
-    console.log('Starting localStorage to IndexedDB migration...');
+    console.log('=== STARTING LOCALSTORAGE MIGRATION ===');
     
     // Get current user info from token
     const token = localStorage.getItem('token');
@@ -507,7 +514,7 @@ export const migrateLocalStorageDrafts = async () => {
     try {
       const response = await api.get('/users/profile/');
       currentUser = response.data;
-      console.log('Current user:', currentUser);
+      console.log('Current user for migration:', currentUser);
     } catch (error) {
       console.log('Could not get current user, skipping migration');
       return 0;
@@ -515,6 +522,7 @@ export const migrateLocalStorageDrafts = async () => {
     
     // Get all localStorage keys that look like draft keys
     const allKeys = Object.keys(localStorage);
+    console.log('All localStorage keys:', allKeys);
     const draftKeys = allKeys.filter(key => 
       key.includes('draft_') || 
       key.includes('_draft_') ||
@@ -530,25 +538,38 @@ export const migrateLocalStorageDrafts = async () => {
     
     for (const key of draftKeys) {
       try {
+        console.log(`Processing localStorage key: ${key}`);
         const draftData = localStorage.getItem(key);
-        if (!draftData) continue;
+        if (!draftData) {
+          console.log(`No data found for key: ${key}`);
+          continue;
+        }
         
         const parsedData = JSON.parse(draftData);
-        if (!parsedData || typeof parsedData !== 'object') continue;
+        if (!parsedData || typeof parsedData !== 'object') {
+          console.log(`Invalid data for key: ${key}`);
+          continue;
+        }
+        
+        console.log(`Parsed data for ${key}:`, parsedData);
         
         // Check if this draft belongs to the current user
         // Look for user information in the draft data
         const draftUser = parsedData.user || parsedData.user_id || parsedData.username;
+        console.log(`Draft user: ${draftUser}, Current user: ${currentUser.username}`);
+        
         if (draftUser && draftUser !== currentUser.username) {
-          console.log(`Skipping draft ${key} - belongs to user ${draftUser}, not ${currentUser.username}`);
+          console.log(`SKIPPING draft ${key} - belongs to user ${draftUser}, not ${currentUser.username}`);
           continue;
         }
         
         // If no user info in draft, skip it to be safe
         if (!draftUser) {
-          console.log(`Skipping draft ${key} - no user information found`);
+          console.log(`SKIPPING draft ${key} - no user information found`);
           continue;
         }
+        
+        console.log(`PROCESSING draft ${key} - belongs to current user`);
         
         // Determine report type from key
         let reportType = 'generic';
@@ -582,20 +603,23 @@ export const migrateLocalStorageDrafts = async () => {
           continue;
         }
         
+        console.log(`Saving draft ${draftId} to ${reportType} store`);
+        
         // Save to IndexedDB
         await indexedDBStorage.saveDraft(reportType, draftId, parsedData);
-        console.log(`Migrated draft ${draftId} to ${reportType} store for user ${currentUser.username}`);
+        console.log(`MIGRATED draft ${draftId} to ${reportType} store for user ${currentUser.username}`);
         migratedCount++;
         
         // Remove from localStorage
         localStorage.removeItem(key);
+        console.log(`Removed ${key} from localStorage`);
         
       } catch (error) {
         console.error(`Error migrating draft ${key}:`, error);
       }
     }
     
-    console.log(`Migration complete. Migrated ${migratedCount} drafts for user ${currentUser.username}.`);
+    console.log(`=== MIGRATION COMPLETE. Migrated ${migratedCount} drafts for user ${currentUser.username}. ===`);
     return migratedCount;
     
   } catch (error) {

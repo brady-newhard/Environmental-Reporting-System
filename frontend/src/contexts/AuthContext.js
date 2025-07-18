@@ -225,12 +225,12 @@ export const AuthProvider = ({ children }) => {
     
     if (newSetting) {
       console.log('[AuthContext] Development auto-sign-in enabled');
+      // Get the current dev user from localStorage or default to brady-newhard
+      const devUser = localStorage.getItem('devUser') || 'brady-newhard';
+      const devUserData = JSON.parse(localStorage.getItem('devUserData') || '{"username":"brady-newhard","email":"brady@example.com","first_name":"Brady"}');
+      
       setIsAuthenticated(true);
-      setUser({
-        username: 'brady-newhard',
-        email: 'brady@example.com',
-        first_name: 'Brady'
-      });
+      setUser(devUserData);
       startTokenValidation();
     } else {
       console.log('[AuthContext] Development auto-sign-in disabled');
@@ -241,6 +241,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Development helper function to set dev user
+  const setDevUser = (username) => {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    if (!isDevelopment) {
+      console.warn('Dev user setting is only available in development mode');
+      return;
+    }
+
+    localStorage.setItem('devUser', username);
+    
+    // Set default user data based on username
+    let userData;
+    switch (username) {
+      case 'bob-yeo':
+        userData = { username: 'bob-yeo', email: 'bob@example.com', first_name: 'Bob' };
+        break;
+      case 'brady-newhard':
+      default:
+        userData = { username: 'brady-newhard', email: 'brady@example.com', first_name: 'Brady' };
+        break;
+    }
+    
+    localStorage.setItem('devUserData', JSON.stringify(userData));
+    
+    // If dev mode is enabled, update the current user
+    if (localStorage.getItem('devAutoSignIn') === 'true') {
+      setUser(userData);
+    }
+    
+    console.log(`[AuthContext] Dev user set to: ${username}`);
+  };
+
   return (
     <AuthContext.Provider value={{ 
       isAuthenticated, 
@@ -248,7 +280,8 @@ export const AuthProvider = ({ children }) => {
       login, 
       logout, 
       loading,
-      toggleDevAutoSignIn 
+      toggleDevAutoSignIn,
+      setDevUser
     }}>
       {children}
     </AuthContext.Provider>

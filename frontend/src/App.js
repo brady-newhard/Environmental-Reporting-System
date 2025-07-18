@@ -240,7 +240,7 @@ const theme = createTheme({
 });
 
 function AppContent() {
-  const { isAuthenticated, loading, toggleDevAutoSignIn } = useAuth();
+  const { isAuthenticated, loading, toggleDevAutoSignIn, setDevUser } = useAuth();
   const location = useLocation();
 
   // Hide Navigation on login and signup pages
@@ -249,11 +249,13 @@ function AppContent() {
   console.log('[App] AppContent rendered - Auth:', isAuthenticated, 'Loading:', loading);
   console.log('[App] Current path:', location.pathname, 'Hide nav:', hideNav);
 
-  // Run migration once when app starts
+  // Run migration once when user is authenticated
   useEffect(() => {
+    if (!isAuthenticated || loading) return;
+    
     const runMigration = async () => {
       try {
-        console.log('Running draft migration...');
+        console.log('Running draft migration for authenticated user...');
         
         // First clear any drafts from other users
         const clearedCount = await clearOtherUserDrafts();
@@ -272,7 +274,7 @@ function AppContent() {
     };
     
     runMigration();
-  }, []);
+  }, [isAuthenticated, loading]);
 
   if (loading) {
     return (
@@ -298,8 +300,20 @@ function AppContent() {
           fontSize: '12px',
           cursor: 'pointer',
           userSelect: 'none'
-        }} onClick={toggleDevAutoSignIn}>
-          {localStorage.getItem('devAutoSignIn') === 'true' ? '🔓 Dev Mode ON' : '🔒 Dev Mode OFF'}
+        }}>
+          <div onClick={toggleDevAutoSignIn} style={{ cursor: 'pointer', marginBottom: '4px' }}>
+            {localStorage.getItem('devAutoSignIn') === 'true' ? '🔓 Dev Mode ON' : '🔒 Dev Mode OFF'}
+          </div>
+          {localStorage.getItem('devAutoSignIn') === 'true' && (
+            <div style={{ fontSize: '10px', marginTop: '4px' }}>
+              <span onClick={() => setDevUser('brady-newhard')} style={{ cursor: 'pointer', marginRight: '8px' }}>
+                Brady
+              </span>
+              <span onClick={() => setDevUser('bob-yeo')} style={{ cursor: 'pointer' }}>
+                Bob
+              </span>
+            </div>
+          )}
         </div>
       )}
       
