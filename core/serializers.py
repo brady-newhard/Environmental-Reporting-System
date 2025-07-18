@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from users.models import Contact
-from .models import Report
-from django.utils import timezone
 from django.db import transaction
+from users.models import Contact, UserProfile
+from .models import ReportApproval
 
 # ProgressChart serializers will be implemented here as part of the reports app
 
@@ -50,30 +49,34 @@ class UserSerializer(serializers.ModelSerializer):
         except Exception as e:
             raise serializers.ValidationError({'detail': str(e)})
 
-class ReportSerializer(serializers.ModelSerializer):
-    inspector = serializers.ReadOnlyField(source='inspector.username')
-    author = serializers.ReadOnlyField(source='inspector.username')
-    report_type = serializers.CharField(required=False, allow_blank=True)
-    facility = serializers.CharField(required=False, allow_blank=True)
-    route = serializers.CharField(required=False, allow_blank=True)
-    spread = serializers.CharField(required=False, allow_blank=True)
-    compliance_level = serializers.CharField(required=False, allow_blank=True)
-    activity_category = serializers.CharField(required=False, allow_blank=True)
-    activity_group = serializers.CharField(required=False, allow_blank=True)
-    activity_type = serializers.CharField(required=False, allow_blank=True)
-    milepost_start = serializers.CharField(required=False, allow_blank=True)
-    milepost_end = serializers.CharField(required=False, allow_blank=True)
-    station_start = serializers.CharField(required=False, allow_blank=True)
-    station_end = serializers.CharField(required=False, allow_blank=True)
+class ReportApprovalSerializer(serializers.ModelSerializer):
+    submitted_by_name = serializers.CharField(source='submitted_by.get_full_name', read_only=True)
+    assigned_lead_name = serializers.CharField(source='assigned_lead.get_full_name', read_only=True)
+    reviewed_by_name = serializers.CharField(source='reviewed_by.get_full_name', read_only=True)
+    discipline_display = serializers.CharField(source='get_discipline_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
-        model = Report
+        model = ReportApproval
         fields = [
-            'id', 'inspector', 'author', 'date', 'location', 'weather_conditions', 
-            'daily_activities', 'report_type', 'facility', 'route', 'spread', 
-            'compliance_level', 'activity_category', 'activity_group', 'activity_type',
-            'milepost_start', 'milepost_end', 'station_start', 'station_end',
-            'created_at', 'updated_at',
-            'finalized',
+            'id', 'report_type', 'report_id', 'discipline', 'discipline_display',
+            'report_data', 'status', 'status_display', 'submitted_by', 'submitted_by_name',
+            'assigned_lead', 'assigned_lead_name', 'reviewed_by', 'reviewed_by_name',
+            'rejection_reason', 'review_notes', 'submitted_at', 'assigned_at', 
+            'reviewed_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at', 'finalized'] 
+        read_only_fields = ['submitted_by', 'submitted_at', 'assigned_at', 'reviewed_at', 'updated_at']
+
+class ReportApprovalListSerializer(serializers.ModelSerializer):
+    submitted_by_name = serializers.CharField(source='submitted_by.get_full_name', read_only=True)
+    assigned_lead_name = serializers.CharField(source='assigned_lead.get_full_name', read_only=True)
+    discipline_display = serializers.CharField(source='get_discipline_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    
+    class Meta:
+        model = ReportApproval
+        fields = [
+            'id', 'report_type', 'report_id', 'discipline', 'discipline_display',
+            'status', 'status_display', 'submitted_by_name', 'assigned_lead_name',
+            'submitted_at', 'updated_at'
+        ] 

@@ -142,3 +142,55 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles to hide navigation and UI elements */
+@media print {
+  /* Hide navigation bar */
+  .MuiAppBar-root,
+  .navigation-bar,
+  [class*="print:hidden"] {
+    display: none !important;
+  }
+  
+  /* Hide page headers */
+  .page-header,
+  [class*="PageHeader"] {
+    display: none !important;
+  }
+  
+  /* Hide action buttons */
+  .action-buttons,
+  [class*="BaseActionButtons"] {
+    display: none !important;
+  }
+  
+  /* Hide all Material-UI AppBar and Toolbar components */
+  .MuiAppBar-root,
+  .MuiToolbar-root {
+    display: none !important;
+  }
+  
+  /* Hide development mode indicator */
+  [class*="dev-mode"] {
+    display: none !important;
+  }
+  
+  /* Remove top padding when navbar is hidden */
+  .main-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
+  /* Ensure the app shell doesn't have extra spacing */
+  .app-shell {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
+  /* Ensure print content takes full width */
+  .print-content {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

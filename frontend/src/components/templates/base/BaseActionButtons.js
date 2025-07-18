@@ -22,7 +22,7 @@ const BaseActionButtons = ({
   const hasValidDraftId = draftId && !String(draftId).startsWith('temp_');
 
   return (
-    <div className="flex flex-wrap gap-4 justify-end">
+    <div className="flex flex-wrap gap-4 justify-end print:hidden action-buttons">
       {/* Exit Button */}
       {showExitButton && (
         <button

@@ -153,17 +153,22 @@ export default function DailyUtilityReport2Print() {
     font-size: 0.7rem !important; 
     width: 100% !important; 
     table-layout: fixed !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
   }
   .print-section th, .print-section td { 
     font-size: 0.7rem !important; 
     padding: 2px 4px !important; 
-    border: 1px solid #d1d5db !important;
+    border: none !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
   }
   .print-section th { 
     font-weight: bold !important; 
     background-color: #f3f4f6 !important; 
+  }
+  .print-footer { 
+    margin-top: 20px !important; 
   }
 }
 `}</style>

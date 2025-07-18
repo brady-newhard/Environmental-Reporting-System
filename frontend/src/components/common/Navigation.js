@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -30,6 +30,29 @@ const Navigation = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch('/api/users/profiles/me/', {
+          headers: {
+            'Authorization': `Token ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const profile = await response.json();
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -64,10 +87,15 @@ const Navigation = () => {
     { text: 'Search', path: '/search' },
   ];
 
+  // Add lead dashboard to navigation if user is a lead
+  if (userProfile?.role === 'lead') {
+    navigationItems.push({ text: 'Lead Dashboard', path: '/leads/dashboard' });
+  }
+
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: '#000000' }}>
+    <AppBar position="static" sx={{ backgroundColor: '#000000' }} className="print:hidden navigation-bar">
       <Toolbar>
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
           <img

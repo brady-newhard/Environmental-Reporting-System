@@ -216,9 +216,9 @@ const DailyUtilityReport2Review = () => {
           }}
         />
 
-        <div className="space-y-6">
+        <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
           {/* Project Information */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+          <div className="mb-8">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
@@ -244,8 +244,8 @@ const DailyUtilityReport2Review = () => {
             </div>
           </div>
 
-          {/* Contractor/Subcontractor Headcount */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+          <div className="border-t border-gray-200 pt-8 mb-8">
+            {/* Contractor/Subcontractor Headcount */}
             <h2 className="text-xl font-bold text-gray-800 mb-4">Contractor/Subcontractor Headcount</h2>
             
             {/* Contractor Headcount */}
@@ -315,8 +315,8 @@ const DailyUtilityReport2Review = () => {
             )}
           </div>
 
-          {/* Other Info */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+          <div className="border-t border-gray-200 pt-8 mb-8">
+            {/* Other Info */}
             <h2 className="text-xl font-bold text-gray-800 mb-4">Inspection Personnel</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
@@ -338,8 +338,8 @@ const DailyUtilityReport2Review = () => {
             </div>
           </div>
 
-          {/* Weather & Working Conditions */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+          <div className="border-t border-gray-200 pt-8 mb-8">
+            {/* Weather & Working Conditions */}
             <h2 className="text-xl font-bold text-gray-800 mb-4">Weather & Working Conditions</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div>
@@ -374,7 +374,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Progress/Activity Table - Only show filled rows */}
           {filledProgressRows.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+            <div className="border-t border-gray-200 pt-8 mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Progress / Activity</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -405,7 +405,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Pay Item Logs Table - Only show filled rows */}
           {filledPayItems.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+            <div className="border-t border-gray-200 pt-8 mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Pay Item Logs</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -438,7 +438,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Equipment */}
           {equipment.length > 0 && equipment.some(e => e.type) && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+            <div className="border-t border-gray-200 pt-8 mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Equipment</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -463,7 +463,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Trucking */}
           {trucking.length > 0 && trucking.some(t => t.type) && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+            <div className="border-t border-gray-200 pt-8 mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Trucking</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -488,7 +488,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Crews */}
           {crews.length > 0 && crews.some(c => c.type) && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+            <div className="border-t border-gray-200 pt-8 mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Crews</h2>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -513,7 +513,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Remarks */}
           {remarks && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+            <div className="border-t border-gray-200 pt-8 mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Remarks</h2>
               <p className="text-sm text-gray-900 whitespace-pre-wrap">{remarks}</p>
             </div>
@@ -521,7 +521,7 @@ const DailyUtilityReport2Review = () => {
 
           {/* Photos */}
           {photos && photos.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+            <div className="border-t border-gray-200 pt-8 mb-8">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Photos</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {photos.map((photo, idx) => {
@@ -588,7 +588,7 @@ const DailyUtilityReport2Review = () => {
           )}
 
           {/* Signature Section */}
-          <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4">
+          <div className="border-t border-gray-200 pt-8 mb-8">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Signature Section</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>

@@ -7,7 +7,7 @@ const PageHeader = ({ title, backPath }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="mb-6 mt-8 flex items-center gap-4 bg-transparent">
+    <div className="mb-6 mt-8 flex items-center gap-4 bg-transparent print:hidden page-header">
       {backPath && (
         <Button
           onClick={() => navigate(backPath)}

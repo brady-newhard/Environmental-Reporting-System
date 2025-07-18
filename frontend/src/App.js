@@ -79,6 +79,9 @@ import DailyUtilityReport2Drafts from './components/disciplines/utility/daily/Da
 import DailyUtilityReport2Review from './components/disciplines/utility/daily/DailyUtilityReport2Review';
 import DailyUtilityReport2Print from './components/disciplines/utility/daily/DailyUtilityReport2Print';
 
+// Lead Components
+import LeadDashboard from './components/leads/LeadDashboard';
+
 const theme = createTheme({
   palette: {
     primary: {
@@ -275,7 +278,7 @@ function AppContent() {
     <div className="app-shell">
       {/* Development helper - only show in development */}
       {process.env.NODE_ENV === 'development' && (
-        <div style={{
+        <div className="print:hidden" style={{
           position: 'fixed',
           top: '10px',
           right: '10px',
@@ -293,7 +296,7 @@ function AppContent() {
       )}
       
       {!hideNav && <Navigation />}
-      <main className="main-content">
+      <main className="main-content print:pt-0">
         <Routes>
           <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
@@ -597,6 +600,16 @@ function AppContent() {
           {/* Utility Routes */}
           <Route path="/utility" element={<UtilityDashboard />} />
           <Route path="/utility/reports" element={<UtilityReports />} />
+
+          {/* Lead Dashboard Routes */}
+          <Route
+            path="/leads/dashboard"
+            element={
+              <PrivateRoute>
+                <LeadDashboard />
+              </PrivateRoute>
+            }
+          />
           
           {/* Daily Utility Report Routes */}
           <Route
