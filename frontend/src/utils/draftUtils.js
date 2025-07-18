@@ -450,7 +450,7 @@ export const clearOtherUserDrafts = async () => {
     
     let currentUser = null;
     try {
-      const response = await api.get('/users/profile/');
+      const response = await api.get('/users/profiles/me/');
       currentUser = response.data;
       console.log('Current user for clearing:', currentUser);
     } catch (error) {
@@ -512,7 +512,7 @@ export const migrateLocalStorageDrafts = async () => {
     // Get current user info
     let currentUser = null;
     try {
-      const response = await api.get('/users/profile/');
+      const response = await api.get('/users/profiles/me/');
       currentUser = response.data;
       console.log('Current user for migration:', currentUser);
     } catch (error) {

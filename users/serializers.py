@@ -9,9 +9,14 @@ class ContactSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+    
     class Meta:
         model = UserProfile
-        fields = ['id', 'role', 'discipline', 'created_at', 'updated_at']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'role', 'discipline', 'created_at', 'updated_at']
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

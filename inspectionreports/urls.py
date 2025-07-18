@@ -73,17 +73,17 @@ if not settings.DEBUG:
     urlpatterns += [
         re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
         re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-        # Serve React frontend last
-        re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
+        # Serve React frontend last (but not for API routes)
+        re_path(r'^(?!api/).*$', TemplateView.as_view(template_name='index.html')),
     ]
 else:
     # Serve static files in development
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     
-    # Serve React frontend in development
+    # Serve React frontend in development (but not for API routes)
     urlpatterns += [
-        re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
+        re_path(r'^(?!api/).*$', TemplateView.as_view(template_name='index.html')),
     ]
 
 # Debug route to check static files
