@@ -4,7 +4,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { syncDrafts, migrateLocalStorageDrafts } from './utils/draftUtils';
+import { syncDrafts, migrateLocalStorageDrafts, clearOtherUserDrafts } from './utils/draftUtils';
 
 // Common Components
 import HomePage from './components/common/HomePage';
@@ -254,6 +254,14 @@ function AppContent() {
     const runMigration = async () => {
       try {
         console.log('Running draft migration...');
+        
+        // First clear any drafts from other users
+        const clearedCount = await clearOtherUserDrafts();
+        if (clearedCount > 0) {
+          console.log(`Cleared ${clearedCount} drafts from other users`);
+        }
+        
+        // Then migrate localStorage drafts for current user
         const migratedCount = await migrateLocalStorageDrafts();
         if (migratedCount > 0) {
           console.log(`Successfully migrated ${migratedCount} drafts from localStorage to IndexedDB`);

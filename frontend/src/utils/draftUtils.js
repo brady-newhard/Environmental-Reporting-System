@@ -436,10 +436,82 @@ export const cleanupInvalidLocalDrafts = async (reportType) => {
   }
 }; 
 
+// Clear IndexedDB drafts that don't belong to the current user
+export const clearOtherUserDrafts = async () => {
+  try {
+    console.log('Clearing drafts from other users...');
+    
+    // Get current user info
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No token found, skipping clear');
+      return 0;
+    }
+    
+    let currentUser = null;
+    try {
+      const response = await api.get('/users/profile/');
+      currentUser = response.data;
+    } catch (error) {
+      console.log('Could not get current user, skipping clear');
+      return 0;
+    }
+    
+    // Get all report types
+    const reportTypes = ['environmental_daily', 'swppp', 'punchlist', 'daily_utility', 'pay_item', 'welding', 'coating'];
+    let clearedCount = 0;
+    
+    for (const reportType of reportTypes) {
+      try {
+        const store = indexedDBStorage.getStore(reportType);
+        const keys = await store.keys();
+        
+        for (const key of keys) {
+          const draft = await store.getItem(key);
+          if (draft) {
+            const draftUser = draft.user || draft.user_id || draft.username;
+            if (draftUser && draftUser !== currentUser.username) {
+              console.log(`Clearing draft ${key} - belongs to user ${draftUser}, not ${currentUser.username}`);
+              await store.removeItem(key);
+              clearedCount++;
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error clearing drafts for ${reportType}:`, error);
+      }
+    }
+    
+    console.log(`Cleared ${clearedCount} drafts from other users`);
+    return clearedCount;
+  } catch (error) {
+    console.error('Error clearing other user drafts:', error);
+    return 0;
+  }
+};
+
 // Migrate drafts from localStorage to IndexedDB
 export const migrateLocalStorageDrafts = async () => {
   try {
     console.log('Starting localStorage to IndexedDB migration...');
+    
+    // Get current user info from token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No token found, skipping migration');
+      return 0;
+    }
+    
+    // Get current user info
+    let currentUser = null;
+    try {
+      const response = await api.get('/users/profile/');
+      currentUser = response.data;
+      console.log('Current user:', currentUser);
+    } catch (error) {
+      console.log('Could not get current user, skipping migration');
+      return 0;
+    }
     
     // Get all localStorage keys that look like draft keys
     const allKeys = Object.keys(localStorage);
@@ -463,6 +535,20 @@ export const migrateLocalStorageDrafts = async () => {
         
         const parsedData = JSON.parse(draftData);
         if (!parsedData || typeof parsedData !== 'object') continue;
+        
+        // Check if this draft belongs to the current user
+        // Look for user information in the draft data
+        const draftUser = parsedData.user || parsedData.user_id || parsedData.username;
+        if (draftUser && draftUser !== currentUser.username) {
+          console.log(`Skipping draft ${key} - belongs to user ${draftUser}, not ${currentUser.username}`);
+          continue;
+        }
+        
+        // If no user info in draft, skip it to be safe
+        if (!draftUser) {
+          console.log(`Skipping draft ${key} - no user information found`);
+          continue;
+        }
         
         // Determine report type from key
         let reportType = 'generic';
@@ -498,7 +584,7 @@ export const migrateLocalStorageDrafts = async () => {
         
         // Save to IndexedDB
         await indexedDBStorage.saveDraft(reportType, draftId, parsedData);
-        console.log(`Migrated draft ${draftId} to ${reportType} store`);
+        console.log(`Migrated draft ${draftId} to ${reportType} store for user ${currentUser.username}`);
         migratedCount++;
         
         // Remove from localStorage
@@ -509,7 +595,7 @@ export const migrateLocalStorageDrafts = async () => {
       }
     }
     
-    console.log(`Migration complete. Migrated ${migratedCount} drafts.`);
+    console.log(`Migration complete. Migrated ${migratedCount} drafts for user ${currentUser.username}.`);
     return migratedCount;
     
   } catch (error) {
