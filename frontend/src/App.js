@@ -291,7 +291,7 @@ function AppContent() {
         <div className="print:hidden" style={{
           position: 'fixed',
           top: '10px',
-          right: '10px',
+          left: '10px',
           zIndex: 9999,
           backgroundColor: '#000',
           color: '#fff',
@@ -309,8 +309,11 @@ function AppContent() {
               <span onClick={() => setDevUser('brady-newhard')} style={{ cursor: 'pointer', marginRight: '8px' }}>
                 Brady
               </span>
-              <span onClick={() => setDevUser('bob-yeo')} style={{ cursor: 'pointer' }}>
+              <span onClick={() => setDevUser('bob-yeo')} style={{ cursor: 'pointer', marginRight: '8px' }}>
                 Bob
+              </span>
+              <span onClick={() => logout()} style={{ cursor: 'pointer', color: '#ff6b6b' }}>
+                Logout
               </span>
             </div>
           )}

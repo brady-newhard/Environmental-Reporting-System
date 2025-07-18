@@ -55,12 +55,14 @@ export const AuthProvider = ({ children }) => {
     
     if (shouldAutoSignIn) {
       console.log('[AuthContext] Development auto-sign-in enabled');
+      // Get the current dev user from localStorage or default to brady-newhard
+      const devUser = localStorage.getItem('devUser') || 'brady-newhard';
+      const devUserData = JSON.parse(localStorage.getItem('devUserData') || '{"username":"brady-newhard","email":"brady@example.com","first_name":"Brady"}');
+      const devUserToken = localStorage.getItem('devUserToken') || 'e2eafb6d54cbd0b3b0c1abf8ae27c3d7cf3a2';
+      
       setIsAuthenticated(true);
-      setUser({
-        username: 'brady-newhard',
-        email: 'brady@example.com',
-        first_name: 'Brady'
-      });
+      setUser(devUserData);
+      localStorage.setItem('token', devUserToken);
       setLoading(false);
       startTokenValidation();
       return;
@@ -228,9 +230,11 @@ export const AuthProvider = ({ children }) => {
       // Get the current dev user from localStorage or default to brady-newhard
       const devUser = localStorage.getItem('devUser') || 'brady-newhard';
       const devUserData = JSON.parse(localStorage.getItem('devUserData') || '{"username":"brady-newhard","email":"brady@example.com","first_name":"Brady"}');
+      const devUserToken = localStorage.getItem('devUserToken') || 'e2eafb6d54cbd0b3b0c1abf8ae27c3d7cf3a2';
       
       setIsAuthenticated(true);
       setUser(devUserData);
+      localStorage.setItem('token', devUserToken);
       startTokenValidation();
     } else {
       console.log('[AuthContext] Development auto-sign-in disabled');
@@ -251,26 +255,31 @@ export const AuthProvider = ({ children }) => {
 
     localStorage.setItem('devUser', username);
     
-    // Set default user data based on username
+    // Set default user data and token based on username
     let userData;
+    let token;
     switch (username) {
       case 'bob-yeo':
-        userData = { username: 'bob-yeo', email: 'bob@example.com', first_name: 'Bob' };
+        userData = { username: 'bob-yeo', email: 'yeorobbie@yahoo.com', first_name: 'Bob' };
+        token = '222d9337780cca681aca1d440134fc393d7cf3a2';
         break;
       case 'brady-newhard':
       default:
         userData = { username: 'brady-newhard', email: 'brady@example.com', first_name: 'Brady' };
+        token = 'e2eafb6d54cbd0b3b0c1abf8ae27c3d7cf3a2';
         break;
     }
     
     localStorage.setItem('devUserData', JSON.stringify(userData));
+    localStorage.setItem('devUserToken', token);
     
-    // If dev mode is enabled, update the current user
+    // If dev mode is enabled, update the current user and token
     if (localStorage.getItem('devAutoSignIn') === 'true') {
       setUser(userData);
+      localStorage.setItem('token', token);
     }
     
-    console.log(`[AuthContext] Dev user set to: ${username}`);
+    console.log(`[AuthContext] Dev user set to: ${username} with token: ${token.substring(0, 10)}...`);
   };
 
   return (
