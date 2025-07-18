@@ -57,8 +57,8 @@ export const AuthProvider = ({ children }) => {
       console.log('[AuthContext] Development auto-sign-in enabled');
       // Get the current dev user from localStorage or default to brady-newhard
       const devUser = localStorage.getItem('devUser') || 'brady-newhard';
-      const devUserData = JSON.parse(localStorage.getItem('devUserData') || '{"username":"brady-newhard","email":"brady@example.com","first_name":"Brady"}');
-      const devUserToken = localStorage.getItem('devUserToken') || 'e2eafb6d54cbd0b3b0c1abf8ae27c3d7cf3a2';
+      const devUserData = JSON.parse(localStorage.getItem('devUserData') || '{"username":"brady-newhard","email":"brady.russell@gmail.com","first_name":"Brady"}');
+      const devUserToken = localStorage.getItem('devUserToken') || 'e2eafb6d54947c3b1810bacba44cb3e403901f84';
       
       setIsAuthenticated(true);
       setUser(devUserData);
@@ -229,8 +229,8 @@ export const AuthProvider = ({ children }) => {
       console.log('[AuthContext] Development auto-sign-in enabled');
       // Get the current dev user from localStorage or default to brady-newhard
       const devUser = localStorage.getItem('devUser') || 'brady-newhard';
-      const devUserData = JSON.parse(localStorage.getItem('devUserData') || '{"username":"brady-newhard","email":"brady@example.com","first_name":"Brady"}');
-      const devUserToken = localStorage.getItem('devUserToken') || 'e2eafb6d54cbd0b3b0c1abf8ae27c3d7cf3a2';
+      const devUserData = JSON.parse(localStorage.getItem('devUserData') || '{"username":"brady-newhard","email":"brady.russell@gmail.com","first_name":"Brady"}');
+      const devUserToken = localStorage.getItem('devUserToken') || 'e2eafb6d54947c3b1810bacba44cb3e403901f84';
       
       setIsAuthenticated(true);
       setUser(devUserData);
@@ -265,8 +265,8 @@ export const AuthProvider = ({ children }) => {
         break;
       case 'brady-newhard':
       default:
-        userData = { username: 'brady-newhard', email: 'brady@example.com', first_name: 'Brady' };
-        token = 'e2eafb6d54cbd0b3b0c1abf8ae27c3d7cf3a2';
+        userData = { username: 'brady-newhard', email: 'brady.russell@gmail.com', first_name: 'Brady' };
+        token = 'e2eafb6d54947c3b1810bacba44cb3e403901f84';
         break;
     }
     

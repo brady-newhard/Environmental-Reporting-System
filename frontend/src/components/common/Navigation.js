@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 import {
   AppBar,
   Toolbar,
@@ -35,15 +36,8 @@ const Navigation = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch('/api/users/profiles/me/', {
-          headers: {
-            'Authorization': `Token ${localStorage.getItem('token')}`
-          }
-        });
-        if (response.ok) {
-          const profile = await response.json();
-          setUserProfile(profile);
-        }
+        const response = await api.get('/users/profiles/me/');
+        setUserProfile(response.data);
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
