@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import models
 from .models import ReportApproval
 from .serializers import ReportApprovalSerializer, ReportApprovalListSerializer
 from users.models import UserProfile
@@ -20,9 +21,19 @@ class ReportApprovalViewSet(viewsets.ModelViewSet):
             # Create profile if it doesn't exist
             profile = UserProfile.objects.create(user=user, role='inspector')
         
-        # If user is a lead, show reports assigned to them
+        # If user is a lead, show reports assigned to them OR unassigned reports in their discipline
         if profile.role == 'lead':
-            queryset = ReportApproval.objects.filter(assigned_lead=user)
+            if profile.discipline == 'all':
+                # Lead with 'all' discipline can see all unassigned reports or reports assigned to them
+                queryset = ReportApproval.objects.filter(
+                    models.Q(assigned_lead=user) | models.Q(assigned_lead__isnull=True)
+                )
+            else:
+                # Lead with specific discipline can see unassigned reports in their discipline or reports assigned to them
+                queryset = ReportApproval.objects.filter(
+                    models.Q(assigned_lead=user) | 
+                    (models.Q(assigned_lead__isnull=True) & models.Q(discipline=profile.discipline))
+                )
         # If user is admin, show all reports
         elif profile.role == 'admin':
             queryset = ReportApproval.objects.all()
@@ -149,13 +160,19 @@ class ReportApprovalViewSet(viewsets.ModelViewSet):
         
         # Get reports for this lead
         if profile.role == 'lead':
-            reports = ReportApproval.objects.filter(assigned_lead=user)
+            if profile.discipline == 'all':
+                # Lead with 'all' discipline can see all unassigned reports or reports assigned to them
+                reports = ReportApproval.objects.filter(
+                    models.Q(assigned_lead=user) | models.Q(assigned_lead__isnull=True)
+                )
+            else:
+                # Lead with specific discipline can see unassigned reports in their discipline or reports assigned to them
+                reports = ReportApproval.objects.filter(
+                    models.Q(assigned_lead=user) | 
+                    (models.Q(assigned_lead__isnull=True) & models.Q(discipline=profile.discipline))
+                )
         else:
             reports = ReportApproval.objects.all()
-        
-        # Filter by discipline if lead has specific discipline
-        if profile.role == 'lead' and profile.discipline != 'all':
-            reports = reports.filter(discipline=profile.discipline)
         
         stats = {
             'pending': reports.filter(status__in=['submitted', 'in_review']).count(),
