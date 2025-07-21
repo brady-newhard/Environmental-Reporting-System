@@ -89,12 +89,24 @@ const DailyUtilityReport2Review = () => {
   const handleSubmit = async () => {
     setSubmitDialogOpen(false);
     try {
-      // Here you would typically submit the report to the server
-      // For now, we'll just show a success message
-      setSnackbar({ open: true, message: 'Report submitted successfully.', severity: 'success' });
-      setTimeout(() => navigate('/utility/reports'), 1000);
+      // Import the submit functionality
+      const { submitReportForReview, prepareUtilityDailyReport2 } = await import('../../../../utils/reportSubmission');
+      
+      // Prepare the report data for submission
+      const reportData = prepareUtilityDailyReport2(draft);
+      
+      // Submit the report for lead review
+      await submitReportForReview(reportData);
+      
+      // Delete the draft after successful submission
+      const { deleteDraft } = await import('../../../../utils/draftUtils');
+      await deleteDraft('daily_utility_2', id);
+      
+      setSnackbar({ open: true, message: 'Report submitted for lead review successfully.', severity: 'success' });
+      setTimeout(() => navigate('/utility/reports/daily2/drafts'), 1000);
     } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to submit report.', severity: 'error' });
+      console.error('Error submitting report:', err);
+      setSnackbar({ open: true, message: 'Failed to submit report: ' + (err.message || 'Unknown error'), severity: 'error' });
     }
   };
 

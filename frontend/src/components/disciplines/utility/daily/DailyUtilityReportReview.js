@@ -118,7 +118,7 @@ const DailyUtilityReportReview = () => {
       const { submitReportForReview, prepareUtilityDailyReport } = await import('../../../../utils/reportSubmission');
       
       // Prepare the report data for submission
-      const reportData = prepareUtilityDailyReport(formData);
+      const reportData = prepareUtilityDailyReport(draft);
       
       // Submit the report for lead review
       await submitReportForReview(reportData);
