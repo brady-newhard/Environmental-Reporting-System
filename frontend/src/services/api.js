@@ -120,4 +120,99 @@ export const getProgressChart = async () => {
   }
 };
 
+// Submit report for lead review
+export const submitReport = async (reportData) => {
+  try {
+    const response = await api.post('/reports/', {
+      report_type: reportData.report_type,
+      report_id: reportData.report_id || `${reportData.report_type}_${Date.now()}`,
+      discipline: reportData.discipline,
+      report_data: reportData.data,
+      status: 'submitted'
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting report:', error);
+    throw error;
+  }
+};
+
+// Get reports for current user (filtered by role)
+export const getReports = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
+    
+    const response = await api.get(`/reports/?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    throw error;
+  }
+};
+
+// Get available leads for assignment
+export const getAvailableLeads = async () => {
+  try {
+    const response = await api.get('/reports/available_leads/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching available leads:', error);
+    throw error;
+  }
+};
+
+// Assign lead to report
+export const assignLead = async (reportId, leadId) => {
+  try {
+    const response = await api.post(`/reports/${reportId}/assign_lead/`, {
+      lead_id: leadId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error assigning lead:', error);
+    throw error;
+  }
+};
+
+// Approve report
+export const approveReport = async (reportId, reviewNotes = '') => {
+  try {
+    const response = await api.post(`/reports/${reportId}/approve/`, {
+      review_notes: reviewNotes
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error approving report:', error);
+    throw error;
+  }
+};
+
+// Reject report
+export const rejectReport = async (reportId, rejectionReason, reviewNotes = '') => {
+  try {
+    const response = await api.post(`/reports/${reportId}/reject/`, {
+      rejection_reason: rejectionReason,
+      review_notes: reviewNotes
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error rejecting report:', error);
+    throw error;
+  }
+};
+
+// Get dashboard stats for leads
+export const getDashboardStats = async () => {
+  try {
+    const response = await api.get('/reports/dashboard_stats/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    throw error;
+  }
+};
+
 export default api; 

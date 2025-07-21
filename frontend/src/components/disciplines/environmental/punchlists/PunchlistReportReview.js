@@ -96,18 +96,21 @@ export default function PunchlistReportReview() {
 
   const handleSubmit = async () => {
     try {
-      // Submit to API
-      await api.post('/api/environmental/punchlists/reports/', {
-        ...draft,
-        finalized: true
-      });
+      // Import the submit functionality
+      const { submitReportForReview, preparePunchlistReport } = await import('../../../../utils/reportSubmission');
+      
+      // Prepare the report data for submission
+      const reportData = preparePunchlistReport(draft);
+      
+      // Submit the report for lead review
+      await submitReportForReview(reportData);
       
       // Delete draft after successful submission
       await import('../../../../utils/draftUtils').then(utils => utils.deleteDraft(reportType, id));
       
       setSnackbar({
         open: true,
-        message: 'Report submitted successfully',
+        message: 'Report submitted for lead review successfully',
         severity: 'success'
       });
       
@@ -116,7 +119,7 @@ export default function PunchlistReportReview() {
       console.error('Error submitting report:', err);
       setSnackbar({
         open: true,
-        message: 'Error submitting report: ' + err.message,
+        message: 'Error submitting report: ' + (err.message || 'Unknown error'),
         severity: 'error'
       });
     }

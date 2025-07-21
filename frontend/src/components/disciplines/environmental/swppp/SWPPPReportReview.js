@@ -77,7 +77,26 @@ const SWPPPReportReview = () => {
 
   const handleSubmit = async () => {
     setSubmitDialogOpen(false);
-    setSnackbar({ open: true, message: 'Draft submitted successfully', severity: 'success' });
+    try {
+      // Import the submit functionality
+      const { submitReportForReview, prepareSWPPPReport } = await import('../../../../utils/reportSubmission');
+      
+      // Prepare the report data for submission
+      const reportData = prepareSWPPPReport(formData);
+      
+      // Submit the report for lead review
+      await submitReportForReview(reportData);
+      
+      // Delete the draft after successful submission
+      const { deleteDraft } = await import('../../../../utils/draftUtils');
+      await deleteDraft('swppp', draftId);
+      
+      setSnackbar({ open: true, message: 'Report submitted for lead review successfully', severity: 'success' });
+      setTimeout(() => navigate('/environmental/swppp/drafts'), 1000);
+    } catch (err) {
+      console.error('Error submitting report:', err);
+      setSnackbar({ open: true, message: 'Failed to submit report: ' + (err.message || 'Unknown error'), severity: 'error' });
+    }
   };
 
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });

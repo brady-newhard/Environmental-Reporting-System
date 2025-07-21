@@ -250,12 +250,24 @@ export default function EnvironmentalDailyReportReview() {
   const handleSubmit = async () => {
     setSubmitDialogOpen(false);
     try {
-      // Placeholder: Replace with actual submit API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setSnackbar({ open: true, message: 'Draft submitted successfully.', severity: 'success' });
+      // Import the submit functionality
+      const { submitReportForReview, prepareEnvironmentalDailyReport } = await import('../../../../utils/reportSubmission');
+      
+      // Prepare the report data for submission
+      const reportData = prepareEnvironmentalDailyReport(formData);
+      
+      // Submit the report for lead review
+      await submitReportForReview(reportData);
+      
+      // Delete the draft after successful submission
+      const { deleteDraft } = await import('../../../../utils/draftUtils');
+      await deleteDraft('environmental_daily', id);
+      
+      setSnackbar({ open: true, message: 'Report submitted for lead review successfully.', severity: 'success' });
       setTimeout(() => navigate('/environmental/reports/daily/drafts'), 1000);
     } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to submit draft.', severity: 'error' });
+      console.error('Error submitting report:', err);
+      setSnackbar({ open: true, message: 'Failed to submit report: ' + (err.message || 'Unknown error'), severity: 'error' });
     }
   };
 
