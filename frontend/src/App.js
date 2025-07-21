@@ -313,6 +313,9 @@ function AppContent() {
               <span onClick={() => setDevUser('bob-yeo')} style={{ cursor: 'pointer', marginRight: '8px' }}>
                 Bob
               </span>
+              <span onClick={() => setDevUser('Environmental-Lead')} style={{ cursor: 'pointer', marginRight: '8px' }}>
+                Env Lead
+              </span>
               <span onClick={() => logout()} style={{ cursor: 'pointer', color: '#ff6b6b' }}>
                 Logout
               </span>

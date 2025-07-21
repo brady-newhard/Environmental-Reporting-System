@@ -263,6 +263,10 @@ export const AuthProvider = ({ children }) => {
         userData = { username: 'bob-yeo', email: 'yeorobbie@yahoo.com', first_name: 'Bob' };
         token = '222d9337780cca681aca1d440134fc393d7cf3a2';
         break;
+      case 'Environmental-Lead':
+        userData = { username: 'Environmental-Lead', email: 'environmental-lead@example.com', first_name: 'Environmental' };
+        token = '650f2ae8aae92cb8dadcc2a8619ad7a7010caa31';
+        break;
       case 'brady-newhard':
       default:
         userData = { username: 'brady-newhard', email: 'brady.russell@gmail.com', first_name: 'Brady' };
