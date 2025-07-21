@@ -231,6 +231,27 @@ export const preparePunchlistReport = (formData) => {
 };
 
 /**
+ * Prepare pay item report data for submission
+ * @param {Object} formData - The form data from the pay item report
+ * @returns {Object} Prepared report data
+ */
+export const preparePayItemReport = (formData) => {
+  return {
+    report_type: 'pay_item',
+    discipline: 'utility',
+    data: {
+      header: formData.header,
+      items: formData.items || [],
+      comments: formData.comments,
+      photos: formData.photos || [],
+      prepared_by: formData.preparedBy,
+      signature: formData.signature,
+      signature_date: formData.sigDate
+    }
+  };
+};
+
+/**
  * Generic report preparation function that determines the type and calls the appropriate preparer
  * @param {Object} formData - The form data
  * @param {string} reportType - The type of report
@@ -252,6 +273,8 @@ export const prepareReportData = (formData, reportType) => {
       return prepareSWPPPReport(formData);
     case 'punchlist':
       return preparePunchlistReport(formData);
+    case 'pay_item':
+      return preparePayItemReport(formData);
     default:
       throw new Error(`Unknown report type: ${reportType}`);
   }

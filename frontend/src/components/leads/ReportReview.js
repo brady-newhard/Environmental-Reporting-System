@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getReports, approveReport, rejectReport } from '../../services/api';
+import api from '../../services/api';
 import PageHeader from '../common/PageHeader';
 import { 
   CheckCircleIcon, 
@@ -11,6 +12,14 @@ import {
   UserIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline';
+
+// Import the print components for each report type
+import EnvironmentalDailyReportPrint from '../disciplines/environmental/daily/EnvironmentalDailyReportPrint';
+import DailyUtilityReportPrint from '../disciplines/utility/daily/DailyUtilityReportPrint';
+import DailyUtilityReport2Print from '../disciplines/utility/daily/DailyUtilityReport2Print';
+import PunchlistReportPrint from '../disciplines/environmental/punchlists/PunchlistReportPrint';
+import SWPPPReportPrint from '../disciplines/environmental/swppp/SWPPPReportPrint';
+import PayItemReportPrint from '../disciplines/utility/daily/PayItemReportPrint';
 
 const ReportReview = () => {
   const { reportId } = useParams();
@@ -23,6 +32,7 @@ const ReportReview = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [parsedData, setParsedData] = useState(null);
 
   useEffect(() => {
     loadReport();
@@ -31,14 +41,40 @@ const ReportReview = () => {
   const loadReport = async () => {
     try {
       setLoading(true);
-      const reports = await getReports();
-      const foundReport = reports.find(r => r.id === parseInt(reportId));
-      if (foundReport) {
-        setReport(foundReport);
-      } else {
-        console.error('Report not found');
-        navigate('/leads/dashboard');
+      // Use the detail endpoint to get the specific report
+      const response = await api.get(`/reports/${reportId}/`);
+      const foundReport = response.data;
+      
+      console.log('Found report:', {
+        id: foundReport.id,
+        report_type: foundReport.report_type,
+        report_data_type: typeof foundReport.report_data,
+        report_data_length: foundReport.report_data ? 
+          (typeof foundReport.report_data === 'string' ? foundReport.report_data.length : 'object') : 0,
+        report_data_preview: foundReport.report_data ? 
+          (typeof foundReport.report_data === 'string' ? 
+            foundReport.report_data.substring(0, 100) + '...' : 
+            'Object: ' + Object.keys(foundReport.report_data).join(', ')) : null
+      });
+      
+      // Parse the report data
+      let parsedReportData = null;
+      if (foundReport.report_data) {
+        try {
+          if (typeof foundReport.report_data === 'object' && foundReport.report_data !== null) {
+            parsedReportData = foundReport.report_data;
+            console.log('Using object data directly:', parsedReportData);
+          } else if (typeof foundReport.report_data === 'string') {
+            parsedReportData = JSON.parse(foundReport.report_data);
+            console.log('Successfully parsed JSON data:', parsedReportData);
+          }
+        } catch (error) {
+          console.error('Error parsing report data:', error);
+        }
       }
+      
+      setReport(foundReport);
+      setParsedData(parsedReportData);
     } catch (error) {
       console.error('Error loading report:', error);
       navigate('/leads/dashboard');
@@ -101,74 +137,81 @@ const ReportReview = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const renderReportData = () => {
-    if (!report?.report_data) return null;
-
-    const data = report.report_data;
+  const renderReportContent = (data, reportType) => {
+    console.log('Rendering report content for type:', reportType, 'with data:', data);
     
-    return (
-      <div className="space-y-6">
-        {/* Basic Info */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Report Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Report Type</label>
-              <p className="mt-1 text-sm text-gray-900">
-                {report.report_type.replace(/_/g, ' ').toUpperCase()}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Discipline</label>
-              <p className="mt-1 text-sm text-gray-900">{report.discipline}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Submitted By</label>
-              <p className="mt-1 text-sm text-gray-900">
-                {report.submitted_by?.first_name} {report.submitted_by?.last_name}
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Submitted Date</label>
-              <p className="mt-1 text-sm text-gray-900">{formatDate(report.submitted_at)}</p>
-            </div>
-          </div>
+    if (!data) {
+      return (
+        <div className="p-3 bg-gray-50 rounded-md">
+          <p className="text-sm text-gray-500">Report data could not be parsed. Please contact support.</p>
+          <details className="mt-2">
+            <summary className="text-sm text-gray-600 cursor-pointer">Raw Data</summary>
+            <pre className="text-xs text-gray-500 mt-2 overflow-auto max-h-40">
+              {JSON.stringify(report?.report_data, null, 2)}
+            </pre>
+          </details>
         </div>
+      );
+    }
+    
+    // Create wrapper components that properly handle the data
+    const EnvironmentalDailyWrapper = () => {
+      const mockLocation = { state: { reportData: data } };
+      return <EnvironmentalDailyReportPrint location={mockLocation} />;
+    };
+    
+    const DailyUtilityWrapper = () => {
+      const mockLocation = { state: { reportData: data } };
+      return <DailyUtilityReportPrint location={mockLocation} />;
+    };
+    
+    const DailyUtility2Wrapper = () => {
+      const mockLocation = { state: { reportData: data } };
+      return <DailyUtilityReport2Print location={mockLocation} />;
+    };
+    
+    const PunchlistWrapper = () => {
+      const mockLocation = { state: { reportData: data } };
+      return <PunchlistReportPrint location={mockLocation} />;
+    };
+    
+    const SWPPPWrapper = () => {
+      const mockLocation = { state: { reportData: data } };
+      return <SWPPPReportPrint location={mockLocation} />;
+    };
+    
+    const PayItemWrapper = () => {
+      const mockLocation = { state: { reportData: data } };
+      return <PayItemReportPrint location={mockLocation} />;
+    };
 
-        {/* Report Content */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Report Content</h3>
-          <div className="space-y-4">
-            {Object.entries(data).map(([key, value]) => {
-              if (typeof value === 'object' && value !== null) {
-                return (
-                  <div key={key}>
-                    <label className="block text-sm font-medium text-gray-700 capitalize">
-                      {key.replace(/_/g, ' ')}
-                    </label>
-                    <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                      <pre className="text-sm text-gray-900 whitespace-pre-wrap">
-                        {JSON.stringify(value, null, 2)}
-                      </pre>
-                    </div>
-                  </div>
-                );
-              } else if (typeof value === 'string' && value.length > 0) {
-                return (
-                  <div key={key}>
-                    <label className="block text-sm font-medium text-gray-700 capitalize">
-                      {key.replace(/_/g, ' ')}
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900">{value}</p>
-                  </div>
-                );
-              }
-              return null;
-            })}
+    // Use the appropriate wrapper component for each report type
+    switch (reportType) {
+      case 'environmental_daily':
+        return <EnvironmentalDailyWrapper />;
+      case 'utility_daily':
+        return <DailyUtilityWrapper />;
+      case 'utility_daily_2':
+        return <DailyUtility2Wrapper />;
+      case 'punchlist':
+        return <PunchlistWrapper />;
+      case 'swppp':
+        return <SWPPPWrapper />;
+      case 'pay_item':
+        return <PayItemWrapper />;
+      default:
+        return (
+          <div className="p-3 bg-gray-50 rounded-md">
+            <p className="text-sm text-gray-500">Report type "{reportType}" not supported for review.</p>
+            <details className="mt-2">
+              <summary className="text-sm text-gray-600 cursor-pointer">Raw Data</summary>
+              <pre className="text-xs text-gray-500 mt-2 overflow-auto max-h-40">
+                {JSON.stringify(data, null, 2)}
+              </pre>
+            </details>
           </div>
-        </div>
-      </div>
-    );
+        );
+    }
   };
 
   if (loading) {
@@ -243,7 +286,9 @@ const ReportReview = () => {
         </div>
 
         {/* Report Content */}
-        {renderReportData()}
+        <div className="space-y-4">
+          {renderReportContent(parsedData, report.report_type)}
+        </div>
 
         {/* Review Actions */}
         {report.status === 'submitted' && (

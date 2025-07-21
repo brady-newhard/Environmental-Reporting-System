@@ -640,6 +640,13 @@ const DailyUtilityReport2Review = () => {
               {isPrinting ? 'Printing...' : 'Print'}
             </button>
             <button
+              onClick={() => setSubmitDialogOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              <CheckIcon className="h-4 w-4 mr-2" />
+              Submit
+            </button>
+            <button
               onClick={handleExit}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
@@ -676,6 +683,36 @@ const DailyUtilityReport2Review = () => {
                   </button>
                   <button
                     onClick={() => setDeleteDialogOpen(false)}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Submit Confirmation Dialog */}
+        {submitDialogOpen && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div className="mt-3 text-center">
+                <h3 className="text-lg font-medium text-gray-900">Submit Report</h3>
+                <div className="mt-2 px-7 py-3">
+                  <p className="text-sm text-gray-500">
+                    Are you sure you want to submit this report for lead review? This action cannot be undone.
+                  </p>
+                </div>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={handleSubmit}
+                    className="px-4 py-2 bg-green-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300"
+                  >
+                    Submit
+                  </button>
+                  <button
+                    onClick={() => setSubmitDialogOpen(false)}
                     className="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
                   >
                     Cancel
