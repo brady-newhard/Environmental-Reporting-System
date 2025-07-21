@@ -73,7 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'csp.middleware.CSPMiddleware',  # Add CSP middleware
+    # 'csp.middleware.CSPMiddleware',  # Disable CSP middleware for development
 ]
 
 ROOT_URLCONF = 'inspectionreports.urls'
@@ -230,8 +230,10 @@ if not DEBUG:
     CSP_CONNECT_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
     CSP_MANIFEST_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
 else:
-    # Development settings
+    # Development settings - COMPLETELY DISABLE HTTPS FOR LOCAL DEVELOPMENT
     SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+    
+    # CRITICAL: Disable ALL HTTPS-related settings for development
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
@@ -239,48 +241,56 @@ else:
     USE_X_FORWARDED_HOST = False
     USE_X_FORWARDED_PORT = False
     USE_X_FORWARDED_PROTO = False
+    
+    # Disable HSTS and other security headers that can cause HTTPS redirects
     SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
     SECURE_CONTENT_TYPE_NOSNIFF = False
     SECURE_BROWSER_XSS_FILTER = False
     X_FRAME_OPTIONS = 'SAMEORIGIN'
+    
+    # Disable CSP for development to avoid conflicts
+    CSP_DEFAULT_SRC = None
+    CSP_STYLE_SRC = None
+    CSP_SCRIPT_SRC = None
+    CSP_IMG_SRC = None
+    CSP_FONT_SRC = None
+    CSP_CONNECT_SRC = None
+    CSP_MANIFEST_SRC = None
 
-    # Development CORS settings
+    # Development CORS settings - Allow all localhost variations
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:3000",
-        "https://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://127.0.0.1:3000",
         "http://localhost:5173",
-        "https://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://127.0.0.1:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://192.168.1.203:3000",
+        "http://192.168.1.203:5173",
+        "http://192.168.1.203:8000",
     ]
+    
+    # Allow all origins for development (more permissive)
+    CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
 
-    # Development CSRF settings
+    # Development CSRF settings - Allow all localhost variations
     CSRF_TRUSTED_ORIGINS = [
         "http://localhost:3000",
-        "https://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://127.0.0.1:3000",
-        "http://192.168.1.203:3000",
-        "https://192.168.1.203:3000",
         "http://localhost:5173",
-        "https://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://127.0.0.1:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://192.168.1.203:3000",
+        "http://192.168.1.203:5173",
+        "http://192.168.1.203:8000",
     ]
-
-    # Development CSP settings
-    CSP_DEFAULT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-    CSP_IMG_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-    CSP_FONT_SRC = ("'self'", "data:", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-    CSP_CONNECT_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-    CSP_MANIFEST_SRC = ("'self'", "http://localhost:8000", "https://localhost:8000", "http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
+    
+    # Allow all CSRF origins for development
+    CSRF_ALLOW_ALL_ORIGINS = True
 
 # Configure whitenoise
 WHITENOISE_USE_FINDERS = True
