@@ -146,8 +146,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend', 'dist'),  # Frontend build directory
+    os.path.join(BASE_DIR, 'frontend', 'dist'),  # Vite build output
     os.path.join(BASE_DIR, 'frontend', 'public'),  # Public static files
+    os.path.join(BASE_DIR, 'static'),  # Additional static files
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
