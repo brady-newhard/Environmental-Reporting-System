@@ -211,6 +211,14 @@ if not DEBUG:
     USE_X_FORWARDED_PORT = True
     USE_X_FORWARDED_PROTO = True
     
+    # Enable HSTS for production
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    
     # Production CORS settings
     CORS_ALLOWED_ORIGINS = [
         "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
@@ -221,14 +229,14 @@ if not DEBUG:
         "https://environmental-reporting-system-febba9464fe7.herokuapp.com",
     ]
     
-    # Production CSP settings
-    CSP_DEFAULT_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-    CSP_IMG_SRC = ("'self'", "data:", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-    CSP_FONT_SRC = ("'self'", "data:", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-    CSP_CONNECT_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
-    CSP_MANIFEST_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    # Production CSP settings - only enable if middleware is active
+    # CSP_DEFAULT_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    # CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    # CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    # CSP_IMG_SRC = ("'self'", "data:", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    # CSP_FONT_SRC = ("'self'", "data:", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    # CSP_CONNECT_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
+    # CSP_MANIFEST_SRC = ("'self'", "https://environmental-reporting-system-febba9464fe7.herokuapp.com")
 else:
     # Development settings - COMPLETELY DISABLE HTTPS FOR LOCAL DEVELOPMENT
     SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
