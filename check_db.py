@@ -19,37 +19,23 @@ def check_and_create_user():
     for user in users:
         print(f"- {user.username} ({user.email}) - {'Active' if user.is_active else 'Inactive'}")
     
-    # Create a test user if none exist
-    if users.count() == 0:
-        print("\nNo users found. Creating test user...")
+    # Create a test user for login testing
+    test_username = 'testuser'
+    if not User.objects.filter(username=test_username).exists():
+        print(f"\nCreating test user: {test_username}")
         
-        # Create superuser
-        admin_user = User.objects.create_user(
-            username='admin',
-            email='admin@example.com',
-            password='admin123',
-            first_name='Admin',
-            last_name='User',
-            is_staff=True,
-            is_superuser=True
-        )
-        print(f"Created admin user: {admin_user.username}")
-        
-        # Create regular user
         test_user = User.objects.create_user(
-            username='testuser',
+            username=test_username,
             email='test@example.com',
             password='test123',
             first_name='Test',
             last_name='User'
         )
         print(f"Created test user: {test_user.username}")
-        
-        print("\nTest credentials:")
-        print("Admin: username=admin, password=admin123")
-        print("User: username=testuser, password=test123")
+        print(f"Test credentials: username={test_username}, password=test123")
     else:
-        print("\nUsers already exist in database.")
+        print(f"\nTest user '{test_username}' already exists.")
+        print(f"Test credentials: username={test_username}, password=test123")
 
 if __name__ == '__main__':
     check_and_create_user() 
