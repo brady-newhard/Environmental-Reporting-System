@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { loadDraft } from '../../../../utils/draftUtils';
-import PageHeader from '@/components/common/PageHeader';
-import { Button } from '@/components/ui/button';
 import { formatPhotoUrl } from '../../../../utils/photoUtils';
 
 function formatDate(value) {
@@ -32,7 +30,7 @@ const printPageBreakCss = `
 }
 `;
 
-export default function DailyUtilityReport2Print() {
+export default function DailyUtilityReport2Print({ reportData }) {
   const { id } = useParams();
   const location = useLocation();
   const [draft, setDraft] = useState(null);
@@ -42,12 +40,23 @@ export default function DailyUtilityReport2Print() {
     const loadDraftData = async () => {
       setIsLoading(true);
       try {
+        // If reportData is passed as a prop, use it directly
+        if (reportData) {
+          console.log('Print component: Using data from prop:', reportData);
+          setDraft(reportData);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Fallback to location state
         if (location.state?.reportData) {
           console.log('Print component: Using data from location state:', location.state.reportData);
           setDraft(location.state.reportData);
           setIsLoading(false);
           return;
         }
+        
+        // Only try to load from storage if no data is provided
         console.log('Print component: Loading draft from storage:', id);
         const loadedDraft = await loadDraft('daily_utility_2', id);
         console.log('Print component: Loaded draft from storage:', loadedDraft);
@@ -57,7 +66,7 @@ export default function DailyUtilityReport2Print() {
       }
     };
     loadDraftData();
-  }, [id, location.state]);
+  }, [id, location.state, reportData]);
 
   // For page numbers in print (optional, can be improved with a real print lib)
   useEffect(() => {
@@ -173,13 +182,6 @@ export default function DailyUtilityReport2Print() {
 }
 `}</style>
       <div className="w-full flex flex-col items-center print:block">
-        {/* Add PageHeader and Print button above the main print area, only visible on screen */}
-        {typeof window !== 'undefined' && (
-          <div className="flex items-center gap-4 mb-4 print:hidden w-full max-w-[816px] mx-auto">
-            <PageHeader title="Print Preview" backPath={`/utility/reports/daily2/review/${id}`} />
-            <Button onClick={() => window.print()} className="ml-auto bg-yellow-400 hover:bg-yellow-500 text-black font-semibold">Send to Printer</Button>
-          </div>
-        )}
         {/* Main printable area - align with header edges */}
         <div className="w-full max-w-[816px] mx-auto bg-white shadow-2xl rounded-xl flex flex-col print:shadow-none print:rounded-none print:w-full print:max-w-none print:min-h-0 print:p-0 print:m-0">
           {/* Header */}

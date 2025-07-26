@@ -9,10 +9,9 @@ import {
   ArrowLeftIcon,
   DocumentTextIcon,
   UserIcon,
-  CalendarIcon
+  CalendarIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
-
-
 
 // Import the print components for each report type
 import EnvironmentalDailyReportPrint from '../disciplines/environmental/daily/EnvironmentalDailyReportPrint';
@@ -24,33 +23,70 @@ import PayItemReportPrint from '../disciplines/utility/daily/PayItemReportPrint'
 
 // Wrapper components that properly provide location state to print components
 const EnvironmentalDailyReportWrapper = ({ reportData }) => {
-  const mockLocation = { state: { reportData } };
-  return <EnvironmentalDailyReportPrint location={mockLocation} />;
+  return <EnvironmentalDailyReportPrint reportData={reportData} />;
 };
 
 const DailyUtilityReportWrapper = ({ reportData }) => {
-  const mockLocation = { state: { reportData } };
-  return <DailyUtilityReportPrint location={mockLocation} />;
+  return <DailyUtilityReportPrint reportData={reportData} />;
 };
 
 const DailyUtilityReport2Wrapper = ({ reportData }) => {
-  const mockLocation = { state: { reportData } };
-  return <DailyUtilityReport2Print location={mockLocation} />;
+  console.log('DailyUtilityReport2Wrapper: Received reportData:', reportData);
+  return <DailyUtilityReport2Print reportData={reportData} />;
 };
 
 const PunchlistReportWrapper = ({ reportData }) => {
-  const mockLocation = { state: { reportData } };
-  return <PunchlistReportPrint location={mockLocation} />;
+  return <PunchlistReportPrint reportData={reportData} />;
 };
 
 const SWPPPReportWrapper = ({ reportData }) => {
-  const mockLocation = { state: { reportData } };
-  return <SWPPPReportPrint location={mockLocation} />;
+  return <SWPPPReportPrint reportData={reportData} />;
 };
 
 const PayItemReportWrapper = ({ reportData }) => {
-  const mockLocation = { state: { reportData } };
-  return <PayItemReportPrint location={mockLocation} />;
+  return <PayItemReportPrint reportData={reportData} />;
+};
+
+// Simple data renderer for debugging
+const SimpleDataRenderer = ({ data, reportType }) => {
+  if (!data) {
+    return (
+      <div className="bg-white p-8">
+        <p className="text-gray-500">No data available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-8">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        {reportType.replace(/_/g, ' ').toUpperCase()} - Report Data
+      </h2>
+      
+      <div className="space-y-6">
+        <div className="mb-4">
+          <h3 className="font-semibold text-gray-800 mb-2">Data Keys:</h3>
+          <div className="ml-4">
+            {Object.keys(data).map(key => (
+              <div key={key} className="text-gray-600">
+                {key}: {typeof data[key]} {Array.isArray(data[key]) ? `(${data[key].length} items)` : ''}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Raw Data for Debugging */}
+        <details className="mt-8">
+          <summary className="cursor-pointer text-sm text-gray-600 font-semibold">
+            Raw Data (for debugging)
+          </summary>
+          <pre className="mt-2 bg-gray-100 p-4 rounded text-xs overflow-auto max-h-64">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        </details>
+      </div>
+    </div>
+  );
 };
 
 // Simple report renderer that displays data in print format
@@ -63,402 +99,29 @@ const PrintFormatRenderer = ({ data, reportType }) => {
     );
   }
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '—';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      const [year, month, day] = dateString.split('-');
-      return `${parseInt(month, 10)}/${parseInt(day, 10)}/${year}`;
-    }
-    const d = new Date(dateString);
-    if (isNaN(d)) return dateString;
-    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-  };
+  console.log('PrintFormatRenderer: Using actual print components for report type:', reportType, 'with data:', data);
 
-  const renderUtilityDaily2Content = () => {
-    const header = data.header || {};
-    const progressRows = Array.isArray(data.progressRows) ? data.progressRows : [];
-    const payItems = Array.isArray(data.payItems) ? data.payItems : [];
-    const photos = Array.isArray(data.photos) ? data.photos : [];
-    const headcounts = data.headcounts || {};
-    const subcontractors = Array.isArray(data.subcontractors) ? data.subcontractors : [];
-    const inspectionPersonnel = Array.isArray(data.inspectionPersonnel) ? data.inspectionPersonnel : [];
-    const equipment = Array.isArray(data.equipment) ? data.equipment : [];
-    const trucking = Array.isArray(data.trucking) ? data.trucking : [];
-    const crews = Array.isArray(data.crews) ? data.crews : [];
-    const remarks = data.remarks || '';
-    const preparedBy = data.preparedBy || '';
-    const signature = data.signature;
-    const sigDate = data.sigDate;
-    
-    return (
-      <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8">
-        <div className="w-full max-w-[816px] mx-auto bg-white shadow-2xl rounded-xl flex flex-col">
-          {/* Header */}
-          <div className="w-full border-b-4 border-blue-500 bg-blue-900 text-white py-0.5 pl-1 pr-8 rounded-t-xl">
-            <div className="flex items-center mt-1 mb-1">
-              <div className="flex-shrink-0 flex items-center justify-start" style={{ minWidth: '9rem' }}>
-                <img src="/static/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
-              </div>
-              <div className="flex-1 flex items-center justify-center">
-                <h1 className="text-3xl font-bold tracking-wide text-center">Daily Utility Report 2</h1>
-              </div>
-              <div className="flex-shrink-0" style={{ minWidth: '9rem' }}></div>
-            </div>
-          </div>
-          
-          {/* Main Content */}
-          <div className="flex-1 px-8 py-8 flex flex-col">
-            {/* Project Info */}
-            <div className="mb-6">
-              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
-                <h2 className="text-xl font-bold text-blue-800">Project Information</h2>
-                <div className="text-base font-semibold text-blue-800 ml-4">Date: {formatDate(header.date)}</div>
-              </div>
-              <table className="w-full mb-6 text-sm">
-                <tbody>
-                  <tr className="bg-gray-50">
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Section</td>
-                    <td className="py-1 text-gray-900">{header.section || '—'}</td>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Spread</td>
-                    <td className="py-1 text-gray-900">{header.spread || '—'}</td>
-                  </tr>
-                  <tr>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Contractor</td>
-                    <td className="py-1 text-gray-900">{header.contractor || '—'}</td>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Inspector</td>
-                    <td className="py-1 text-gray-900">{header.inspector || '—'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Headcounts */}
-            {Object.keys(headcounts).length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Headcounts</h2>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {Object.entries(headcounts).map(([key, value]) => (
-                    <div key={key}>
-                      <strong>{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</strong> {value || '—'}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Subcontractors */}
-            {subcontractors.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Subcontractors</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Company</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Work</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Personnel</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {subcontractors.map((sub, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                          <td className="py-2 px-2 border border-gray-300">{sub.company || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{sub.work || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{sub.personnel || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            
-            {/* Inspection Personnel */}
-            {inspectionPersonnel.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Inspection Personnel</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Name</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Company</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Role</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {inspectionPersonnel.map((person, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                          <td className="py-2 px-2 border border-gray-300">{person.name || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{person.company || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{person.role || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            
-            {/* Weather and Conditions */}
-            {(data.morningTemp || data.midTemp || data.weather || data.precipitation || data.abnormalConditions || data.crewAdverse) && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Weather and Conditions</h2>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {data.morningTemp && <div><strong>Morning Temperature:</strong> {data.morningTemp}</div>}
-                  {data.midTemp && <div><strong>Mid Temperature:</strong> {data.midTemp}</div>}
-                  {data.weather && <div><strong>Weather:</strong> {data.weather}</div>}
-                  {data.precipitation && <div><strong>Precipitation:</strong> {data.precipitation}</div>}
-                  {data.abnormalConditions && <div><strong>Abnormal Conditions:</strong> {data.abnormalConditions}</div>}
-                  {data.crewAdverse && <div><strong>Crew Adverse:</strong> {data.crewAdverse}</div>}
-                </div>
-              </div>
-            )}
-            
-            {/* Progress Rows */}
-            {progressRows.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Progress</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">From</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">To</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Feet</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Comments</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {progressRows.map((row, rowIdx) => (
-                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50' : ''}>
-                          <td className="py-2 px-2 border border-gray-300">{row.from || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{row.to || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{row.feet || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{row.comments || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            
-            {/* Pay Items */}
-            {payItems.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Pay Items</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">From</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">To</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Qty</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Comments</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payItems.map((item, itemIdx) => (
-                        <tr key={itemIdx} className={itemIdx % 2 === 0 ? 'bg-gray-50' : ''}>
-                          <td className="py-2 px-2 border border-gray-300">{item.from || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{item.to || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{item.qty || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{item.comments || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            
-            {/* Equipment */}
-            {equipment.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Equipment</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Equipment</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Hours</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Status</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Comments</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {equipment.map((item, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                          <td className="py-2 px-2 border border-gray-300">{item.equipment || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{item.hours || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{item.status || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{item.comments || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            
-            {/* Trucking */}
-            {trucking.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Trucking</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Truck</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Loads</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Material</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Comments</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {trucking.map((truck, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                          <td className="py-2 px-2 border border-gray-300">{truck.truck || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{truck.loads || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{truck.material || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{truck.comments || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            
-            {/* Crews */}
-            {crews.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Crews</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-collapse">
-                    <thead>
-                      <tr className="bg-blue-50">
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Crew</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Foreman</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Start Station</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">End Station</th>
-                        <th className="font-bold py-2 px-2 text-left border border-gray-300">Summary</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {crews.map((crew, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                          <td className="py-2 px-2 border border-gray-300">{crew.crew || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{crew.foreman || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{crew.startStation || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{crew.endStation || '—'}</td>
-                          <td className="py-2 px-2 border border-gray-300">{crew.summary || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            
-            {/* Additional Sections */}
-            {(data.craft || data.environmental || data.survey || data.land) && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Additional Information</h2>
-                <div className="space-y-4 text-sm">
-                  {data.craft && (
-                    <div>
-                      <strong>Craft:</strong> {data.craft}
-                    </div>
-                  )}
-                  {data.environmental && (
-                    <div>
-                      <strong>Environmental:</strong> {data.environmental}
-                    </div>
-                  )}
-                  {data.survey && (
-                    <div>
-                      <strong>Survey:</strong> {data.survey}
-                    </div>
-                  )}
-                  {data.land && (
-                    <div>
-                      <strong>Land:</strong> {data.land}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {/* Remarks */}
-            {remarks && (
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Remarks</h2>
-                <p className="text-gray-900">{remarks}</p>
-              </div>
-            )}
-            
-            {/* Signature */}
-            <div className="flex flex-row items-center gap-6 mt-12 mb-8">
-              <div className="text-base font-semibold whitespace-nowrap"><b>Prepared by:</b> {preparedBy || header.inspector || '—'}</div>
-              {signature && (
-                <img src={signature} alt="Signature" className="max-h-16 max-w-xs border border-gray-300 rounded bg-white shadow mb-0" />
-              )}
-              <div className="text-base font-semibold whitespace-nowrap"><b>Date:</b> {formatDate(sigDate)}</div>
-            </div>
-            
-            {/* Photos */}
-            {photos.length > 0 && (
-              <div className="mt-10 mb-10">
-                <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4">Photos</h2>
-                <div className="grid grid-cols-2 gap-6">
-                  {photos.map((photo, idx) => {
-                    // Handle different photo URL formats
-                    let imageSrc = null;
-                    if (photo.image_url || photo.url) {
-                      imageSrc = photo.image_url || photo.url;
-                    } else if (photo.preview) {
-                      imageSrc = photo.preview;
-                    } else if (photo.file && photo.file instanceof File) {
-                      imageSrc = URL.createObjectURL(photo.file);
-                    } else if (photo.file) {
-                      imageSrc = photo.file;
-                    }
-                    
-                    return (
-                      <div key={idx} className="rounded-lg border border-gray-200 bg-gray-50 shadow-sm p-4 flex flex-col items-center w-full">
-                        {imageSrc ? (
-                          <img src={imageSrc} alt={photo.comment || photo.description || `Photo ${idx + 1}`} className="w-full h-40 object-contain rounded mb-2 bg-white border" />
-                        ) : (
-                          <div className="w-full h-32 flex items-center justify-center bg-gray-200 text-gray-400 rounded mb-2">No Image</div>
-                        )}
-                        {photo.location && (
-                          <div className="text-xs text-gray-600 mb-1 w-full"><b>Location:</b> {photo.location}</div>
-                        )}
-                        {(photo.comment || photo.description) && (photo.comment || photo.description).trim() !== '' && (
-                          <div className="text-xs text-gray-700 w-full"><b>Comments:</b> {photo.comment || photo.description}</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Footer */}
-          <div className="w-full border-t-4 border-blue-500 bg-blue-900 text-white py-2 px-8 rounded-b-xl text-sm flex justify-between items-center">
-            <span className="flex-1 text-center">&copy; {new Date().getFullYear()} WildStone Solutions, LLC</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // For now, just render the Daily Report 2 format for all types
-  // This can be expanded later to handle other report types
-  return renderUtilityDaily2Content();
+  // Use the appropriate wrapper based on report type
+  switch (reportType) {
+    case 'environmental_daily':
+    case 'environmental_daily_report':
+      return <EnvironmentalDailyReportWrapper reportData={data} />;
+    case 'daily_utility':
+    case 'utility_daily':
+      return <DailyUtilityReportWrapper reportData={data} />;
+    case 'daily_utility_2':
+    case 'utility_daily_2':
+      return <DailyUtilityReport2Wrapper reportData={data} />;
+    case 'punchlist':
+      return <PunchlistReportWrapper reportData={data} />;
+    case 'swppp':
+      return <SWPPPReportWrapper reportData={data} />;
+    case 'pay_item':
+      return <PayItemReportWrapper reportData={data} />;
+    default:
+      console.warn('Unknown report type for print preview:', reportType);
+      return <SimpleDataRenderer data={data} reportType={reportType} />;
+  }
 };
 
 const ReportReview = () => {
@@ -521,6 +184,57 @@ const ReportReview = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEdit = () => {
+    if (!parsedData || !report) return;
+
+    console.log('Navigating to edit page with data:', {
+      reportId: report.id,
+      reportType: report.report_type,
+      dataKeys: Object.keys(parsedData),
+      dataPreview: parsedData
+    });
+
+    // Navigate to the appropriate edit page based on report type
+    let editPath = '';
+    switch (report.report_type) {
+      case 'environmental_daily':
+      case 'environmental_daily_report':
+        editPath = `/environmental/reports/daily/edit/${report.id}`;
+        break;
+      case 'daily_utility':
+      case 'utility_daily':
+        editPath = `/utility/reports/daily/edit/${report.id}`;
+        break;
+      case 'daily_utility_2':
+      case 'utility_daily_2':
+        editPath = `/utility/reports/daily2/edit/${report.id}`;
+        break;
+      case 'punchlist':
+        editPath = `/environmental/reports/punchlist/edit/${report.id}`;
+        break;
+      case 'swppp':
+        editPath = `/environmental/swppp/edit/${report.id}`;
+        break;
+      case 'pay_item':
+        editPath = `/utility/reports/pay-item/edit/${report.id}`;
+        break;
+      default:
+        console.error('Unknown report type for editing:', report.report_type);
+        return;
+    }
+
+    // Pass all data to the edit page
+    navigate(editPath, {
+      state: {
+        draft: parsedData,
+        reportData: parsedData, // Also pass as reportData for compatibility
+        fromReview: true,
+        reportId: report.id,
+        reportType: report.report_type
+      }
+    });
   };
 
   const handleApprove = async () => {
@@ -682,6 +396,13 @@ const ReportReview = () => {
               <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full border ${getStatusColor(report.status)}`}>
                 {report.status.replace('_', ' ').toUpperCase()}
               </span>
+              <button
+                onClick={handleEdit}
+                className="inline-flex items-center px-3 py-2 border border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600"
+              >
+                <PencilIcon className="w-4 h-4 mr-2" />
+                Edit Report
+              </button>
               <button
                 onClick={() => navigate('/leads/dashboard')}
                 className="inline-flex items-center px-3 py-2 border border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600"
