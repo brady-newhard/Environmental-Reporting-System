@@ -189,36 +189,36 @@ const ReportReview = () => {
   const handleEdit = () => {
     if (!parsedData || !report) return;
 
-    console.log('Navigating to edit page with data:', {
+    console.log('Navigating to lead edit page with data:', {
       reportId: report.id,
       reportType: report.report_type,
       dataKeys: Object.keys(parsedData),
       dataPreview: parsedData
     });
 
-    // Navigate to the appropriate edit page based on report type
+    // Navigate to the appropriate lead edit page based on report type
     let editPath = '';
     switch (report.report_type) {
       case 'environmental_daily':
       case 'environmental_daily_report':
-        editPath = `/environmental/reports/daily/edit/${report.id}`;
+        editPath = `/leads/edit/environmental/daily/${report.id}`;
         break;
       case 'daily_utility':
       case 'utility_daily':
-        editPath = `/utility/reports/daily/edit/${report.id}`;
+        editPath = `/leads/edit/utility/daily/${report.id}`;
         break;
       case 'daily_utility_2':
       case 'utility_daily_2':
-        editPath = `/utility/reports/daily2/edit/${report.id}`;
+        editPath = `/leads/edit/utility/daily2/${report.id}`;
         break;
       case 'punchlist':
-        editPath = `/environmental/reports/punchlist/edit/${report.id}`;
+        editPath = `/leads/edit/environmental/punchlist/${report.id}`;
         break;
       case 'swppp':
-        editPath = `/environmental/swppp/edit/${report.id}`;
+        editPath = `/leads/edit/environmental/swppp/${report.id}`;
         break;
       case 'pay_item':
-        editPath = `/utility/reports/pay-item/edit/${report.id}`;
+        editPath = `/leads/edit/utility/pay-item/${report.id}`;
         break;
       default:
         console.error('Unknown report type for editing:', report.report_type);

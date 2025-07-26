@@ -82,6 +82,7 @@ import DailyUtilityReport2Print from './components/disciplines/utility/daily/Dai
 // Lead Components
 import LeadDashboard from './components/leads/LeadDashboard';
 import ReportReview from './components/leads/ReportReview';
+import LeadEditUtilityDaily2 from './components/leads/LeadEditUtilityDaily2';
 
 const theme = createTheme({
   palette: {
@@ -778,6 +779,14 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <ReportReview />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leads/edit/utility/daily2/:reportId"
+            element={
+              <PrivateRoute>
+                <LeadEditUtilityDaily2 />
               </PrivateRoute>
             }
           />
