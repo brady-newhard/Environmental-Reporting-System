@@ -206,27 +206,37 @@ const LeadEditUtilityDaily2 = () => {
           setHeader(reportData.header || header);
           setHeadcounts(reportData.headcounts || defaultHeadcounts);
           setSubcontractors(reportData.subcontractors || [{ company: '', headcount: '' }]);
-          setInspectionPersonnel(reportData.inspectionPersonnel || [{ company: '', headcount: '' }]);
+          setInspectionPersonnel(reportData.inspection_personnel || [{ company: '', headcount: '' }]);
           setCraft(reportData.craft || '');
           setEnvironmental(reportData.environmental || '');
           setSurvey(reportData.survey || '');
           setLand(reportData.land || '');
-          setMorningTemp(reportData.morningTemp || '');
-          setMidTemp(reportData.midTemp || '');
+          setMorningTemp(reportData.morning_temp || '');
+          setMidTemp(reportData.mid_temp || '');
           setWeather(reportData.weather || '');
           setPrecipitation(reportData.precipitation || '');
-          setAbnormalConditions(reportData.abnormalConditions || '');
-          setCrewAdverse(reportData.crewAdverse || '');
-          setProgressRows(reportData.progressRows || defaultProgressRows);
-          setPayItems(reportData.payItems || initialPayItems);
+          setAbnormalConditions(reportData.abnormal_conditions || '');
+          setCrewAdverse(reportData.crew_adverse || '');
+          setProgressRows(reportData.progress_rows || defaultProgressRows);
+          setPayItems(reportData.pay_items || initialPayItems);
           setRemarks(reportData.remarks || '');
           setEquipment(reportData.equipment || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
           setTrucking(reportData.trucking || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
           setCrews(reportData.crews || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
           setPhotos(reportData.photos || []);
-          setPreparedBy(reportData.preparedBy || '');
+          
+          // Handle different field name variations
+          setPreparedBy(reportData.prepared_by || '');
           setSignature(reportData.signature || '');
-          setSigDate(reportData.sigDate || '');
+          setSigDate(reportData.signature_date || '');
+          
+          console.log('LeadEditUtilityDaily2: Data loaded successfully:', {
+            progressRows: reportData.progress_rows,
+            payItems: reportData.pay_items,
+            preparedBy: reportData.prepared_by,
+            signature: reportData.signature,
+            sigDate: reportData.signature_date
+          });
         } catch (error) {
           setSnackbar({ show: true, message: 'Error loading report data: ' + error.message, severity: 'error' });
         }
@@ -384,6 +394,23 @@ const LeadEditUtilityDaily2 = () => {
           backButtonStyle={{ backgroundColor: '#000', color: '#fff', '&:hover': { backgroundColor: '#333' } }}
         />
         <form onSubmit={handleFormSubmit} className="space-y-6">
+          {/* Debug Section - Temporary */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 className="text-sm font-medium text-yellow-800 mb-2">Debug: Available Report Data</h3>
+            <div className="text-xs text-yellow-700">
+              {location.state?.reportData && Object.keys(location.state.reportData).map(key => (
+                <div key={key} className="mb-1">
+                  <strong>{key}:</strong> {typeof location.state.reportData[key]} 
+                  {Array.isArray(location.state.reportData[key]) ? ` (${location.state.reportData[key].length} items)` : ''}
+                  {typeof location.state.reportData[key] === 'string' && location.state.reportData[key].length > 50 ? 
+                    ` - "${location.state.reportData[key].substring(0, 50)}..."` : 
+                    typeof location.state.reportData[key] === 'string' ? ` - "${location.state.reportData[key]}"` : ''
+                  }
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Header Section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
