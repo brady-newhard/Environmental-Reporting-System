@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { saveDraft, loadDraft } from '../../utils/draftUtils';
 import PageHeader from '../common/PageHeader';
-import BaseActionButtons from '../templates/base/BaseActionButtons';
 import BaseSignatureSection from '../templates/base/BaseSignatureSection';
-import BaseDialogs from '../templates/base/BaseDialogs';
 import BaseSnackbar from '../templates/base/BaseSnackbar';
 import ReportPhotoSection from '../common/ReportPhotoSection';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -100,9 +98,6 @@ const LeadEditUtilityDaily2 = () => {
   const { reportId } = useParams();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [draftId, setDraftId] = useState(reportId || null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ show: false, message: '', severity: 'success' });
 
   // Header state
@@ -198,11 +193,12 @@ const LeadEditUtilityDaily2 = () => {
   // Load existing report data for lead editing
   useEffect(() => {
     const loadReportData = async () => {
-      if (location.state?.reportData) {
+      // Try to get data from either reportData or draft
+      const reportData = location.state?.reportData || location.state?.draft;
+      
+      if (reportData) {
         try {
-          const reportData = location.state.reportData;
-          console.log('LeadEditUtilityDaily2: Loading report data:', reportData);
-          
+          // Map snake_case backend data to camelCase form data
           setHeader(reportData.header || header);
           setHeadcounts(reportData.headcounts || defaultHeadcounts);
           setSubcontractors(reportData.subcontractors || [{ company: '', headcount: '' }]);
@@ -211,37 +207,32 @@ const LeadEditUtilityDaily2 = () => {
           setEnvironmental(reportData.environmental || '');
           setSurvey(reportData.survey || '');
           setLand(reportData.land || '');
-          setMorningTemp(reportData.morning_temp || '');
-          setMidTemp(reportData.mid_temp || '');
+          
+          // Map temperature fields from snake_case to camelCase
+          setMorningTemp(reportData.morning_temp || reportData.morningTemp || '');
+          setMidTemp(reportData.mid_temp || reportData.midTemp || '');
+          
           setWeather(reportData.weather || '');
           setPrecipitation(reportData.precipitation || '');
-          setAbnormalConditions(reportData.abnormal_conditions || '');
-          setCrewAdverse(reportData.crew_adverse || '');
-          setProgressRows(reportData.progress_rows || defaultProgressRows);
-          setPayItems(reportData.pay_items || initialPayItems);
+          setAbnormalConditions(reportData.abnormal_conditions || reportData.abnormalConditions || '');
+          setCrewAdverse(reportData.crew_adverse || reportData.crewAdverse || '');
+          setProgressRows(reportData.progress_rows || reportData.progressRows || defaultProgressRows);
+          setPayItems(reportData.pay_items || reportData.payItems || initialPayItems);
           setRemarks(reportData.remarks || '');
           setEquipment(reportData.equipment || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
           setTrucking(reportData.trucking || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
           setCrews(reportData.crews || [{ type: '', qty: '', isCustom: false, customType: '', isCustomComplete: false }]);
           setPhotos(reportData.photos || []);
           
-          // Handle different field name variations
-          setPreparedBy(reportData.prepared_by || '');
+          // Handle different field name variations for signature fields
+          setPreparedBy(reportData.prepared_by || reportData.preparedBy || '');
           setSignature(reportData.signature || '');
-          setSigDate(reportData.signature_date || '');
+          setSigDate(reportData.signature_date || reportData.signatureDate || '');
           
-          console.log('LeadEditUtilityDaily2: Data loaded successfully:', {
-            progressRows: reportData.progress_rows,
-            payItems: reportData.pay_items,
-            preparedBy: reportData.prepared_by,
-            signature: reportData.signature,
-            sigDate: reportData.signature_date
-          });
         } catch (error) {
           setSnackbar({ show: true, message: 'Error loading report data: ' + error.message, severity: 'error' });
         }
       } else {
-        console.error('LeadEditUtilityDaily2: No report data provided');
         setSnackbar({ show: true, message: 'No report data provided for editing', severity: 'error' });
       }
     };
@@ -254,49 +245,43 @@ const LeadEditUtilityDaily2 = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
+      
       const dataToSave = {
-        id: draftId, // Include the current draft ID if it exists
+        id: reportId, // Set the ID to the report ID so it saves with the correct key
         header,
         headcounts,
         subcontractors,
-        inspectionPersonnel,
+        inspection_personnel: inspectionPersonnel,
         craft,
         environmental,
         survey,
         land,
-        morningTemp,
-        midTemp,
+        morning_temp: morningTemp,
+        mid_temp: midTemp,
         weather,
         precipitation,
-        abnormalConditions,
-        crewAdverse,
-        progressRows,
-        payItems,
+        abnormal_conditions: abnormalConditions,
+        crew_adverse: crewAdverse,
+        progress_rows: progressRows,
+        pay_items: payItems,
         remarks,
         equipment,
         trucking,
         crews,
         photos,
-        preparedBy,
+        prepared_by: preparedBy,
         signature,
-        sigDate,
+        signature_date: sigDate,
         reportType: 'daily_utility_2',
+        lastSaved: new Date().toISOString(), // Add timestamp to verify saves
       };
       
-      console.log('LeadEditUtilityDaily2: Saving lead edits:', { draftId, hasId: !!draftId });
-      
-      // For lead editing, we'll save as a draft and navigate back to review
+      // For lead editing, we'll save as a draft and stay on the page
       const savedDraft = await saveDraft('daily_utility_2', dataToSave);
-      
-      console.log('Lead edits saved successfully:', { 
-        originalDraftId: draftId, 
-        savedDraftId: savedDraft.id
-      });
       
       setSnackbar({ show: true, message: 'Lead edits saved successfully', severity: 'success' });
       
-      // Navigate back to lead review page
-      navigate(`/leads/review/${reportId}`);
+      // Stay on the page instead of navigating away
       
       return savedDraft;
     } catch (error) {
@@ -306,70 +291,6 @@ const LeadEditUtilityDaily2 = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleReview = async () => {
-    const reviewData = {
-      id: draftId,
-      header,
-      headcounts,
-      subcontractors,
-      inspectionPersonnel,
-      craft,
-      environmental,
-      survey,
-      land,
-              morningTemp,
-        midTemp,
-        weather,
-      precipitation,
-      abnormalConditions,
-      crewAdverse,
-      progressRows,
-      payItems,
-              remarks,
-        equipment,
-        trucking,
-        crews,
-      photos,
-      preparedBy,
-      signature,
-      sigDate,
-      reportType: 'daily_utility_2',
-    };
-    try {
-      const savedDraft = await saveDraft('daily_utility_2', reviewData);
-      // Navigate back to lead review page
-      navigate(`/leads/review/${reportId}`);
-    } catch (error) {
-      // Still navigate back even if save fails
-      navigate(`/leads/review/${reportId}`);
-    }
-  };
-
-  const handleDelete = () => {
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    try {
-      // Implement delete logic here (e.g., call an API or remove from local storage)
-      setDeleteDialogOpen(false);
-      navigate(`/leads/review/${reportId}`);
-    } catch (error) {
-      setSnackbar({ show: true, message: 'Error deleting draft: ' + error.message, severity: 'error' });
-    }
-  };
-
-  const handleExit = () => {
-    setExitDialogOpen(true);
-  };
-
-  const handleExitConfirm = async (shouldSave) => {
-    if (shouldSave) {
-      await handleSave();
-    }
-    navigate(`/leads/review/${reportId}`);
   };
 
   const handleFormSubmit = async (e) => {
@@ -394,23 +315,6 @@ const LeadEditUtilityDaily2 = () => {
           backButtonStyle={{ backgroundColor: '#000', color: '#fff', '&:hover': { backgroundColor: '#333' } }}
         />
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          {/* Debug Section - Temporary */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h3 className="text-sm font-medium text-yellow-800 mb-2">Debug: Available Report Data</h3>
-            <div className="text-xs text-yellow-700">
-              {location.state?.reportData && Object.keys(location.state.reportData).map(key => (
-                <div key={key} className="mb-1">
-                  <strong>{key}:</strong> {typeof location.state.reportData[key]} 
-                  {Array.isArray(location.state.reportData[key]) ? ` (${location.state.reportData[key].length} items)` : ''}
-                  {typeof location.state.reportData[key] === 'string' && location.state.reportData[key].length > 50 ? 
-                    ` - "${location.state.reportData[key].substring(0, 50)}..."` : 
-                    typeof location.state.reportData[key] === 'string' ? ` - "${location.state.reportData[key]}"` : ''
-                  }
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Header Section */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-md p-4 mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">Project Information</h2>
@@ -1267,23 +1171,31 @@ const LeadEditUtilityDaily2 = () => {
           />
 
           {/* Action Buttons */}
-          <BaseActionButtons
-            loading={loading}
-            draftId={draftId}
-            onExit={handleExit}
-            onDelete={handleDelete}
-            onReview={handleReview}
-            onSave={handleSave}
-          />
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => navigate(`/leads/review/${reportId}`)}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(`/leads/review/${reportId}`)}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Exit
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={loading}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </form>
-        <BaseDialogs
-          deleteDialogOpen={deleteDialogOpen}
-          exitDialogOpen={exitDialogOpen}
-          onDeleteConfirm={handleDeleteConfirm}
-          onExitConfirm={handleExitConfirm}
-          onCloseDeleteDialog={() => setDeleteDialogOpen(false)}
-          onCloseExitDialog={() => setExitDialogOpen(false)}
-        />
         <BaseSnackbar
           snackbar={snackbar}
           onClose={() => setSnackbar({ show: false, message: '', severity: 'success' })}

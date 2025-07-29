@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getReports, approveReport, rejectReport } from '../../services/api';
 import api from '../../services/api';
+import { loadDraft } from '../../utils/draftUtils';
 import { 
   CheckCircleIcon, 
   XCircleIcon, 
@@ -137,13 +138,19 @@ const ReportReview = () => {
   const [submitting, setSubmitting] = useState(false);
   const [parsedData, setParsedData] = useState(null);
 
-  useEffect(() => {
-    loadReport();
-  }, [reportId]);
-
-  const loadReport = async () => {
+  const loadReport = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // For lead review, check for saved drafts first, then fall back to original report data
+      let savedDraft = null;
+      try {
+        savedDraft = await loadDraft('daily_utility_2', reportId);
+        console.log('ReportReview: Found saved draft for reportId:', reportId, savedDraft);
+      } catch (error) {
+        console.log('ReportReview: No saved draft found for reportId:', reportId, error.message);
+      }
+      
       // Use the detail endpoint to get the specific report
       const response = await api.get(`/reports/${reportId}/`);
       const foundReport = response.data;
@@ -160,19 +167,38 @@ const ReportReview = () => {
             'Object: ' + Object.keys(foundReport.report_data).join(', ')) : null
       });
       
-      // Parse the report data
+      // Parse the report data - prioritize saved drafts for lead review
       let parsedReportData = null;
-      if (foundReport.report_data) {
+      if (savedDraft) {
+        // Use saved draft data (lead's edits) if available
+        parsedReportData = savedDraft;
+        console.log('=== SAVED DRAFT DETAILS ===');
+        console.log('Header section:', parsedReportData.header?.section);
+        console.log('Morning temp:', parsedReportData.morning_temp);
+        console.log('Weather:', parsedReportData.weather);
+        console.log('Last saved:', parsedReportData.lastSaved);
+        console.log('Full header object:', parsedReportData.header);
+        console.log('=== END SAVED DRAFT DETAILS ===');
+      } else if (foundReport.report_data) {
+        // Fall back to original report data if no saved draft
         try {
           if (typeof foundReport.report_data === 'object' && foundReport.report_data !== null) {
             parsedReportData = foundReport.report_data;
-            console.log('Using object data directly:', parsedReportData);
+            console.log('Using original object data (no saved draft):', {
+              header_section: parsedReportData.header?.section,
+              morning_temp: parsedReportData.morning_temp,
+              weather: parsedReportData.weather
+            });
           } else if (typeof foundReport.report_data === 'string') {
             parsedReportData = JSON.parse(foundReport.report_data);
-            console.log('Successfully parsed JSON data:', parsedReportData);
+            console.log('Successfully parsed original JSON data (no saved draft):', {
+              header_section: parsedReportData.header?.section,
+              morning_temp: parsedReportData.morning_temp,
+              weather: parsedReportData.weather
+            });
           }
         } catch (error) {
-          console.error('Error parsing report data:', error);
+          console.error('Error parsing original report data:', error);
         }
       }
       
@@ -184,7 +210,22 @@ const ReportReview = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [reportId, navigate]);
+
+  useEffect(() => {
+    loadReport();
+  }, [reportId, loadReport]);
+
+  // Add a focus listener to reload data when returning from edit page
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('ReportReview: Window focused, reloading report data...');
+      loadReport();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [reportId, loadReport]);
 
   const handleEdit = () => {
     if (!parsedData || !report) return;

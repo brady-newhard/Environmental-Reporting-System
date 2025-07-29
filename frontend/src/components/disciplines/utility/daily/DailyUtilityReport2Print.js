@@ -126,6 +126,7 @@ export default function DailyUtilityReport2Print({ reportData }) {
 
   console.log('Print component data:', {
     header: Object.keys(header),
+    header_section: header.section,
     headcounts: Object.keys(headcounts),
     progressRows: filledProgressRows.length,
     payItems: filledPayItems.length,
