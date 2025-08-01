@@ -35,6 +35,10 @@ var/
 .installed.cfg
 *.egg
 
+# Database
+db.sqlite3
+*.sqlite3
+
 # Misc
 .DS_Store
 .env
