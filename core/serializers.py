@@ -77,6 +77,6 @@ class ReportApprovalListSerializer(serializers.ModelSerializer):
         model = ReportApproval
         fields = [
             'id', 'report_type', 'report_id', 'discipline', 'discipline_display',
-            'status', 'status_display', 'submitted_by_name', 'assigned_lead_name',
+            'report_data', 'status', 'status_display', 'submitted_by_name', 'assigned_lead_name',
             'submitted_at', 'updated_at'
         ] 
