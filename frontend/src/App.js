@@ -83,6 +83,11 @@ import DailyUtilityReport2Print from './components/disciplines/utility/daily/Dai
 import LeadDashboard from './components/leads/LeadDashboard';
 import ReportReview from './components/leads/ReportReview';
 import LeadEditUtilityDaily2 from './components/leads/LeadEditUtilityDaily2';
+import LeadEditEnvironmentalDaily from './components/leads/LeadEditEnvironmentalDaily';
+import LeadEditSWPPP from './components/leads/LeadEditSWPPP';
+import LeadEditPunchlist from './components/leads/LeadEditPunchlist';
+import LeadEditPayItem from './components/leads/LeadEditPayItem';
+import LeadEditUtilityDaily from './components/leads/LeadEditUtilityDaily';
 
 const theme = createTheme({
   palette: {
@@ -787,6 +792,46 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <LeadEditUtilityDaily2 />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leads/edit/environmental/daily/:reportId"
+            element={
+              <PrivateRoute>
+                <LeadEditEnvironmentalDaily />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leads/edit/environmental/swppp/:reportId"
+            element={
+              <PrivateRoute>
+                <LeadEditSWPPP />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leads/edit/environmental/punchlist/:reportId"
+            element={
+              <PrivateRoute>
+                <LeadEditPunchlist />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leads/edit/utility/pay-item/:reportId"
+            element={
+              <PrivateRoute>
+                <LeadEditPayItem />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leads/edit/utility/daily/:reportId"
+            element={
+              <PrivateRoute>
+                <LeadEditUtilityDaily />
               </PrivateRoute>
             }
           />

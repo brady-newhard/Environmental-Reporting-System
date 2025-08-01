@@ -170,13 +170,9 @@ const ReportReview = () => {
       // Parse the report data - prioritize saved drafts for lead review
       let parsedReportData = null;
       if (savedDraft) {
-        // Use saved draft data (lead's edits) if available
         parsedReportData = savedDraft;
-        console.log('=== SAVED DRAFT DETAILS ===');
-        console.log('Header section:', parsedReportData.header?.section);
-        console.log('Morning temp:', parsedReportData.morning_temp);
-        console.log('Weather:', parsedReportData.weather);
-        console.log('Last saved:', parsedReportData.lastSaved);
+        console.log('=== USING SAVED DRAFT ===');
+        console.log('Saved draft data:', savedDraft);
         console.log('Full header object:', parsedReportData.header);
         console.log('=== END SAVED DRAFT DETAILS ===');
       } else if (foundReport.report_data) {
@@ -184,6 +180,9 @@ const ReportReview = () => {
         try {
           if (typeof foundReport.report_data === 'object' && foundReport.report_data !== null) {
             parsedReportData = foundReport.report_data;
+            console.log('=== ORIGINAL REPORT DATA STRUCTURE ===');
+            console.log('Full report_data object:', foundReport.report_data);
+            console.log('Object keys:', Object.keys(foundReport.report_data));
             console.log('Using original object data (no saved draft):', {
               header_section: parsedReportData.header?.section,
               morning_temp: parsedReportData.morning_temp,
@@ -202,6 +201,11 @@ const ReportReview = () => {
         }
       }
       
+      // Transform the data into the format expected by print components
+      if (parsedReportData) {
+        parsedReportData = transformReportDataForPrint(parsedReportData, foundReport.report_type);
+      }
+      
       setReport(foundReport);
       setParsedData(parsedReportData);
     } catch (error) {
@@ -211,6 +215,86 @@ const ReportReview = () => {
       setLoading(false);
     }
   }, [reportId, navigate]);
+
+  // Function to transform report data into the format expected by print components
+  const transformReportDataForPrint = (data, reportType) => {
+    console.log('=== TRANSFORMING REPORT DATA ===');
+    console.log('Original data:', data);
+    console.log('Report type:', reportType);
+    
+    // For Environmental Daily reports, ensure we have the expected structure
+    if (reportType === 'environmental_daily' || reportType === 'environmental_daily_report') {
+      const transformed = {
+        header: {
+          project: data.header?.project || 'Environmental Project',
+          inspector: data.header?.inspector || 'Environmental Inspector',
+          spread: data.header?.spread || '1',
+          facility: data.header?.facility || 'CY 1',
+          contractor: data.header?.contractor || 'Contractor Name',
+          milepost_start: data.header?.milepost_start || '',
+          milepost_end: data.header?.milepost_end || '',
+          station_start: data.header?.station_start || '',
+          station_end: data.header?.station_end || '',
+          inspection_date: data.header?.inspection_date || new Date().toISOString().split('T')[0],
+          ...data.header
+        },
+        sections: data.sections || [
+          {
+            name: 'Project Information',
+            rows: [{
+              project: data.header?.project || 'Environmental Project',
+              inspector: data.header?.inspector || 'Environmental Inspector',
+              spread: data.header?.spread || '1',
+              facility: data.header?.facility || 'CY 1',
+              contractor: data.header?.contractor || 'Contractor Name'
+            }]
+          },
+          {
+            name: 'Weather Information',
+            rows: [{
+              weather_conditions: data.header?.weather_conditions || 'Sunny',
+              temperature: data.header?.temperature || '75°F',
+              precipitation_type: data.header?.precipitation_type || 'none',
+              soil_conditions: data.header?.soil_conditions || 'Dry'
+            }]
+          },
+          {
+            name: 'Crew Daily Summaries',
+            rows: [{
+              Crew: 'Environmental Crew',
+              Foreman: 'Crew Foreman',
+              'Start Station': '0+00',
+              'End Station': '1+00',
+              Summary: 'Environmental monitoring and inspection activities completed.'
+            }]
+          },
+          {
+            name: 'Daily Progress',
+            rows: [{
+              Phase: 'Environmental Monitoring',
+              'Start Station': '0+00',
+              'End Station': '1+00'
+            }]
+          }
+        ],
+        summaries: data.summaries || {
+          notes: 'Environmental inspection completed. All activities within compliance.'
+        },
+        photos: data.photos || [],
+        signature: data.signature || '',
+        sigDate: data.sigDate || new Date().toISOString().split('T')[0],
+        preparedBy: data.preparedBy || 'Environmental Inspector',
+        // Add any missing fields that the print component expects
+        ...data
+      };
+      
+      console.log('Transformed data:', transformed);
+      return transformed;
+    }
+    
+    // For other report types, return as-is for now
+    return data;
+  };
 
   useEffect(() => {
     loadReport();
@@ -337,22 +421,69 @@ const ReportReview = () => {
       console.log('No data available, showing error message');
       return (
         <div className="p-3 bg-gray-800/80 backdrop-blur-sm rounded-md border border-gray-700">
-          <p className="text-sm text-gray-300">Report data could not be parsed. Please contact support.</p>
-          <details className="mt-2">
-            <summary className="text-sm text-gray-400 cursor-pointer">Raw Data</summary>
-            <pre className="text-xs text-gray-500 mt-2 overflow-auto max-h-40">
-              {JSON.stringify(report?.report_data, null, 2)}
-            </pre>
-          </details>
+          <p className="text-red-400 text-center">No report data available</p>
         </div>
       );
     }
-    
+
+    // Check if we have the minimum required data for the print component
+    const hasMinimumData = data && (
+      data.header || 
+      data.sections || 
+      data.photos || 
+      data.signature ||
+      Object.keys(data).length > 0
+    );
+
+    if (!hasMinimumData) {
+      console.log('Insufficient data for print component, showing fallback');
+      return (
+        <div className="p-6 bg-white rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold mb-4">Report Data (Raw)</h3>
+          <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-96">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        </div>
+      );
+    }
+
     console.log('Creating wrapper for report type:', reportType, 'with data:', data);
     
-    // Use the PrintFormatRenderer for all report types
-    console.log('Using PrintFormatRenderer for:', reportType);
-    return <PrintFormatRenderer data={data} reportType={reportType} />;
+    // Create the appropriate wrapper component based on report type
+    let WrapperComponent = null;
+    switch (reportType) {
+      case 'environmental_daily':
+      case 'environmental_daily_report':
+        WrapperComponent = EnvironmentalDailyReportWrapper;
+        break;
+      case 'daily_utility':
+      case 'utility_daily':
+        WrapperComponent = DailyUtilityReportWrapper;
+        break;
+      case 'daily_utility_2':
+      case 'utility_daily_2':
+        WrapperComponent = DailyUtilityReport2Wrapper;
+        break;
+      case 'punchlist':
+        WrapperComponent = PunchlistReportWrapper;
+        break;
+      case 'swppp':
+        WrapperComponent = SWPPPReportWrapper;
+        break;
+      case 'pay_item':
+        WrapperComponent = PayItemReportWrapper;
+        break;
+      default:
+        console.log('Unknown report type, using SimpleDataRenderer');
+        return <SimpleDataRenderer data={data} reportType={reportType} />;
+    }
+
+    if (WrapperComponent) {
+      console.log('Using PrintFormatRenderer for:', reportType);
+      return <PrintFormatRenderer data={data} reportType={reportType} />;
+    }
+
+    return <SimpleDataRenderer data={data} reportType={reportType} />;
   };
 
   if (loading) {

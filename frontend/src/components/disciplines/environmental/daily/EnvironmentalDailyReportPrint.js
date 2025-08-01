@@ -32,7 +32,7 @@ const printPageBreakCss = `
 }
 `;
 
-export default function EnvironmentalDailyReportPrint() {
+export default function EnvironmentalDailyReportPrint({ reportData }) {
   const { id } = useParams();
   const location = useLocation();
   const [draft, setDraft] = useState(null);
@@ -42,19 +42,38 @@ export default function EnvironmentalDailyReportPrint() {
     const loadDraftData = async () => {
       setIsLoading(true);
       try {
+        // Prioritize reportData prop, then location.state, then load from storage
+        if (reportData) {
+          console.log('EnvironmentalDailyReportPrint: Using reportData prop:', reportData);
+          setDraft(reportData);
+          setIsLoading(false);
+          return;
+        }
+        
         if (location.state?.reportData) {
+          console.log('EnvironmentalDailyReportPrint: Using location.state.reportData:', location.state.reportData);
           setDraft(location.state.reportData);
           setIsLoading(false);
           return;
         }
-        const loadedDraft = await loadDraft('environmental', id);
-        setDraft(loadedDraft);
+        
+        if (id) {
+          console.log('EnvironmentalDailyReportPrint: Loading draft from storage for id:', id);
+          const loadedDraft = await loadDraft('environmental', id);
+          setDraft(loadedDraft);
+        } else {
+          console.log('EnvironmentalDailyReportPrint: No id provided, setting draft to null');
+          setDraft(null);
+        }
+      } catch (error) {
+        console.error('EnvironmentalDailyReportPrint: Error loading draft:', error);
+        setDraft(null);
       } finally {
         setIsLoading(false);
       }
     };
     loadDraftData();
-  }, [id, location.state]);
+  }, [id, location.state, reportData]);
 
   // For page numbers in print (optional, can be improved with a real print lib)
   useEffect(() => {
@@ -70,8 +89,19 @@ export default function EnvironmentalDailyReportPrint() {
     return () => window.removeEventListener('afterprint', handler);
   }, []);
 
-  if (isLoading || !draft) {
-    return <div className="flex items-center justify-center min-h-screen bg-black text-lg">Loading...</div>;
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen bg-white text-lg">Loading...</div>;
+  }
+
+  if (!draft) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">No Report Data Available</h2>
+          <p className="text-gray-600">The report data could not be loaded.</p>
+        </div>
+      </div>
+    );
   }
 
   // Project Info
@@ -138,7 +168,7 @@ export default function EnvironmentalDailyReportPrint() {
   console.log('Review/Print photos:', photos);
 
   return (
-    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
+    <div className="bg-white min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
       <style>{printPageBreakCss}</style>
       <style>{`
 @media print {
@@ -200,154 +230,144 @@ export default function EnvironmentalDailyReportPrint() {
             <div className="print-section">
               <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
                 <h2 className="text-xl font-bold text-blue-800">Project Information</h2>
-                <div className="text-base font-semibold text-blue-800 ml-4">Date: {formatDate(header.date)}</div>
+                <div className="text-base font-semibold text-blue-800 ml-4">Date: {formatDate(header.inspection_date)}</div>
               </div>
               <table className="w-full mb-6 text-sm">
                 <tbody>
-                  {projectInfoRows.map((row, rowIdx) => (
-                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                      {row.map((item, colIdx) => (
-                        item ? (
-                          <React.Fragment key={colIdx}>
-                            <td className="font-semibold py-1 pr-4 w-48 text-gray-700">{item.label}</td>
-                            <td className="py-1 text-gray-900">{item.value || '—'}</td>
-                          </React.Fragment>
-                        ) : (
-                          <td key={colIdx} colSpan={2}></td>
-                        )
-                      ))}
-                    </tr>
-                  ))}
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Project:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.project || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Spread:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.spread || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Contractor:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.contractor || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Inspector:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.inspector || '—'}</td>
+                  </tr>
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Facility:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.facility || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Milepost Start:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.milepost_start || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Milepost End:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.milepost_end || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Station Start:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.station_start || '—'}</td>
+                  </tr>
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Station End:</td>
+                    <td className="py-1 text-gray-900 text-center">{header.station_end || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700"></td>
+                    <td className="py-1 text-gray-900 text-center"></td>
+                  </tr>
                 </tbody>
               </table>
             </div>
-            {/* Weather Info */}
+
+            {/* Weather Information */}
             <div className="print-section">
               <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
                 <h2 className="text-xl font-bold text-blue-800">Weather Information</h2>
               </div>
               <table className="w-full mb-6 text-sm">
                 <tbody>
-                  {weatherInfo.reduce((rows, item, idx) => {
-                    if (idx % 2 === 0) {
-                      rows.push([item]);
-                    } else {
-                      rows[rows.length - 1].push(item);
-                    }
-                    return rows;
-                  }, []).map((row, rowIdx) => (
-                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                      {row.map((item, colIdx) => (
-                        <React.Fragment key={colIdx}>
-                          <td className="font-semibold py-1 pr-4 w-48 text-gray-700">{item.label}</td>
-                          <td className="py-1 text-gray-900">{item.value || '—'}</td>
-                        </React.Fragment>
-                      ))}
-                      {row.length < 2 && <td colSpan={2}></td>}
-                    </tr>
-                  ))}
+                  <tr className="bg-gray-50 print-bg-gray-100">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Weather Conditions:</td>
+                    <td className="py-1 text-gray-900 text-center">{weatherInfo[0]?.value || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Temperature:</td>
+                    <td className="py-1 text-gray-900 text-center">{weatherInfo[1]?.value || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Precipitation Type:</td>
+                    <td className="py-1 text-gray-900 text-center">{weatherInfo[2]?.value || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Soil Conditions:</td>
+                    <td className="py-1 text-gray-900 text-center">{weatherInfo[3]?.value || '—'}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
-            {/* Rain Gauges */}
-            {Array.isArray(rainGauges) && rainGauges.length > 0 && (
-              <div className="mb-8 print-section">
-                <div className="font-semibold text-gray-700 mb-2">Rain Gauges:</div>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-blue-50">
-                      <th className="font-bold py-1 px-2 text-left">Location</th>
-                      <th className="font-bold py-1 px-2 text-left">Rain (in)</th>
-                      <th className="font-bold py-1 px-2 text-left">Snow (in)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rainGauges.map((g, i) => (
-                      <tr key={i} className={i % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                        <td className="py-1 px-2">{g.location || '—'}</td>
-                        <td className="py-1 px-2">{g.rain || '—'}</td>
-                        <td className="py-1 px-2">{g.snow || '—'}</td>
+
+            {/* Crew Daily Summaries */}
+            {sections.filter(s => s.name === 'Crew Daily Summaries').map((section, sectionIdx) => (
+              <div key={sectionIdx} className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">{section.name}</h2>
+                </div>
+                {section.rows && section.rows.length > 0 && (
+                  <table className="w-full mb-6 text-sm">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="font-bold py-1 px-1 text-left text-xs">Crew</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Foreman</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Start Station</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">End Station</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Summary</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {section.rows.map((row, rowIdx) => (
+                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                          <td className="py-1 px-1 text-xs">{row.Crew || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row.Foreman || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row['Start Station'] || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row['End Station'] || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row.Summary || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
-            )}
-            {/* Dynamic Sections */}
-            {sections.map((section, idx) => {
-              // Special handling for Crew Daily Summaries: only show allowed fields
-              if (section.name === 'Crew Daily Summaries') {
-                const allowedFields = ['Crew', 'Foreman', 'Start Station', 'End Station', 'Summary'];
-                return (
-                  <div key={idx} className="mb-8 print-section">
-                    <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4 mt-8">{section.name}</h2>
-                    {section.rows && section.rows.length > 0 && (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs print:text-xs">
-                          <thead>
-                            <tr className="bg-blue-50">
-                              {allowedFields.map((field, i) => (
-                                <th key={i} className="font-bold py-1 px-1 text-left text-xs" style={field === 'Summary' ? { minWidth: '300px', maxWidth: '600px' } : {}}>{field}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {section.rows.map((row, rowIdx) => (
-                              <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                                {allowedFields.map((field, fieldIdx) => (
-                                  <td key={fieldIdx} className="py-1 px-1 text-xs" style={field === 'Summary' ? { minWidth: '300px', maxWidth: '600px', wordWrap: 'break-word' } : { maxWidth: '120px', wordWrap: 'break-word' }}>
-                                    {row[field] || '—'}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+            ))}
+
+            {/* Daily Progress */}
+            {sections.filter(s => s.name === 'Daily Progress').map((section, sectionIdx) => (
+              <div key={sectionIdx} className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">{section.name}</h2>
+                </div>
+                {section.rows && section.rows.length > 0 && (
+                  <table className="w-full mb-6 text-sm">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="font-bold py-1 px-1 text-left text-xs">Phase</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">Start Station</th>
+                        <th className="font-bold py-1 px-1 text-left text-xs">End Station</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {section.rows.map((row, rowIdx) => (
+                        <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
+                          <td className="py-1 px-1 text-xs">{row.Phase || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row['Start Station'] || '—'}</td>
+                          <td className="py-1 px-1 text-xs">{row['End Station'] || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            ))}
+
+            {/* Environmental Summary */}
+            <div className="print-section">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Environmental Summary</h2>
+              </div>
+              <div className="mb-6">
+                {Object.entries(summaries).map(([key, value]) => (
+                  <div key={key} className="mb-2 text-sm">
+                    <span className="font-semibold text-blue-700 mr-2">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span> 
+                    <span className="text-gray-900">{value || '—'}</span>
                   </div>
-                );
-              }
-              // Default rendering for other sections
-              return (
-                <div key={idx} className="mb-8 print-section">
-                  <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4 mt-8">{section.name}</h2>
-                  {section.rows && section.rows.length > 0 && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs print:text-xs">
-                        <thead>
-                          <tr className="bg-blue-50">
-                            {Object.keys(section.rows[0]).map((field, i) => (
-                              <th key={i} className="font-bold py-1 px-1 text-left text-xs">{field}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {section.rows.map((row, rowIdx) => (
-                            <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-50 print-bg-gray-100' : ''}>
-                              {Object.values(row).map((value, fieldIdx) => (
-                                <td key={fieldIdx} className="py-1 px-1 text-xs" style={{ maxWidth: '120px', wordWrap: 'break-word' }}>
-                                  {typeof value === 'object' && value !== null ? JSON.stringify(value) : value || '—'}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {/* Summaries */}
-            <div className="mb-8 print-section">
-              <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4 mt-8">Environmental Inspection Summary</h2>
-              {Object.entries(summaries).map(([key, value]) => (
-                <div key={key} className="mb-2 text-base">
-                  <span className="font-semibold text-blue-700 mr-2">{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</span> {value || '—'}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+
             {/* Signature */}
             <div className="flex flex-row items-center gap-6 mt-12 mb-8 print-section">
               <div className="text-base font-semibold whitespace-nowrap"><b>Prepared by:</b> {header.inspector || '—'}</div>
@@ -356,25 +376,21 @@ export default function EnvironmentalDailyReportPrint() {
               )}
               <div className="text-base font-semibold whitespace-nowrap"><b>Date:</b> {formatDate(sigDate)}</div>
             </div>
+
             {/* Photos */}
             {photos.length > 0 && (
               <div className="mt-10 mb-10 print-photo-break">
                 <h2 className="text-xl font-bold text-blue-800 border-b border-blue-200 pb-1 mb-4">Photos</h2>
                 <div className="grid grid-cols-2 gap-6">
                   {photos.map((photo, idx) => {
-                    // Use the same robust photo URL extraction logic as ReportPhotoSection
                     let possibleImageUrl;
                     if (photo.image_url || photo.url) {
-                      // Uploaded photo with server URL
                       possibleImageUrl = photo.image_url || photo.url;
                     } else if (photo.preview) {
-                      // Local photo with blob preview URL
                       possibleImageUrl = photo.preview;
                     } else if (photo.file && photo.file instanceof File) {
-                      // Local photo with File object - create object URL
                       possibleImageUrl = URL.createObjectURL(photo.file);
                     } else {
-                      // Fallback to any other URL property
                       possibleImageUrl = photo.file || photo.image;
                     }
                     

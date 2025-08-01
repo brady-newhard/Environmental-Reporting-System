@@ -82,7 +82,7 @@ const SWPPPReportReview = () => {
       const { submitReportForReview, prepareSWPPPReport } = await import('../../../../utils/reportSubmission');
       
       // Prepare the report data for submission
-      const reportData = prepareSWPPPReport(formData);
+      const reportData = prepareSWPPPReport(draft);
       
       // Submit the report for lead review
       await submitReportForReview(reportData);

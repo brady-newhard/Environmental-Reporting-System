@@ -254,14 +254,14 @@ export default function EnvironmentalDailyReportReview() {
       const { submitReportForReview, prepareEnvironmentalDailyReport } = await import('../../../../utils/reportSubmission');
       
       // Prepare the report data for submission
-      const reportData = prepareEnvironmentalDailyReport(formData);
+      const reportData = prepareEnvironmentalDailyReport(draft);
       
       // Submit the report for lead review
       await submitReportForReview(reportData);
       
       // Delete the draft after successful submission
       const { deleteDraft } = await import('../../../../utils/draftUtils');
-      await deleteDraft('environmental_daily', id);
+      await deleteDraft('environmental_daily', draftId);
       
       setSnackbar({ open: true, message: 'Report submitted for lead review successfully.', severity: 'success' });
       setTimeout(() => navigate('/environmental/reports/daily/drafts'), 1000);

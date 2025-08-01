@@ -73,7 +73,7 @@ export default function DailyUtilityReportPrint() {
   }, []);
 
   if (isLoading || !draft) {
-    return <div className="flex items-center justify-center min-h-screen bg-black text-lg">Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen bg-white text-lg">Loading...</div>;
   }
 
   // Extract all data from draft, with fallbacks
@@ -144,7 +144,7 @@ export default function DailyUtilityReportPrint() {
   });
 
   return (
-    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
+    <div className="bg-white min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
       <style>{printPageBreakCss}</style>
       <style>{`
 @media print {

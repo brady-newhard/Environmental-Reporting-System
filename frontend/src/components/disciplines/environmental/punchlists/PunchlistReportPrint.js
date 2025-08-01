@@ -100,7 +100,7 @@ export default function PunchlistReportPrint() {
   const hasPhotos = photos.length > 0 || hasItemPhotos;
 
   return (
-    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
+    <div className="bg-white min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
       <style>{printPageBreakCss}</style>
       <style>{`
 @media print {
