@@ -33,31 +33,78 @@ export const submitReportForReview = async (reportData) => {
  * @returns {Object} Prepared report data
  */
 export const prepareEnvironmentalDailyReport = (formData) => {
+  // Extract data from the nested structure
+  const header = formData.header || {};
+  const sections = formData.sections || [];
+  const summaries = formData.summaries || {};
+  
+  // Find weather section
+  let weatherSection = null;
+  if (Array.isArray(sections)) {
+    weatherSection = sections.find(s => s.name && s.name.toLowerCase().includes('weather'));
+  }
+  const weatherRow = weatherSection && Array.isArray(weatherSection.rows) && weatherSection.rows.length > 0 ? weatherSection.rows[0] : {};
+  
+  // Find crew summaries section
+  let crewSection = null;
+  if (Array.isArray(sections)) {
+    crewSection = sections.find(s => s.name && s.name.toLowerCase().includes('crew'));
+  }
+  const crewRow = crewSection && Array.isArray(crewSection.rows) && crewSection.rows.length > 0 ? crewSection.rows[0] : {};
+  
+  // Find daily progress section
+  let progressSection = null;
+  if (Array.isArray(sections)) {
+    progressSection = sections.find(s => s.name && s.name.toLowerCase().includes('progress'));
+  }
+  const progressRow = progressSection && Array.isArray(progressSection.rows) && progressSection.rows.length > 0 ? progressSection.rows[0] : {};
+  
   return {
     report_type: 'environmental_daily',
     discipline: 'environmental',
     data: {
-      date: formData.date,
-      location: formData.location,
-      weather_conditions: formData.weather_conditions,
-      daily_activities: formData.daily_activities,
-      report_type: formData.report_type,
-      facility: formData.facility,
-      route: formData.route,
-      spread: formData.spread,
-      compliance_level: formData.compliance_level,
-      activity_category: formData.activity_category,
-      activity_group: formData.activity_group,
-      activity_type: formData.activity_type,
-      milepost_start: formData.milepost_start,
-      milepost_end: formData.milepost_end,
-      station_start: formData.station_start,
-      station_end: formData.station_end,
+      // Header data
+      date: header.date || header.inspection_date,
+      location: header.location || header.project,
+      facility: header.facility,
+      route: header.route,
+      spread: header.spread,
+      milepost_start: header.milepost_start,
+      milepost_end: header.milepost_end,
+      station_start: header.station_start,
+      station_end: header.station_end,
+      contractor: header.contractor,
+      inspector: header.inspector,
+      
+      // Weather data
+      weather_conditions: weatherRow.weather_conditions || header.weather_conditions,
+      temperature: weatherRow.temperature || header.temperature,
+      precipitation_type: weatherRow.precipitation_type || header.precipitation_type,
+      soil_conditions: weatherRow.soil_conditions || header.soil_conditions,
+      
+      // Crew data
+      crew: crewRow.Crew,
+      foreman: crewRow.Foreman,
+      crew_start_station: crewRow['Start Station'],
+      crew_end_station: crewRow['End Station'],
+      crew_summary: crewRow.Summary,
+      
+      // Progress data
+      progress_phase: progressRow.Phase,
+      progress_start_station: progressRow['Start Station'],
+      progress_end_station: progressRow['End Station'],
+      
+      // Other data
+      notes: summaries.notes,
       photos: formData.photos || [],
-      notes: formData.notes,
-      prepared_by: formData.prepared_by,
-      signature: formData.signature,
-      signature_date: formData.signature_date
+      prepared_by: formData.preparedBy || header.inspector,
+      signature: formData.signature || '',
+      signature_date: formData.sigDate || header.date,
+      
+      // Store the full structure for compatibility
+      header: header,
+      sections: sections,
+      summaries: summaries
     }
   };
 };

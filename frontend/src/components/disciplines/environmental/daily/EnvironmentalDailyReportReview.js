@@ -250,14 +250,35 @@ export default function EnvironmentalDailyReportReview() {
   const handleSubmit = async () => {
     setSubmitDialogOpen(false);
     try {
+      // Debug: Log the draft data being submitted
+      console.log('=== SUBMITTING ENVIRONMENTAL DAILY REPORT ===');
+      console.log('Draft object being submitted:', draft);
+      console.log('Draft keys:', Object.keys(draft || {}));
+      console.log('Draft structure:', {
+        hasHeader: !!draft?.header,
+        hasSections: !!draft?.sections,
+        hasPhotos: !!draft?.photos,
+        hasSignature: !!draft?.signature,
+        headerKeys: draft?.header ? Object.keys(draft.header) : [],
+        sectionsCount: draft?.sections ? draft.sections.length : 0
+      });
+      
       // Import the submit functionality
       const { submitReportForReview, prepareEnvironmentalDailyReport } = await import('../../../../utils/reportSubmission');
       
       // Prepare the report data for submission
       const reportData = prepareEnvironmentalDailyReport(draft);
+      console.log('Prepared report data:', reportData);
+      console.log('Report data structure:', {
+        report_type: reportData.report_type,
+        discipline: reportData.discipline,
+        dataKeys: reportData.data ? Object.keys(reportData.data) : [],
+        dataContent: reportData.data
+      });
       
       // Submit the report for lead review
-      await submitReportForReview(reportData);
+      const result = await submitReportForReview(reportData);
+      console.log('Submission result:', result);
       
       // Delete the draft after successful submission
       const { deleteDraft } = await import('../../../../utils/draftUtils');

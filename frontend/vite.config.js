@@ -7,6 +7,11 @@ export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/static/' : '/',
   server: {
     port: 3000,
+    host: '0.0.0.0', // Allow external connections
+    hmr: {
+      port: 3000,
+      host: 'localhost'
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8000',
@@ -26,6 +31,11 @@ export default defineConfig({
         },
       },
       '/static': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/media': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,

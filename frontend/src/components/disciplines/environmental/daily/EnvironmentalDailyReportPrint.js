@@ -104,59 +104,47 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
     );
   }
 
-  // Project Info
-  const header = draft.header || {};
-  // Define the fields for each row as pairs
-  const projectInfoRows = [
-    [
-      { label: 'Inspector', value: header.inspector },
-      { label: 'Milepost Start', value: header.milepost_start },
-    ],
-    [
-      { label: 'Project', value: header.project },
-      { label: 'Milepost End', value: header.milepost_end },
-    ],
-    [
-      { label: 'Spread', value: header.spread },
-      { label: 'Station Start', value: header.station_start },
-    ],
-    [
-      { label: 'Facility', value: header.facility },
-      { label: 'Station End', value: header.station_end },
-    ],
-    [
-      { label: 'Contractor', value: header.contractor },
-      null,
-    ],
-  ];
+  // Extract all data from draft, with fallbacks
+  const {
+    header = {},
+    sections = [],
+    summaries = {},
+    signature = '',
+    sigDate = '',
+    preparedBy = ''
+  } = draft;
 
+  // Project Info
+  const headerData = header || {};
+  
   // Weather Info
   let weatherSection = null;
-  if (Array.isArray(draft.sections)) {
-    weatherSection = draft.sections.find(s => s.name && s.name.toLowerCase().includes('weather'));
+  if (Array.isArray(sections)) {
+    weatherSection = sections.find(s => s.name && s.name.toLowerCase().includes('weather'));
   }
   const weatherRow = weatherSection && Array.isArray(weatherSection.rows) && weatherSection.rows.length > 0 ? weatherSection.rows[0] : {};
-  const weatherInfo = [
-    { label: 'Weather Conditions', value: weatherRow.weather_conditions || header.weather_conditions },
-    { label: 'Temperature', value: weatherRow.temperature || header.temperature },
-    { label: 'Precipitation Type', value: weatherRow.precipitation_type || header.precipitation_type },
-    { label: 'Soil Conditions', value: weatherRow.soil_conditions || header.soil_conditions },
-  ];
-  const rainGauges = weatherRow.rain_gauges || header.rain_gauges || [];
+  
+  // Filter sections to show only those with data
+  const filledSections = sections.filter(section => 
+    section && section.rows && section.rows.length > 0 && 
+    section.rows.some(row => Object.values(row).some(val => val && val.toString().trim() !== ''))
+  );
+
+  console.log('Environmental Daily Print component data:', {
+    header: Object.keys(headerData),
+    sections: filledSections.length,
+    summaries: Object.keys(summaries),
+    signature: signature ? 'Present' : 'Missing',
+    sigDate: sigDate ? 'Present' : 'Empty',
+    preparedBy: preparedBy ? 'Present' : 'Empty'
+  });
 
   // Photos (move to end)
   const photos = Array.isArray(draft.photos) ? draft.photos : [];
 
-  // Signature
-  const signature = draft.signature;
-  const sigDate = draft.sigDate;
-
-  // Summaries
-  const summaries = typeof draft.summaries === 'object' && draft.summaries !== null ? draft.summaries : {};
-
   // Sections (filter out project/weather info)
-  const sections = Array.isArray(draft.sections)
-    ? draft.sections.filter(
+  const filteredSections = Array.isArray(sections)
+    ? sections.filter(
         (section) =>
           section &&
           section.name &&
@@ -168,7 +156,7 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
   console.log('Review/Print photos:', photos);
 
   return (
-    <div className="bg-white min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
+    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
       <style>{printPageBreakCss}</style>
       <style>{`
 @media print {
@@ -230,37 +218,37 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
             <div className="print-section">
               <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
                 <h2 className="text-xl font-bold text-blue-800">Project Information</h2>
-                <div className="text-base font-semibold text-blue-800 ml-4">Date: {formatDate(header.inspection_date)}</div>
+                <div className="text-base font-semibold text-blue-800 ml-4">Date: {formatDate(headerData.inspection_date)}</div>
               </div>
               <table className="w-full mb-6 text-sm">
                 <tbody>
                   <tr className="bg-gray-50 print-bg-gray-100">
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Project:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.project || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.project || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Spread:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.spread || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.spread || '—'}</td>
                   </tr>
                   <tr>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Contractor:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.contractor || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.contractor || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Inspector:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.inspector || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.inspector || '—'}</td>
                   </tr>
                   <tr className="bg-gray-50 print-bg-gray-100">
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Facility:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.facility || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.facility || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Milepost Start:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.milepost_start || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.milepost_start || '—'}</td>
                   </tr>
                   <tr>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Milepost End:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.milepost_end || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.milepost_end || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Station Start:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.station_start || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.station_start || '—'}</td>
                   </tr>
                   <tr className="bg-gray-50 print-bg-gray-100">
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Station End:</td>
-                    <td className="py-1 text-gray-900 text-center">{header.station_end || '—'}</td>
+                    <td className="py-1 text-gray-900 text-center">{headerData.station_end || '—'}</td>
                     <td className="font-semibold py-1 pr-4 w-48 text-gray-700"></td>
                     <td className="py-1 text-gray-900 text-center"></td>
                   </tr>
@@ -269,30 +257,32 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
             </div>
 
             {/* Weather Information */}
-            <div className="print-section">
-              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
-                <h2 className="text-xl font-bold text-blue-800">Weather Information</h2>
+            {weatherSection && weatherSection.rows && weatherSection.rows.length > 0 && (
+              <div className="print-section">
+                <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                  <h2 className="text-xl font-bold text-blue-800">Weather Information</h2>
+                </div>
+                <table className="w-full mb-6 text-sm">
+                  <tbody>
+                    <tr className="bg-gray-50 print-bg-gray-100">
+                      <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Weather Conditions:</td>
+                      <td className="py-1 text-gray-900 text-center">{weatherRow.weather_conditions || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Temperature:</td>
+                      <td className="py-1 text-gray-900 text-center">{weatherRow.temperature || '—'}</td>
+                    </tr>
+                    <tr>
+                      <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Precipitation Type:</td>
+                      <td className="py-1 text-gray-900 text-center">{weatherRow.precipitation_type || '—'}</td>
+                      <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Soil Conditions:</td>
+                      <td className="py-1 text-gray-900 text-center">{weatherRow.soil_conditions || '—'}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <table className="w-full mb-6 text-sm">
-                <tbody>
-                  <tr className="bg-gray-50 print-bg-gray-100">
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Weather Conditions:</td>
-                    <td className="py-1 text-gray-900 text-center">{weatherInfo[0]?.value || '—'}</td>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Temperature:</td>
-                    <td className="py-1 text-gray-900 text-center">{weatherInfo[1]?.value || '—'}</td>
-                  </tr>
-                  <tr>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Precipitation Type:</td>
-                    <td className="py-1 text-gray-900 text-center">{weatherInfo[2]?.value || '—'}</td>
-                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Soil Conditions:</td>
-                    <td className="py-1 text-gray-900 text-center">{weatherInfo[3]?.value || '—'}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            )}
 
             {/* Crew Daily Summaries */}
-            {sections.filter(s => s.name === 'Crew Daily Summaries').map((section, sectionIdx) => (
+            {filteredSections.filter(s => s.name === 'Crew Daily Summaries').map((section, sectionIdx) => (
               <div key={sectionIdx} className="print-section">
                 <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
                   <h2 className="text-xl font-bold text-blue-800">{section.name}</h2>
@@ -325,7 +315,7 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
             ))}
 
             {/* Daily Progress */}
-            {sections.filter(s => s.name === 'Daily Progress').map((section, sectionIdx) => (
+            {filteredSections.filter(s => s.name === 'Daily Progress').map((section, sectionIdx) => (
               <div key={sectionIdx} className="print-section">
                 <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
                   <h2 className="text-xl font-bold text-blue-800">{section.name}</h2>
@@ -370,7 +360,7 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
 
             {/* Signature */}
             <div className="flex flex-row items-center gap-6 mt-12 mb-8 print-section">
-              <div className="text-base font-semibold whitespace-nowrap"><b>Prepared by:</b> {header.inspector || '—'}</div>
+              <div className="text-base font-semibold whitespace-nowrap"><b>Prepared by:</b> {headerData.inspector || '—'}</div>
               {signature && (
                 <img src={signature} alt="Signature" className="max-h-16 max-w-xs border border-gray-300 rounded bg-white shadow mb-0" />
               )}

@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getReports, approveReport, rejectReport } from '../../services/api';
 import api from '../../services/api';
-import { loadDraft } from '../../utils/draftUtils';
 import { 
   CheckCircleIcon, 
   XCircleIcon, 
   ArrowLeftIcon,
   DocumentTextIcon,
   UserIcon,
-  CalendarIcon,
-  PencilIcon
+  CalendarIcon
 } from '@heroicons/react/24/outline';
+
+
 
 // Import the print components for each report type
 import EnvironmentalDailyReportPrint from '../disciplines/environmental/daily/EnvironmentalDailyReportPrint';
@@ -24,70 +24,33 @@ import PayItemReportPrint from '../disciplines/utility/daily/PayItemReportPrint'
 
 // Wrapper components that properly provide location state to print components
 const EnvironmentalDailyReportWrapper = ({ reportData }) => {
-  return <EnvironmentalDailyReportPrint reportData={reportData} />;
+  const mockLocation = { state: { reportData } };
+  return <EnvironmentalDailyReportPrint location={mockLocation} />;
 };
 
 const DailyUtilityReportWrapper = ({ reportData }) => {
-  return <DailyUtilityReportPrint reportData={reportData} />;
+  const mockLocation = { state: { reportData } };
+  return <DailyUtilityReportPrint location={mockLocation} />;
 };
 
 const DailyUtilityReport2Wrapper = ({ reportData }) => {
-  console.log('DailyUtilityReport2Wrapper: Received reportData:', reportData);
-  return <DailyUtilityReport2Print reportData={reportData} />;
+  const mockLocation = { state: { reportData } };
+  return <DailyUtilityReport2Print location={mockLocation} />;
 };
 
 const PunchlistReportWrapper = ({ reportData }) => {
-  return <PunchlistReportPrint reportData={reportData} />;
+  const mockLocation = { state: { reportData } };
+  return <PunchlistReportPrint location={mockLocation} />;
 };
 
 const SWPPPReportWrapper = ({ reportData }) => {
-  return <SWPPPReportPrint reportData={reportData} />;
+  const mockLocation = { state: { reportData } };
+  return <SWPPPReportPrint location={mockLocation} />;
 };
 
 const PayItemReportWrapper = ({ reportData }) => {
-  return <PayItemReportPrint reportData={reportData} />;
-};
-
-// Simple data renderer for debugging
-const SimpleDataRenderer = ({ data, reportType }) => {
-  if (!data) {
-    return (
-      <div className="bg-white p-8">
-        <p className="text-gray-500">No data available</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white p-8">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        {reportType.replace(/_/g, ' ').toUpperCase()} - Report Data
-      </h2>
-      
-      <div className="space-y-6">
-        <div className="mb-4">
-          <h3 className="font-semibold text-gray-800 mb-2">Data Keys:</h3>
-          <div className="ml-4">
-            {Object.keys(data).map(key => (
-              <div key={key} className="text-gray-600">
-                {key}: {typeof data[key]} {Array.isArray(data[key]) ? `(${data[key].length} items)` : ''}
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Raw Data for Debugging */}
-        <details className="mt-8">
-          <summary className="cursor-pointer text-sm text-gray-600 font-semibold">
-            Raw Data (for debugging)
-          </summary>
-          <pre className="mt-2 bg-gray-100 p-4 rounded text-xs overflow-auto max-h-64">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </details>
-      </div>
-    </div>
-  );
+  const mockLocation = { state: { reportData } };
+  return <PayItemReportPrint location={mockLocation} />;
 };
 
 // Simple report renderer that displays data in print format
@@ -100,7 +63,200 @@ const PrintFormatRenderer = ({ data, reportType }) => {
     );
   }
 
-  console.log('PrintFormatRenderer: Using actual print components for report type:', reportType, 'with data:', data);
+  const formatDate = (dateString) => {
+    if (!dateString) return '—';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-');
+      return `${parseInt(month, 10)}/${parseInt(day, 10)}/${year}`;
+    }
+    const d = new Date(dateString);
+    if (isNaN(d)) return dateString;
+    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+  };
+
+  const renderUtilityDaily2Content = () => {
+    const header = data.header || {};
+    const progressRows = Array.isArray(data.progressRows) ? data.progressRows : [];
+    const payItems = Array.isArray(data.payItems) ? data.payItems : [];
+    const photos = Array.isArray(data.photos) ? data.photos : [];
+    const headcounts = data.headcounts || {};
+    const subcontractors = Array.isArray(data.subcontractors) ? data.subcontractors : [];
+    const inspectionPersonnel = Array.isArray(data.inspectionPersonnel) ? data.inspectionPersonnel : [];
+    const equipment = Array.isArray(data.equipment) ? data.equipment : [];
+    const trucking = Array.isArray(data.trucking) ? data.trucking : [];
+    const crews = Array.isArray(data.crews) ? data.crews : [];
+    const remarks = data.remarks || '';
+    const preparedBy = data.preparedBy || '';
+    const signature = data.signature;
+    const sigDate = data.sigDate;
+    
+    return (
+      <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8">
+        <div className="w-full max-w-[816px] mx-auto bg-white shadow-2xl rounded-xl flex flex-col">
+          {/* Header */}
+          <div className="w-full border-b-4 border-blue-500 bg-blue-900 text-white py-0.5 pl-1 pr-8 rounded-t-xl">
+            <div className="flex items-center mt-1 mb-1">
+              <div className="flex-shrink-0 flex items-center justify-start" style={{ minWidth: '9rem' }}>
+                <img src="/static/PIPE-Logo.png" alt="PIPE Logo" className="h-16 w-auto" />
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                <h1 className="text-3xl font-bold tracking-wide text-center">Daily Utility Report 2</h1>
+              </div>
+              <div className="flex-shrink-0" style={{ minWidth: '9rem' }}></div>
+            </div>
+          </div>
+          
+          {/* Main Content */}
+          <div className="flex-1 px-8 py-8 flex flex-col">
+            {/* Project Info */}
+            <div className="mb-6">
+              <div className="flex justify-between items-end mb-4 border-b-2 border-blue-200 pb-1">
+                <h2 className="text-xl font-bold text-blue-800">Project Information</h2>
+                <div className="text-base font-semibold text-blue-800 ml-4">Date: {formatDate(header.date)}</div>
+              </div>
+              <table className="w-full mb-6 text-sm">
+                <tbody>
+                  <tr className="bg-gray-50">
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Section</td>
+                    <td className="py-1 text-gray-900">{header.section || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Spread</td>
+                    <td className="py-1 text-gray-900">{header.spread || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Contractor</td>
+                    <td className="py-1 text-gray-900">{header.contractor || '—'}</td>
+                    <td className="font-semibold py-1 pr-4 w-48 text-gray-700">Inspector</td>
+                    <td className="py-1 text-gray-900">{header.inspector || '—'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Headcounts */}
+            {Object.keys(headcounts).length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Headcounts</h2>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {Object.entries(headcounts).map(([key, value]) => (
+                    <div key={key}>
+                      <strong>{key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</strong> {value || '—'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Subcontractors */}
+            {subcontractors.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Subcontractors</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Company</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Work</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Crew Size</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subcontractors.map((sub, index) => (
+                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="border border-gray-300 px-2 py-1">{sub.company || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{sub.work || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{sub.crewSize || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            {/* Progress Rows */}
+            {progressRows.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Daily Progress</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Activity</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Location</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Quantity</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Unit</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {progressRows.map((row, index) => (
+                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="border border-gray-300 px-2 py-1">{row.activity || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{row.location || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{row.quantity || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{row.unit || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{row.status || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            {/* Pay Items */}
+            {payItems.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-4">Pay Items</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-blue-50">
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Item</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Description</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Quantity</th>
+                        <th className="border border-gray-300 px-2 py-1 text-left font-semibold">Unit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payItems.map((item, index) => (
+                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="border border-gray-300 px-2 py-1">{item.item || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{item.description || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{item.quantity || '—'}</td>
+                          <td className="border border-gray-300 px-2 py-1">{item.unit || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            
+            {/* Signature */}
+            <div className="mt-8 pt-4 border-t-2 border-gray-300">
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Prepared by:</p>
+                  <p className="font-semibold">{preparedBy || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Date:</p>
+                  <p className="font-semibold">{formatDate(sigDate)}</p>
+                </div>
+              </div>
+              {signature && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 mb-2">Signature:</p>
+                  <img src={signature} alt="Signature" className="max-w-xs h-16 object-contain border border-gray-300" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Use the appropriate wrapper based on report type
   switch (reportType) {
@@ -120,8 +276,8 @@ const PrintFormatRenderer = ({ data, reportType }) => {
     case 'pay_item':
       return <PayItemReportWrapper reportData={data} />;
     default:
-      console.warn('Unknown report type for print preview:', reportType);
-      return <SimpleDataRenderer data={data} reportType={reportType} />;
+      // Fallback to Utility Daily 2 format for unknown types
+      return renderUtilityDaily2Content();
   }
 };
 
@@ -138,19 +294,13 @@ const ReportReview = () => {
   const [submitting, setSubmitting] = useState(false);
   const [parsedData, setParsedData] = useState(null);
 
-  const loadReport = useCallback(async () => {
+  useEffect(() => {
+    loadReport();
+  }, [reportId]);
+
+  const loadReport = async () => {
     try {
       setLoading(true);
-      
-      // For lead review, check for saved drafts first, then fall back to original report data
-      let savedDraft = null;
-      try {
-        savedDraft = await loadDraft('daily_utility_2', reportId);
-        console.log('ReportReview: Found saved draft for reportId:', reportId, savedDraft);
-      } catch (error) {
-        console.log('ReportReview: No saved draft found for reportId:', reportId, error.message);
-      }
-      
       // Use the detail endpoint to get the specific report
       const response = await api.get(`/reports/${reportId}/`);
       const foundReport = response.data;
@@ -167,43 +317,20 @@ const ReportReview = () => {
             'Object: ' + Object.keys(foundReport.report_data).join(', ')) : null
       });
       
-      // Parse the report data - prioritize saved drafts for lead review
+      // Parse the report data
       let parsedReportData = null;
-      if (savedDraft) {
-        parsedReportData = savedDraft;
-        console.log('=== USING SAVED DRAFT ===');
-        console.log('Saved draft data:', savedDraft);
-        console.log('Full header object:', parsedReportData.header);
-        console.log('=== END SAVED DRAFT DETAILS ===');
-      } else if (foundReport.report_data) {
-        // Fall back to original report data if no saved draft
+      if (foundReport.report_data) {
         try {
           if (typeof foundReport.report_data === 'object' && foundReport.report_data !== null) {
             parsedReportData = foundReport.report_data;
-            console.log('=== ORIGINAL REPORT DATA STRUCTURE ===');
-            console.log('Full report_data object:', foundReport.report_data);
-            console.log('Object keys:', Object.keys(foundReport.report_data));
-            console.log('Using original object data (no saved draft):', {
-              header_section: parsedReportData.header?.section,
-              morning_temp: parsedReportData.morning_temp,
-              weather: parsedReportData.weather
-            });
+            console.log('Using object data directly:', parsedReportData);
           } else if (typeof foundReport.report_data === 'string') {
             parsedReportData = JSON.parse(foundReport.report_data);
-            console.log('Successfully parsed original JSON data (no saved draft):', {
-              header_section: parsedReportData.header?.section,
-              morning_temp: parsedReportData.morning_temp,
-              weather: parsedReportData.weather
-            });
+            console.log('Successfully parsed JSON data:', parsedReportData);
           }
         } catch (error) {
-          console.error('Error parsing original report data:', error);
+          console.error('Error parsing report data:', error);
         }
-      }
-      
-      // Transform the data into the format expected by print components
-      if (parsedReportData) {
-        parsedReportData = transformReportDataForPrint(parsedReportData, foundReport.report_type);
       }
       
       setReport(foundReport);
@@ -214,152 +341,6 @@ const ReportReview = () => {
     } finally {
       setLoading(false);
     }
-  }, [reportId, navigate]);
-
-  // Function to transform report data into the format expected by print components
-  const transformReportDataForPrint = (data, reportType) => {
-    console.log('=== TRANSFORMING REPORT DATA ===');
-    console.log('Original data:', data);
-    console.log('Report type:', reportType);
-    
-    // For Environmental Daily reports, ensure we have the expected structure
-    if (reportType === 'environmental_daily' || reportType === 'environmental_daily_report') {
-      const transformed = {
-        header: {
-          project: data.header?.project || 'Environmental Project',
-          inspector: data.header?.inspector || 'Environmental Inspector',
-          spread: data.header?.spread || '1',
-          facility: data.header?.facility || 'CY 1',
-          contractor: data.header?.contractor || 'Contractor Name',
-          milepost_start: data.header?.milepost_start || '',
-          milepost_end: data.header?.milepost_end || '',
-          station_start: data.header?.station_start || '',
-          station_end: data.header?.station_end || '',
-          inspection_date: data.header?.inspection_date || new Date().toISOString().split('T')[0],
-          ...data.header
-        },
-        sections: data.sections || [
-          {
-            name: 'Project Information',
-            rows: [{
-              project: data.header?.project || 'Environmental Project',
-              inspector: data.header?.inspector || 'Environmental Inspector',
-              spread: data.header?.spread || '1',
-              facility: data.header?.facility || 'CY 1',
-              contractor: data.header?.contractor || 'Contractor Name'
-            }]
-          },
-          {
-            name: 'Weather Information',
-            rows: [{
-              weather_conditions: data.header?.weather_conditions || 'Sunny',
-              temperature: data.header?.temperature || '75°F',
-              precipitation_type: data.header?.precipitation_type || 'none',
-              soil_conditions: data.header?.soil_conditions || 'Dry'
-            }]
-          },
-          {
-            name: 'Crew Daily Summaries',
-            rows: [{
-              Crew: 'Environmental Crew',
-              Foreman: 'Crew Foreman',
-              'Start Station': '0+00',
-              'End Station': '1+00',
-              Summary: 'Environmental monitoring and inspection activities completed.'
-            }]
-          },
-          {
-            name: 'Daily Progress',
-            rows: [{
-              Phase: 'Environmental Monitoring',
-              'Start Station': '0+00',
-              'End Station': '1+00'
-            }]
-          }
-        ],
-        summaries: data.summaries || {
-          notes: 'Environmental inspection completed. All activities within compliance.'
-        },
-        photos: data.photos || [],
-        signature: data.signature || '',
-        sigDate: data.sigDate || new Date().toISOString().split('T')[0],
-        preparedBy: data.preparedBy || 'Environmental Inspector',
-        // Add any missing fields that the print component expects
-        ...data
-      };
-      
-      console.log('Transformed data:', transformed);
-      return transformed;
-    }
-    
-    // For other report types, return as-is for now
-    return data;
-  };
-
-  useEffect(() => {
-    loadReport();
-  }, [reportId, loadReport]);
-
-  // Add a focus listener to reload data when returning from edit page
-  useEffect(() => {
-    const handleFocus = () => {
-      console.log('ReportReview: Window focused, reloading report data...');
-      loadReport();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [reportId, loadReport]);
-
-  const handleEdit = () => {
-    if (!parsedData || !report) return;
-
-    console.log('Navigating to lead edit page with data:', {
-      reportId: report.id,
-      reportType: report.report_type,
-      dataKeys: Object.keys(parsedData),
-      dataPreview: parsedData
-    });
-
-    // Navigate to the appropriate lead edit page based on report type
-    let editPath = '';
-    switch (report.report_type) {
-      case 'environmental_daily':
-      case 'environmental_daily_report':
-        editPath = `/leads/edit/environmental/daily/${report.id}`;
-        break;
-      case 'daily_utility':
-      case 'utility_daily':
-        editPath = `/leads/edit/utility/daily/${report.id}`;
-        break;
-      case 'daily_utility_2':
-      case 'utility_daily_2':
-        editPath = `/leads/edit/utility/daily2/${report.id}`;
-        break;
-      case 'punchlist':
-        editPath = `/leads/edit/environmental/punchlist/${report.id}`;
-        break;
-      case 'swppp':
-        editPath = `/leads/edit/environmental/swppp/${report.id}`;
-        break;
-      case 'pay_item':
-        editPath = `/leads/edit/utility/pay-item/${report.id}`;
-        break;
-      default:
-        console.error('Unknown report type for editing:', report.report_type);
-        return;
-    }
-
-    // Pass all data to the edit page
-    navigate(editPath, {
-      state: {
-        draft: parsedData,
-        reportData: parsedData, // Also pass as reportData for compatibility
-        fromReview: true,
-        reportId: report.id,
-        reportType: report.report_type
-      }
-    });
   };
 
   const handleApprove = async () => {
@@ -421,69 +402,22 @@ const ReportReview = () => {
       console.log('No data available, showing error message');
       return (
         <div className="p-3 bg-gray-800/80 backdrop-blur-sm rounded-md border border-gray-700">
-          <p className="text-red-400 text-center">No report data available</p>
+          <p className="text-sm text-gray-300">Report data could not be parsed. Please contact support.</p>
+          <details className="mt-2">
+            <summary className="text-sm text-gray-400 cursor-pointer">Raw Data</summary>
+            <pre className="text-xs text-gray-500 mt-2 overflow-auto max-h-40">
+              {JSON.stringify(report?.report_data, null, 2)}
+            </pre>
+          </details>
         </div>
       );
     }
-
-    // Check if we have the minimum required data for the print component
-    const hasMinimumData = data && (
-      data.header || 
-      data.sections || 
-      data.photos || 
-      data.signature ||
-      Object.keys(data).length > 0
-    );
-
-    if (!hasMinimumData) {
-      console.log('Insufficient data for print component, showing fallback');
-      return (
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Report Data (Raw)</h3>
-          <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto max-h-96">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </div>
-      );
-    }
-
+    
     console.log('Creating wrapper for report type:', reportType, 'with data:', data);
     
-    // Create the appropriate wrapper component based on report type
-    let WrapperComponent = null;
-    switch (reportType) {
-      case 'environmental_daily':
-      case 'environmental_daily_report':
-        WrapperComponent = EnvironmentalDailyReportWrapper;
-        break;
-      case 'daily_utility':
-      case 'utility_daily':
-        WrapperComponent = DailyUtilityReportWrapper;
-        break;
-      case 'daily_utility_2':
-      case 'utility_daily_2':
-        WrapperComponent = DailyUtilityReport2Wrapper;
-        break;
-      case 'punchlist':
-        WrapperComponent = PunchlistReportWrapper;
-        break;
-      case 'swppp':
-        WrapperComponent = SWPPPReportWrapper;
-        break;
-      case 'pay_item':
-        WrapperComponent = PayItemReportWrapper;
-        break;
-      default:
-        console.log('Unknown report type, using SimpleDataRenderer');
-        return <SimpleDataRenderer data={data} reportType={reportType} />;
-    }
-
-    if (WrapperComponent) {
-      console.log('Using PrintFormatRenderer for:', reportType);
-      return <PrintFormatRenderer data={data} reportType={reportType} />;
-    }
-
-    return <SimpleDataRenderer data={data} reportType={reportType} />;
+    // Use the PrintFormatRenderer for all report types
+    console.log('Using PrintFormatRenderer for:', reportType);
+    return <PrintFormatRenderer data={data} reportType={reportType} />;
   };
 
   if (loading) {
@@ -568,13 +502,6 @@ const ReportReview = () => {
               <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full border ${getStatusColor(report.status)}`}>
                 {report.status.replace('_', ' ').toUpperCase()}
               </span>
-              <button
-                onClick={handleEdit}
-                className="inline-flex items-center px-3 py-2 border border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600"
-              >
-                <PencilIcon className="w-4 h-4 mr-2" />
-                Edit Report
-              </button>
               <button
                 onClick={() => navigate('/leads/dashboard')}
                 className="inline-flex items-center px-3 py-2 border border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600"
