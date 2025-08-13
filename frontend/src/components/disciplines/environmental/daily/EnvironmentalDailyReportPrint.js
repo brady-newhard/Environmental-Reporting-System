@@ -42,6 +42,9 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
     const loadDraftData = async () => {
       setIsLoading(true);
       try {
+        console.log('EnvironmentalDailyReportPrint - props:', { reportData, id });
+        console.log('EnvironmentalDailyReportPrint - location.state:', location.state);
+        
         // Prioritize reportData prop, then location.state, then load from storage
         if (reportData) {
           console.log('EnvironmentalDailyReportPrint: Using reportData prop:', reportData);
@@ -52,7 +55,15 @@ export default function EnvironmentalDailyReportPrint({ reportData }) {
         
         if (location.state?.reportData) {
           console.log('EnvironmentalDailyReportPrint: Using location.state.reportData:', location.state.reportData);
-          setDraft(location.state.reportData);
+          
+          // Check if the report data is complete
+          const reportData = location.state.reportData;
+          if (!reportData.header && !reportData.sections && !reportData.summaries) {
+            console.log('EnvironmentalDailyReportPrint: Incomplete report data detected');
+            // For incomplete data, we can't display much, but we'll try to show what we have
+          }
+          
+          setDraft(reportData);
           setIsLoading(false);
           return;
         }

@@ -100,7 +100,7 @@ export default function PunchlistReportPrint() {
   const hasPhotos = photos.length > 0 || hasItemPhotos;
 
   return (
-    <div className="bg-white min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
+    <div className="bg-black min-h-screen flex flex-col items-center justify-center py-8 print:py-0 print:bg-white">
       <style>{printPageBreakCss}</style>
       <style>{`
 @media print {
@@ -114,21 +114,32 @@ export default function PunchlistReportPrint() {
   .punchlist-table { 
     width: 100% !important; 
     border-collapse: collapse !important; 
-    font-size: 0.7rem !important; 
+    font-size: 0.6rem !important; 
+    table-layout: fixed !important;
   }
   .punchlist-table th, .punchlist-table td { 
-    font-size: 0.7rem !important; 
-    padding: 2px 4px !important; 
+    font-size: 0.6rem !important; 
+    padding: 1px 2px !important; 
     border: 1px solid #d1d5db !important;
+    overflow: hidden !important;
   }
   .punchlist-table th { 
     font-weight: bold !important; 
     background-color: #f3f4f6 !important; 
   }
   .punchlist-table .issue-cell, .punchlist-table .recommendations-cell {
-    max-width: 150px !important;
+    max-width: 120px !important;
     white-space: normal !important;
     word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+  .punchlist-table td {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    vertical-align: top !important;
   }
 }
 `}</style>
@@ -188,8 +199,8 @@ export default function PunchlistReportPrint() {
                         <td className="py-2 px-2">{row.end_station || '—'}</td>
                         <td className="py-2 px-2">{row.feature || '—'}</td>
                         <td className="py-2 px-2">{formatDate(row.date_observed)}</td>
-                        <td className="py-2 px-2 issue-cell" style={{ whiteSpace: 'pre-line', maxWidth: '150px' }}>{row.issue || '—'}</td>
-                        <td className="py-2 px-2 recommendations-cell" style={{ whiteSpace: 'pre-line', maxWidth: '150px' }}>{row.recommendations || '—'}</td>
+                        <td className="py-2 px-2 issue-cell" style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '120px' }}>{row.issue || '—'}</td>
+                        <td className="py-2 px-2 recommendations-cell" style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word', maxWidth: '120px' }}>{row.recommendations || '—'}</td>
                       </tr>
                     ))}
                   </tbody>

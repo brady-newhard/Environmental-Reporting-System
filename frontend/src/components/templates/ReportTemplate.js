@@ -49,7 +49,7 @@ const defaultConfig = {
   requiresPhotos: true
 };
 
-const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, onDelete, onReview, onChange }) => {
+const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, onDelete, onReview, onResubmit, onChange }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -1896,6 +1896,31 @@ const ReportTemplate = ({ config = defaultConfig, initialData = null, onSave, on
               <PencilIcon className="h-5 h-5 mr-2" />
               <span className="hidden sm:inline">{loading ? 'Saving...' : 'Save'}</span>
             </button>
+            
+            {/* Resubmit button for submitted reports */}
+            {onResubmit && (
+              <button
+                type="button"
+                disabled={loading}
+                onClick={async () => {
+                  const formData = {
+                    id: draftId,
+                    header,
+                    sections,
+                    summaries,
+                    photos,
+                    signature: sigPadRef.current ? sigPadRef.current.toDataURL() : '',
+                    sigDate: sigDate || '',
+                    preparedBy,
+                  };
+                  await onResubmit(formData);
+                }}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors ml-2"
+              >
+                <CheckIcon className="h-5 w-5 mr-2" />
+                <span className="hidden sm:inline">{loading ? 'Resubmitting...' : 'Resubmit'}</span>
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -2068,6 +2093,7 @@ ReportTemplate.propTypes = {
   onSave: PropTypes.func.isRequired,
   onDelete: PropTypes.func,
   onReview: PropTypes.func,
+  onResubmit: PropTypes.func,
   onChange: PropTypes.func
 };
 

@@ -8,7 +8,7 @@ import ReportPhotoSection from '../../../../components/common/ReportPhotoSection
 import PageHeader from '../../../common/PageHeader';
 import api from '../../../../services/api';
 
-export default function SWPPPReportForm() {
+export default function SWPPPReportForm({ onResubmit, isEditingSubmitted = false }) {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -211,6 +211,7 @@ export default function SWPPPReportForm() {
         initialData={draft}
         onChange={handleDraftChange}
         onSave={handleSave}
+        onResubmit={onResubmit}
         onDelete={id ? handleDelete : undefined}
         onReview={draft?.id ? handleReview : undefined}
         onCancel={handleCloseSnackbar}
@@ -226,4 +227,4 @@ export default function SWPPPReportForm() {
       )}
     </div>
   );
-} 
+}

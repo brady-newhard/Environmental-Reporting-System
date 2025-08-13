@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { getDraftCount } from '../../../../utils/draftUtils';
+import { getSubmittedReportsCount } from '../../../../services/api';
 
-const ReportTypeCard = ({ title, description, path, draftPath, draftCount }) => {
+const ReportTypeCard = ({ title, description, path, draftPath, draftCount, submittedPath, submittedCount }) => {
   const navigate = useNavigate();
   return (
     <div className="h-52 w-full flex flex-col bg-gray-800 rounded-lg shadow hover:shadow-lg hover:-translate-y-0.5 transition-all border border-gray-700 p-6">
@@ -18,21 +19,38 @@ const ReportTypeCard = ({ title, description, path, draftPath, draftCount }) => 
       >
         Create New Report
       </button>
-      {draftPath && (
-        <div
-          onClick={() => navigate(draftPath)}
-          className="cursor-pointer text-center mt-2 w-full flex items-center justify-center"
-        >
-          <span className="text-blue-400 font-medium text-sm flex items-center gap-2">
-            View Draft Reports
-            {draftCount > 0 && (
-              <span className="ml-1 bg-red-600/80 text-white px-2 py-0.5 rounded-full text-xs">
-                {draftCount}
-              </span>
-            )}
-          </span>
-        </div>
-      )}
+      <div className="flex justify-between mt-2">
+        {draftPath && (
+          <div
+            onClick={() => navigate(draftPath)}
+            className="cursor-pointer text-center flex-1 flex items-center justify-center"
+          >
+            <span className="text-blue-400 font-medium text-sm flex items-center gap-2">
+              Drafts
+              {draftCount > 0 && (
+                <span className="ml-1 bg-red-600/80 text-white px-2 py-0.5 rounded-full text-xs">
+                  {draftCount}
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+        {submittedPath && (
+          <div
+            onClick={() => navigate(submittedPath)}
+            className="cursor-pointer text-center flex-1 flex items-center justify-center"
+          >
+            <span className="text-green-400 font-medium text-sm flex items-center gap-2">
+              Submitted
+              {submittedCount > 0 && (
+                <span className="ml-1 bg-green-600/80 text-white px-2 py-0.5 rounded-full text-xs">
+                  {submittedCount}
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -43,6 +61,9 @@ const EnvironmentalDashboard = () => {
   const [swpppDraftCount, setSwpppDraftCount] = useState(0);
   const [dailyDraftCount, setDailyDraftCount] = useState(0);
   const [punchlistDraftCount, setPunchlistDraftCount] = useState(0);
+  const [submittedSwpppCount, setSubmittedSwpppCount] = useState(0);
+  const [submittedDailyCount, setSubmittedDailyCount] = useState(0);
+  const [submittedPunchlistCount, setSubmittedPunchlistCount] = useState(0);
 
   useEffect(() => {
     const loadDraftCounts = async () => {
@@ -59,8 +80,32 @@ const EnvironmentalDashboard = () => {
         console.error('Error loading draft counts:', error);
       }
     };
+
+    const loadSubmittedCounts = async () => {
+      try {
+        const [submittedSwppp, submittedDaily, submittedPunchlist] = await Promise.all([
+          getSubmittedReportsCount('swppp'),
+          getSubmittedReportsCount('environmental_daily'),
+          getSubmittedReportsCount('punchlist')
+        ]);
+        
+        console.log('Submitted counts:', {
+          swppp: submittedSwppp,
+          daily: submittedDaily,
+          punchlist: submittedPunchlist
+        });
+        
+        setSubmittedSwpppCount(submittedSwppp);
+        setSubmittedDailyCount(submittedDaily);
+        setSubmittedPunchlistCount(submittedPunchlist);
+      } catch (error) {
+        console.error('Error loading submitted counts:', error);
+      }
+    };
+
     if (!loading && isAuthenticated) {
       loadDraftCounts();
+      loadSubmittedCounts();
     }
   }, [loading, isAuthenticated]);
 
@@ -70,21 +115,27 @@ const EnvironmentalDashboard = () => {
       description: "Activities and Compliance.",
       path: "/environmental/reports/daily/new",
       draftPath: "/environmental/reports/daily/drafts",
-      draftCount: dailyDraftCount
+      draftCount: dailyDraftCount,
+      submittedPath: "/environmental/reports/daily/submitted",
+      submittedCount: submittedDailyCount
     },
     {
       title: "SWPPP Report",
       description: "State SWPPP Inspection",
       path: "/environmental/swppp/new",
       draftPath: "/environmental/swppp/drafts",
-      draftCount: swpppDraftCount
+      draftCount: swpppDraftCount,
+      submittedPath: "/environmental/swppp/submitted",
+      submittedCount: submittedSwpppCount
     },
     {
       title: "Environmental Punchlist",
       description: "Environmental Compliance Items",
       path: "/environmental/reports/punchlist/new",
       draftPath: "/environmental/reports/punchlist/drafts",
-      draftCount: punchlistDraftCount
+      draftCount: punchlistDraftCount,
+      submittedPath: "/environmental/reports/punchlist/submitted",
+      submittedCount: submittedPunchlistCount
     },
     {
       title: "Progress Report",
@@ -115,6 +166,8 @@ const EnvironmentalDashboard = () => {
               path={type.path}
               draftPath={type.draftPath}
               draftCount={type.draftCount}
+              submittedPath={type.submittedPath}
+              submittedCount={type.submittedCount}
             />
           ))}
         </div>

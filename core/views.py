@@ -61,6 +61,29 @@ class ReportApprovalViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(submitted_by=self.request.user)
     
+    def update(self, request, *args, **kwargs):
+        """Custom update method to handle submitted report updates"""
+        instance = self.get_object()
+        user = request.user
+        
+        # Check if user is the original submitter or has permission to update
+        if instance.submitted_by != user:
+            # Check if user is admin or lead
+            try:
+                profile = user.profile
+                if profile.role not in ['admin', 'lead']:
+                    return Response({'error': 'You can only update reports you submitted'}, status=status.HTTP_403_FORBIDDEN)
+            except UserProfile.DoesNotExist:
+                return Response({'error': 'User profile not found'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Only allow updates to report_data for submitted reports
+        if 'report_data' in request.data:
+            instance.report_data = request.data['report_data']
+            instance.save()
+            return Response({'message': 'Report updated successfully'})
+        else:
+            return Response({'error': 'Only report_data can be updated'}, status=status.HTTP_400_BAD_REQUEST)
+    
     @action(detail=True, methods=['post'])
     def assign_lead(self, request, pk=None):
         """Assign a lead to review the report"""

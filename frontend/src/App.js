@@ -27,6 +27,8 @@ import EnvironmentalReports from './components/disciplines/environmental/main/En
 import PunchlistDrafts from './components/disciplines/environmental/punchlists/PunchlistDrafts';
 import PunchlistReport from './components/disciplines/environmental/punchlists/PunchlistReport';
 import PunchlistReportReview from './components/disciplines/environmental/punchlists/PunchlistReportReview';
+import PunchlistReportSubmitted from './components/disciplines/environmental/punchlists/PunchlistReportSubmitted';
+import PunchlistReportEditSubmitted from './components/disciplines/environmental/punchlists/PunchlistReportEditSubmitted';
 import PunchlistReportPrint from './components/disciplines/environmental/punchlists/PunchlistReportPrint';
 // import NewSWPPP from './components/disciplines/environmental/swppp/NewSWPPP';
 import SWPPPReport from './components/disciplines/environmental/swppp/SWPPPReport';
@@ -39,7 +41,11 @@ import EnvironmentalDailyReport from './components/disciplines/environmental/dai
 import EnvironmentalDailyReportReview from './components/disciplines/environmental/daily/EnvironmentalDailyReportReview';
 import EnvironmentalDailyReportDrafts from './components/disciplines/environmental/daily/EnvironmentalDailyReportDrafts';
 import EnvironmentalDailyReportForm from './components/disciplines/environmental/daily/EnvironmentalDailyReportForm';
+import EnvironmentalDailyReportSubmitted from './components/disciplines/environmental/daily/EnvironmentalDailyReportSubmitted';
+import EnvironmentalDailyReportEditSubmitted from './components/disciplines/environmental/daily/EnvironmentalDailyReportEditSubmitted';
 import SWPPPReportReview from './components/disciplines/environmental/swppp/SWPPPReportReview';
+import SWPPPReportSubmitted from './components/disciplines/environmental/swppp/SWPPPReportSubmitted';
+import SWPPPReportEditSubmitted from './components/disciplines/environmental/swppp/SWPPPReportEditSubmitted';
 import EnvironmentalDailyReportPrint from './components/disciplines/environmental/daily/EnvironmentalDailyReportPrint';
 import SWPPPReportPrint from './components/disciplines/environmental/swppp/SWPPPReportPrint';
 
@@ -410,6 +416,22 @@ function AppContent() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/environmental/reports/daily/submitted"
+            element={
+              <PrivateRoute>
+                <EnvironmentalDailyReportSubmitted />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/reports/daily/edit-submitted/:reportId"
+            element={
+              <PrivateRoute>
+                <EnvironmentalDailyReportEditSubmitted />
+              </PrivateRoute>
+            }
+          />
           {/* SWPPP Reports */}
           <Route
             path="/environmental/swppp/new"
@@ -451,6 +473,22 @@ function AppContent() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/environmental/swppp/submitted"
+            element={
+              <PrivateRoute>
+                <SWPPPReportSubmitted />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/swppp/edit-submitted/:reportId"
+            element={
+              <PrivateRoute>
+                <SWPPPReportEditSubmitted />
+              </PrivateRoute>
+            }
+          />
           {/* Punchlist Reports */}
           <Route
             path="/environmental/reports/punchlist/new"
@@ -489,6 +527,22 @@ function AppContent() {
             element={
               <PrivateRoute>
                 <PunchlistReportPrint />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/reports/punchlist/submitted"
+            element={
+              <PrivateRoute>
+                <PunchlistReportSubmitted />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/environmental/reports/punchlist/edit-submitted/:reportId"
+            element={
+              <PrivateRoute>
+                <PunchlistReportEditSubmitted />
               </PrivateRoute>
             }
           />

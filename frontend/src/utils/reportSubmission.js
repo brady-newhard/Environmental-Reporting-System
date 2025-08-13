@@ -63,7 +63,16 @@ export const prepareEnvironmentalDailyReport = (formData) => {
     report_type: 'environmental_daily',
     discipline: 'environmental',
     data: {
-      // Header data
+      // Preserve the original structure for editing
+      header: header,
+      sections: sections,
+      summaries: summaries,
+      photos: formData.photos || [],
+      signature: formData.signature || '',
+      sigDate: formData.sigDate || header.date,
+      preparedBy: formData.preparedBy || header.inspector,
+      
+      // Also include flattened data for backward compatibility
       date: header.date || header.inspection_date,
       location: header.location || header.project,
       facility: header.facility,
@@ -95,16 +104,7 @@ export const prepareEnvironmentalDailyReport = (formData) => {
       progress_end_station: progressRow['End Station'],
       
       // Other data
-      notes: summaries.notes,
-      photos: formData.photos || [],
-      prepared_by: formData.preparedBy || header.inspector,
-      signature: formData.signature || '',
-      signature_date: formData.sigDate || header.date,
-      
-      // Store the full structure for compatibility
-      header: header,
-      sections: sections,
-      summaries: summaries
+      notes: summaries.notes
     }
   };
 };
@@ -237,6 +237,10 @@ export const prepareSWPPPReport = (formData) => {
     report_type: 'swppp',
     discipline: 'environmental',
     data: {
+      // Preserve the original structure for editing
+      ...formData,
+      
+      // Also include flattened data for backward compatibility
       date: formData.date,
       location: formData.location,
       weather_conditions: formData.weather_conditions,
@@ -264,6 +268,10 @@ export const preparePunchlistReport = (formData) => {
     report_type: 'punchlist',
     discipline: 'environmental',
     data: {
+      // Preserve the original structure for editing
+      ...formData,
+      
+      // Also include flattened data for backward compatibility
       title: formData.title,
       date: formData.date,
       location: formData.location,

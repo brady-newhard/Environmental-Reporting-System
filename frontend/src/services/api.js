@@ -215,4 +215,116 @@ export const getDashboardStats = async () => {
   }
 };
 
+// Get submitted reports count for current user
+export const getSubmittedReportsCount = async (reportType = null) => {
+  try {
+    const params = new URLSearchParams();
+    params.append('status', 'submitted');
+    if (reportType) {
+      params.append('report_type', reportType);
+    }
+    
+    console.log(`Getting submitted reports count for type: ${reportType}`);
+    console.log(`API URL params: ${params.toString()}`);
+    
+    const response = await api.get(`/reports/?${params.toString()}`);
+    console.log(`API response for ${reportType}:`, response.data);
+    
+    // If backend filtering isn't working, filter on frontend
+    let filteredReports = response.data;
+    if (reportType && response.data.length > 0) {
+      filteredReports = response.data.filter(report => report.report_type === reportType);
+      console.log(`Frontend filtered reports for ${reportType}:`, filteredReports);
+    }
+    
+    return filteredReports.length;
+  } catch (error) {
+    console.error('Error fetching submitted reports count:', error);
+    return 0;
+  }
+};
+
+// Get submitted reports for current user
+export const getSubmittedReports = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    params.append('status', 'submitted');
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
+    
+    console.log('Getting submitted reports with filters:', filters);
+    console.log('API URL params:', params.toString());
+    
+    const response = await api.get(`/reports/?${params.toString()}`);
+    console.log('API response for submitted reports:', response.data);
+    
+    // If backend filtering isn't working, filter on frontend
+    let filteredReports = response.data;
+    if (filters.report_type && response.data.length > 0) {
+      filteredReports = response.data.filter(report => report.report_type === filters.report_type);
+      console.log(`Frontend filtered reports for ${filters.report_type}:`, filteredReports);
+    }
+    
+    return filteredReports;
+  } catch (error) {
+    console.error('Error fetching submitted reports:', error);
+    throw error;
+  }
+};
+
+// Update submitted report
+export const updateSubmittedReport = async (reportId, reportData) => {
+  try {
+    console.log('updateSubmittedReport - reportId:', reportId);
+    console.log('updateSubmittedReport - reportData:', reportData);
+    console.log('updateSubmittedReport - reportData type:', typeof reportData);
+    console.log('updateSubmittedReport - reportData keys:', Object.keys(reportData || {}));
+    
+    // Validate reportData
+    if (!reportData || typeof reportData !== 'object') {
+      throw new Error('Invalid reportData: must be an object');
+    }
+    
+    // Ensure reportData is serializable
+    try {
+      JSON.stringify(reportData);
+    } catch (e) {
+      throw new Error('Invalid reportData: not JSON serializable');
+    }
+    
+    const requestData = {
+      report_data: reportData
+    };
+    console.log('updateSubmittedReport - requestData:', requestData);
+    
+    // Only send the report_data field for updates, don't change other fields
+    const response = await api.put(`/reports/${reportId}/`, requestData);
+    console.log('updateSubmittedReport - response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating submitted report:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    console.error('Error headers:', error.response?.headers);
+    throw error;
+  }
+};
+
+// Delete submitted report
+export const deleteSubmittedReport = async (reportId) => {
+  try {
+    console.log('deleteSubmittedReport - reportId:', reportId);
+    
+    const response = await api.delete(`/reports/${reportId}/`);
+    console.log('deleteSubmittedReport - response:', response);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting submitted report:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    throw error;
+  }
+};
+
 export default api; 

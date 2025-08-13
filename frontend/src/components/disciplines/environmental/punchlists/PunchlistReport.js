@@ -7,7 +7,7 @@ import ReportPhotoSection from '../../../../components/common/ReportPhotoSection
 import PageHeader from '../../../common/PageHeader';
 import api from '../../../../services/api';
 
-const PunchlistReport = () => {
+const PunchlistReport = ({ onResubmit, isEditingSubmitted = false }) => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -162,6 +162,7 @@ const PunchlistReport = () => {
         config={punchlistReportConfig} 
         initialData={draft}
         onSave={handleSave}
+        onResubmit={onResubmit}
         onDelete={handleDelete}
         onReview={handleReview}
         onExit={handleExit}
